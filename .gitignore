@@ -21,3 +21,6 @@ TestResults/
 
 # Build artifacts
 artifacts/
+
+# Benchmark results
+BenchmarkDotNet.Artifacts/
