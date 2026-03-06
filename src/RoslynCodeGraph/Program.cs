@@ -28,6 +28,7 @@ var builder = Host.CreateApplicationBuilder(args);
 if (loaded != null)
 {
     builder.Services.AddSingleton(loaded);
+    builder.Services.AddSingleton<SymbolResolver>();
 }
 
 builder.Services
