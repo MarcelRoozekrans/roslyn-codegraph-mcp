@@ -1,4 +1,4 @@
-workflow: ContinuousDeployment
+mode: ContinuousDeployment
 branches:
   main:
     regex: ^main$
