@@ -19,6 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Fixtures\**" />
+    <None Include="Fixtures\**" CopyToOutputDirectory="Never" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\RoslynCodeGraph\RoslynCodeGraph.csproj" />
   </ItemGroup>
 
