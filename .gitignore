@@ -1,0 +1,20 @@
+# Build outputs
+bin/
+obj/
+Debug/
+Release/
+
+# Visual Studio
+*.user
+*.suo
+.vs/
+
+# VS Code
+.vscode/
+
+# NuGet
+packages/
+*.nupkg
+
+# Test results
+TestResults/
