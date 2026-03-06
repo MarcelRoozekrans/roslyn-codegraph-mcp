@@ -50,6 +50,21 @@ The server automatically discovers `.sln` files by walking up from the current d
 roslyn-codegraph-mcp /path/to/MySolution.sln
 ```
 
+## Performance
+
+All type lookups use pre-built reverse inheritance maps for O(1) access. Benchmarked on an i9-12900HK with .NET 10.0.3:
+
+| Tool | Latency | Memory |
+|------|--------:|-------:|
+| `find_implementations` | 682 ns | 624 B |
+| `find_callers` | 164 µs | 32 KB |
+| `get_type_hierarchy` | 709 ns | 816 B |
+| `get_symbol_context` | 1.3 µs | 1.0 KB |
+| `get_di_registrations` | 55 µs | 13 KB |
+| `get_project_dependencies` | 339 ns | 1.2 KB |
+| `find_reflection_usage` | 87 µs | 15 KB |
+| Solution loading (one-time) | ~1.1 s | 8 MB |
+
 ## Requirements
 
 - .NET 10 SDK
@@ -60,6 +75,7 @@ roslyn-codegraph-mcp /path/to/MySolution.sln
 ```bash
 dotnet build
 dotnet test
+dotnet run --project benchmarks/RoslynCodeGraph.Benchmarks -c Release
 ```
 
 ## License
