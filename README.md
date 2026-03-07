@@ -13,10 +13,16 @@ A Roslyn-based MCP server that provides semantic code intelligence for .NET code
 - **find_reflection_usage** — Detect dynamic/reflection-based usage
 - **find_references** — Find all references to any symbol (types, methods, properties, fields, events)
 - **go_to_definition** — Find the source file and line where a symbol is defined
-- **get_diagnostics** — List compiler errors and warnings across the solution
+- **get_diagnostics** — List compiler errors, warnings, and Roslyn analyzer diagnostics
+- **get_code_fixes** — Get available code fixes with structured text edits for any diagnostic
 - **search_symbols** — Fuzzy workspace symbol search by name
 - **get_nuget_dependencies** — List NuGet package references per project
 - **find_attribute_usages** — Find types and members decorated with a specific attribute
+- **find_circular_dependencies** — Detect cycles in project or namespace dependency graphs
+- **get_complexity_metrics** — Cyclomatic complexity analysis per method
+- **find_naming_violations** — Check .NET naming convention compliance
+- **find_large_classes** — Find oversized types by member or line count
+- **find_unused_symbols** — Dead code detection via reference analysis
 
 ## Installation
 
@@ -75,6 +81,11 @@ All type lookups use pre-built reverse inheritance maps, member indexes, and att
 | `find_callers` | 208 µs | 38 KB |
 | `search_symbols` | 598 µs | 2.3 KB |
 | `find_references` | 1.0 ms | 202 KB |
+| `find_circular_dependencies` | — | — |
+| `get_complexity_metrics` | — | — |
+| `find_naming_violations` | — | — |
+| `find_large_classes` | — | — |
+| `find_unused_symbols` | — | — |
 | Solution loading (one-time) | ~1.0 s | 8 MB |
 
 ## Requirements
