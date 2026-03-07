@@ -36,7 +36,16 @@ Use these tools **instead of Grep/Glob** whenever you need to understand .NET co
 
 ### Diagnosing Issues
 
-- Use `get_diagnostics` to list compiler errors and warnings across the solution, optionally filtered by project or severity
+- Use `get_diagnostics` to list compiler errors, warnings, and Roslyn analyzer diagnostics across the solution
+- Use `get_code_fixes` to get structured text edits for fixing a specific diagnostic — review and apply via Edit tool
+
+### Code Quality Analysis
+
+- Use `find_unused_symbols` to detect dead code — types/members with no references
+- Use `get_complexity_metrics` to find overly complex methods (cyclomatic complexity above threshold)
+- Use `find_naming_violations` to check .NET naming convention compliance (PascalCase, camelCase, I-prefix, _ prefix)
+- Use `find_large_classes` to identify types that may need refactoring (too many members or lines)
+- Use `find_circular_dependencies` to detect project or namespace dependency cycles
 
 ### Planning Changes
 
@@ -48,7 +57,10 @@ Before modifying code, use these tools to understand the impact:
 4. `get_di_registrations` — how is it wired up?
 5. `find_reflection_usage` — is it used dynamically?
 6. `find_attribute_usages` — are there attribute-driven behaviors (authorization, serialization, etc.)?
-7. `get_diagnostics` — are there existing compiler warnings to address?
+7. `get_diagnostics` — are there existing compiler/analyzer warnings to address?
+8. `get_code_fixes` — can any warnings be auto-fixed?
+9. `find_unused_symbols` — is there dead code to clean up?
+10. `get_complexity_metrics` — are there overly complex methods?
 
 Reference concrete types, interfaces, and call sites in your analysis. Example: "These 3 classes implement IUserService: UserService, CachedUserService, AdminUserService."
 
@@ -69,3 +81,9 @@ Reference concrete types, interfaces, and call sites in your analysis. Example: 
 | `find_reflection_usage` | "Is this used dynamically?" / "Are there hidden dependencies?" |
 | `find_attribute_usages` | "What's marked [Obsolete]?" / "Find all [Authorize] controllers" |
 | `get_diagnostics` | "Any compiler errors?" / "Show warnings for this project" |
+| `get_code_fixes` | "How do I fix this warning?" / "Get auto-fix suggestions" |
+| `find_unused_symbols` | "Any dead code?" / "What's not being used?" |
+| `get_complexity_metrics` | "Which methods are too complex?" |
+| `find_naming_violations` | "Check naming conventions" |
+| `find_large_classes` | "Find classes that need splitting" |
+| `find_circular_dependencies` | "Any circular dependencies?" |

@@ -36,4 +36,30 @@ public class GetDiagnosticsToolTests : IAsyncLifetime
         Assert.True(filtered.Count <= all.Count);
         Assert.All(filtered, d => Assert.Contains("TestLib", d.Project));
     }
+
+    [Fact]
+    public async Task GetDiagnostics_WithAnalyzers_IncludesAnalyzerDiagnostics()
+    {
+        var results = await GetDiagnosticsLogic.ExecuteAsync(
+            _loaded, _resolver, null, null, includeAnalyzers: true);
+
+        // Any analyzer diagnostics should have Source starting with "analyzer"
+        var analyzerResults = results.Where(d => d.Source.StartsWith("analyzer")).ToList();
+        // Compiler diagnostics should still be present with Source == "compiler"
+        var compilerResults = results.Where(d => d.Source == "compiler").ToList();
+
+        // All results should have a valid source
+        Assert.All(results, d => Assert.True(
+            d.Source == "compiler" || d.Source.StartsWith("analyzer:"),
+            $"Unexpected source: {d.Source}"));
+    }
+
+    [Fact]
+    public async Task GetDiagnostics_WithoutAnalyzers_OnlyCompilerDiagnostics()
+    {
+        var results = await GetDiagnosticsLogic.ExecuteAsync(
+            _loaded, _resolver, null, null, includeAnalyzers: false);
+
+        Assert.All(results, d => Assert.Equal("compiler", d.Source));
+    }
 }
