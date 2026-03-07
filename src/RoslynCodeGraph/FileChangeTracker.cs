@@ -82,7 +82,10 @@ public class FileChangeTracker : IDisposable
 
     public ProjectId? FindProjectForFile(string filePath)
     {
-        return _fileToProject.TryGetValue(filePath, out var id) ? id : null;
+        lock (_lock)
+        {
+            return _fileToProject.TryGetValue(filePath, out var id) ? id : null;
+        }
     }
 
     public void MarkProjectStale(ProjectId projectId)
@@ -153,7 +156,9 @@ public class FileChangeTracker : IDisposable
     private void OnFileChangedPath(string fullPath)
     {
         if (fullPath.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
-            || fullPath.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}"))
+            || fullPath.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")
+            || fullPath.Contains($"{Path.AltDirectorySeparatorChar}obj{Path.AltDirectorySeparatorChar}")
+            || fullPath.Contains($"{Path.AltDirectorySeparatorChar}bin{Path.AltDirectorySeparatorChar}"))
             return;
 
         lock (_lock)
