@@ -13,6 +13,7 @@ public class SymbolResolver
     private readonly Dictionary<INamedTypeSymbol, List<INamedTypeSymbol>> _interfaceImplementors;
     private readonly Dictionary<INamedTypeSymbol, List<INamedTypeSymbol>> _derivedTypes;
     private readonly Dictionary<string, List<ISymbol>> _membersBySimpleName;
+    private readonly Dictionary<string, List<(ISymbol Symbol, AttributeData Attribute)>> _attributeIndex;
 
     public SymbolResolver(LoadedSolution loaded)
     {
@@ -101,12 +102,22 @@ public class SymbolResolver
 
         // Build member name index for fast search
         _membersBySimpleName = new Dictionary<string, List<ISymbol>>(StringComparer.OrdinalIgnoreCase);
+        // Build attribute index keyed by attribute simple name (without "Attribute" suffix)
+        _attributeIndex = new Dictionary<string, List<(ISymbol, AttributeData)>>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var type in _allTypes)
         {
+            // Index type-level attributes
+            IndexAttributes(type);
+
             foreach (var member in type.GetMembers())
             {
                 if (member.IsImplicitlyDeclared || string.IsNullOrEmpty(member.Name))
                     continue;
+
+                // Index member-level attributes
+                IndexAttributes(member);
+
                 if (member is IMethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove })
                     continue;
 
@@ -116,6 +127,36 @@ public class SymbolResolver
                     _membersBySimpleName[member.Name] = memberList;
                 }
                 memberList.Add(member);
+            }
+        }
+    }
+
+    private void IndexAttributes(ISymbol symbol)
+    {
+        foreach (var attr in symbol.GetAttributes())
+        {
+            var attrName = attr.AttributeClass?.Name;
+            if (string.IsNullOrEmpty(attrName))
+                continue;
+
+            // Index by full name (e.g., "ObsoleteAttribute")
+            if (!_attributeIndex.TryGetValue(attrName, out var list))
+            {
+                list = new List<(ISymbol, AttributeData)>();
+                _attributeIndex[attrName] = list;
+            }
+            list.Add((symbol, attr));
+
+            // Also index by short name (e.g., "Obsolete")
+            if (attrName.EndsWith("Attribute", StringComparison.Ordinal))
+            {
+                var shortName = attrName[..^"Attribute".Length];
+                if (!_attributeIndex.TryGetValue(shortName, out var shortList))
+                {
+                    shortList = new List<(ISymbol, AttributeData)>();
+                    _attributeIndex[shortName] = shortList;
+                }
+                shortList.Add((symbol, attr));
             }
         }
     }
@@ -244,6 +285,7 @@ public class SymbolResolver
 
     public IReadOnlyDictionary<string, List<INamedTypeSymbol>> TypesBySimpleName => _typesBySimpleName;
     public IReadOnlyDictionary<string, List<ISymbol>> MembersBySimpleName => _membersBySimpleName;
+    public IReadOnlyDictionary<string, List<(ISymbol Symbol, AttributeData Attribute)>> AttributeIndex => _attributeIndex;
 
     /// <summary>
     /// Returns all types that implement the given interface, using pre-built index.

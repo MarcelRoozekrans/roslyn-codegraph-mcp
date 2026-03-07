@@ -108,4 +108,16 @@ public class CodeGraphBenchmarks
     {
         return SearchSymbolsLogic.Execute(_resolver, "Greet");
     }
+
+    [Benchmark(Description = "get_nuget_dependencies: all")]
+    public object GetNugetDependencies()
+    {
+        return GetNugetDependenciesLogic.Execute(_loaded, null)!;
+    }
+
+    [Benchmark(Description = "find_attribute_usages: Obsolete")]
+    public object FindAttributeUsages()
+    {
+        return FindAttributeUsagesLogic.Execute(_loaded, _resolver, "Obsolete");
+    }
 }
