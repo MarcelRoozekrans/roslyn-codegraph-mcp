@@ -12,6 +12,8 @@ public class SymbolResolver
     private readonly Dictionary<ProjectId, string> _projectIdToName;
     private readonly Dictionary<INamedTypeSymbol, List<INamedTypeSymbol>> _interfaceImplementors;
     private readonly Dictionary<INamedTypeSymbol, List<INamedTypeSymbol>> _derivedTypes;
+    private readonly Dictionary<string, List<ISymbol>> _membersBySimpleName;
+    private readonly Dictionary<string, List<(ISymbol Symbol, AttributeData Attribute)>> _attributeIndex;
 
     public SymbolResolver(LoadedSolution loaded)
     {
@@ -95,6 +97,66 @@ public class SymbolResolver
                 }
                 derivedList.Add(type);
                 baseType = baseType.BaseType;
+            }
+        }
+
+        // Build member name index for fast search
+        _membersBySimpleName = new Dictionary<string, List<ISymbol>>(StringComparer.OrdinalIgnoreCase);
+        // Build attribute index keyed by attribute simple name (without "Attribute" suffix)
+        _attributeIndex = new Dictionary<string, List<(ISymbol, AttributeData)>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var type in _allTypes)
+        {
+            // Index type-level attributes
+            IndexAttributes(type);
+
+            foreach (var member in type.GetMembers())
+            {
+                if (member.IsImplicitlyDeclared || string.IsNullOrEmpty(member.Name))
+                    continue;
+
+                // Index member-level attributes
+                IndexAttributes(member);
+
+                if (member is IMethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove })
+                    continue;
+
+                if (!_membersBySimpleName.TryGetValue(member.Name, out var memberList))
+                {
+                    memberList = new List<ISymbol>();
+                    _membersBySimpleName[member.Name] = memberList;
+                }
+                memberList.Add(member);
+            }
+        }
+    }
+
+    private void IndexAttributes(ISymbol symbol)
+    {
+        foreach (var attr in symbol.GetAttributes())
+        {
+            var attrName = attr.AttributeClass?.Name;
+            if (string.IsNullOrEmpty(attrName))
+                continue;
+
+            // Index by full name (e.g., "ObsoleteAttribute")
+            if (!_attributeIndex.TryGetValue(attrName, out var list))
+            {
+                list = new List<(ISymbol, AttributeData)>();
+                _attributeIndex[attrName] = list;
+            }
+            list.Add((symbol, attr));
+
+            // Also index by short name (e.g., "Obsolete")
+            if (attrName.EndsWith("Attribute", StringComparison.Ordinal))
+            {
+                var shortName = attrName[..^"Attribute".Length];
+                if (!_attributeIndex.TryGetValue(shortName, out var shortList))
+                {
+                    shortList = new List<(ISymbol, AttributeData)>();
+                    _attributeIndex[shortName] = shortList;
+                }
+                shortList.Add((symbol, attr));
             }
         }
     }
@@ -188,6 +250,42 @@ public class SymbolResolver
     {
         return _projectIdToName.TryGetValue(projectId, out var name) ? name : "";
     }
+
+    public List<ISymbol> FindMembers(string symbol)
+    {
+        var results = new List<ISymbol>();
+        var parts = symbol.Split('.');
+        if (parts.Length < 2) return results;
+
+        var typeName = string.Join('.', parts[..^1]);
+        var memberName = parts[^1];
+
+        foreach (var type in FindNamedTypes(typeName))
+        {
+            results.AddRange(type.GetMembers(memberName));
+        }
+
+        return results;
+    }
+
+    public List<ISymbol> FindSymbols(string symbol)
+    {
+        // Try as type first
+        var types = FindNamedTypes(symbol);
+        if (types.Count > 0)
+            return types.Cast<ISymbol>().ToList();
+
+        // Try as Type.Member (methods, properties, fields, events)
+        var members = FindMembers(symbol);
+        if (members.Count > 0)
+            return members;
+
+        return [];
+    }
+
+    public IReadOnlyDictionary<string, List<INamedTypeSymbol>> TypesBySimpleName => _typesBySimpleName;
+    public IReadOnlyDictionary<string, List<ISymbol>> MembersBySimpleName => _membersBySimpleName;
+    public IReadOnlyDictionary<string, List<(ISymbol Symbol, AttributeData Attribute)>> AttributeIndex => _attributeIndex;
 
     /// <summary>
     /// Returns all types that implement the given interface, using pre-built index.
