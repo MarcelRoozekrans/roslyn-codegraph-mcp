@@ -56,18 +56,22 @@ roslyn-codegraph-mcp /path/to/MySolution.sln
 
 ## Performance
 
-All type lookups use pre-built reverse inheritance maps for O(1) access. Benchmarked on an i9-12900HK with .NET 10.0.3:
+All type lookups use pre-built reverse inheritance maps and member indexes for O(1) access. Benchmarked on an i9-12900HK with .NET 10.0.3:
 
 | Tool | Latency | Memory |
 |------|--------:|-------:|
-| `find_implementations` | 682 ns | 624 B |
-| `find_callers` | 164 µs | 32 KB |
-| `get_type_hierarchy` | 709 ns | 816 B |
-| `get_symbol_context` | 1.3 µs | 1.0 KB |
-| `get_di_registrations` | 55 µs | 13 KB |
-| `get_project_dependencies` | 339 ns | 1.2 KB |
-| `find_reflection_usage` | 87 µs | 15 KB |
-| Solution loading (one-time) | ~1.1 s | 8 MB |
+| `get_project_dependencies` | 311 ns | 1.2 KB |
+| `go_to_definition` | 363 ns | 528 B |
+| `find_implementations` | 684 ns | 624 B |
+| `get_type_hierarchy` | 749 ns | 816 B |
+| `get_symbol_context` | 1.2 µs | 1.0 KB |
+| `get_diagnostics` | 28 µs | 22 KB |
+| `get_di_registrations` | 59 µs | 13 KB |
+| `find_reflection_usage` | 82 µs | 15 KB |
+| `find_callers` | 171 µs | 32 KB |
+| `search_symbols` | 543 µs | 2.1 KB |
+| `find_references` | 911 µs | 187 KB |
+| Solution loading (one-time) | ~929 ms | 8 MB |
 
 ## Requirements
 
