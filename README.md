@@ -68,25 +68,25 @@ All type lookups use pre-built reverse inheritance maps, member indexes, and att
 
 | Tool | Latency | Memory |
 |------|--------:|-------:|
-| `get_project_dependencies` | 338 ns | 1.2 KB |
-| `go_to_definition` | 380 ns | 528 B |
-| `find_implementations` | 713 ns | 624 B |
-| `get_type_hierarchy` | 774 ns | 816 B |
+| `get_project_dependencies` | 325 ns | 1.2 KB |
+| `find_circular_dependencies` | 336 ns | 1.3 KB |
+| `go_to_definition` | 389 ns | 528 B |
+| `find_implementations` | 705 ns | 624 B |
+| `get_type_hierarchy` | 755 ns | 816 B |
 | `get_symbol_context` | 1.3 µs | 1.0 KB |
-| `find_attribute_usages` | 8.4 µs | 312 B |
-| `get_diagnostics` | 36 µs | 22 KB |
-| `get_di_registrations` | 66 µs | 13 KB |
-| `get_nuget_dependencies` | 72 µs | 14 KB |
-| `find_reflection_usage` | 96 µs | 15 KB |
-| `find_callers` | 208 µs | 38 KB |
-| `search_symbols` | 598 µs | 2.3 KB |
-| `find_references` | 1.0 ms | 202 KB |
-| `find_circular_dependencies` | — | — |
-| `get_complexity_metrics` | — | — |
-| `find_naming_violations` | — | — |
-| `find_large_classes` | — | — |
-| `find_unused_symbols` | — | — |
-| Solution loading (one-time) | ~1.0 s | 8 MB |
+| `find_attribute_usages` | 8.9 µs | 312 B |
+| `get_diagnostics` | 35 µs | 23 KB |
+| `get_complexity_metrics` | 64 µs | 5.7 KB |
+| `get_di_registrations` | 73 µs | 13 KB |
+| `get_nuget_dependencies` | 77 µs | 16 KB |
+| `find_large_classes` | 77 µs | 1.2 KB |
+| `find_reflection_usage` | 97 µs | 15 KB |
+| `find_callers` | 211 µs | 38 KB |
+| `search_symbols` | 603 µs | 2.3 KB |
+| `find_references` | 1.1 ms | 208 KB |
+| `find_unused_symbols` | 9.4 ms | 1.4 MB |
+| `find_naming_violations` | 39 ms | 671 KB |
+| Solution loading (one-time) | ~1.1 s | 8 MB |
 
 ## Requirements
 
