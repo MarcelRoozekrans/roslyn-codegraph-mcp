@@ -12,9 +12,8 @@ public static class SearchSymbolsLogic
     public static List<SymbolLocation> Execute(SymbolResolver resolver, string query)
     {
         var results = new List<SymbolLocation>();
-        var lowerQuery = query.ToLowerInvariant();
 
-        // Search types by simple name (substring match)
+        // Search types using pre-built index (substring match on keys)
         foreach (var (simpleName, types) in resolver.TypesBySimpleName)
         {
             if (!simpleName.Contains(query, StringComparison.OrdinalIgnoreCase))
@@ -43,17 +42,14 @@ public static class SearchSymbolsLogic
             }
         }
 
-        // Also search members if query looks like it could be a member name
-        foreach (var type in resolver.AllTypes)
+        // Search members using pre-built index (substring match on keys)
+        foreach (var (memberName, members) in resolver.MembersBySimpleName)
         {
-            foreach (var member in type.GetMembers())
+            if (!memberName.Contains(query, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            foreach (var member in members)
             {
-                if (member.IsImplicitlyDeclared)
-                    continue;
-
-                if (!member.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
                 var (file, line) = resolver.GetFileAndLine(member);
                 if (string.IsNullOrEmpty(file))
                     continue;

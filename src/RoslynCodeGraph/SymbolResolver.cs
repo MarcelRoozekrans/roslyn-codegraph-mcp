@@ -12,6 +12,7 @@ public class SymbolResolver
     private readonly Dictionary<ProjectId, string> _projectIdToName;
     private readonly Dictionary<INamedTypeSymbol, List<INamedTypeSymbol>> _interfaceImplementors;
     private readonly Dictionary<INamedTypeSymbol, List<INamedTypeSymbol>> _derivedTypes;
+    private readonly Dictionary<string, List<ISymbol>> _membersBySimpleName;
 
     public SymbolResolver(LoadedSolution loaded)
     {
@@ -95,6 +96,26 @@ public class SymbolResolver
                 }
                 derivedList.Add(type);
                 baseType = baseType.BaseType;
+            }
+        }
+
+        // Build member name index for fast search
+        _membersBySimpleName = new Dictionary<string, List<ISymbol>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var type in _allTypes)
+        {
+            foreach (var member in type.GetMembers())
+            {
+                if (member.IsImplicitlyDeclared || string.IsNullOrEmpty(member.Name))
+                    continue;
+                if (member is IMethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove })
+                    continue;
+
+                if (!_membersBySimpleName.TryGetValue(member.Name, out var memberList))
+                {
+                    memberList = new List<ISymbol>();
+                    _membersBySimpleName[member.Name] = memberList;
+                }
+                memberList.Add(member);
             }
         }
     }
@@ -222,6 +243,7 @@ public class SymbolResolver
     }
 
     public IReadOnlyDictionary<string, List<INamedTypeSymbol>> TypesBySimpleName => _typesBySimpleName;
+    public IReadOnlyDictionary<string, List<ISymbol>> MembersBySimpleName => _membersBySimpleName;
 
     /// <summary>
     /// Returns all types that implement the given interface, using pre-built index.
