@@ -22,7 +22,7 @@
     </PackageReference>
     <PackageReference Include="ClrHeapAllocationAnalyzer" Version="3.0.0">
       <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <IncludeAssets>build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>
 </Project>
