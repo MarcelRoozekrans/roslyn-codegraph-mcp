@@ -12,7 +12,7 @@ public class GetTypeHierarchyToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
     }
 
@@ -24,8 +24,8 @@ public class GetTypeHierarchyToolTests : IAsyncLifetime
         var result = GetTypeHierarchyLogic.Execute(_loaded, _resolver, "Greeter");
 
         Assert.NotNull(result);
-        Assert.Contains(result.Interfaces, i => i.FullName.Contains("IGreeter"));
-        Assert.Contains(result.Derived, d => d.FullName.Contains("FancyGreeter"));
+        Assert.Contains(result.Interfaces, i => i.FullName.Contains("IGreeter", StringComparison.Ordinal));
+        Assert.Contains(result.Derived, d => d.FullName.Contains("FancyGreeter", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class GetTypeHierarchyToolTests : IAsyncLifetime
         var result = GetTypeHierarchyLogic.Execute(_loaded, _resolver, "FancyGreeter");
 
         Assert.NotNull(result);
-        Assert.Contains(result.Bases, b => b.FullName.Contains("Greeter"));
+        Assert.Contains(result.Bases, b => b.FullName.Contains("Greeter", StringComparison.Ordinal));
         Assert.Empty(result.Derived);
     }
 

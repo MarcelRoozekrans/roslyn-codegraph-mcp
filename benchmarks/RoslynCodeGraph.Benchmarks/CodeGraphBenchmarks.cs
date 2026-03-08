@@ -16,31 +16,34 @@ public class CodeGraphBenchmarks
     static CodeGraphBenchmarks()
     {
         MSBuildLocator.RegisterDefaults();
+        FixturePath = FindFixturePath();
+    }
 
+    private static string FindFixturePath()
+    {
         // Walk up from the base directory to find the repo root (contains RoslynCodeGraph.slnx)
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir != null && !File.Exists(Path.Combine(dir.FullName, "RoslynCodeGraph.slnx")))
             dir = dir.Parent;
 
-        if (dir == null)
-            throw new InvalidOperationException(
-                "Could not find repo root (RoslynCodeGraph.slnx) starting from " + AppContext.BaseDirectory);
-
-        FixturePath = Path.Combine(dir.FullName,
-            "tests", "RoslynCodeGraph.Tests", "Fixtures", "TestSolution", "TestSolution.slnx");
+        return dir == null
+            ? throw new InvalidOperationException(
+                "Could not find repo root (RoslynCodeGraph.slnx) starting from " + AppContext.BaseDirectory)
+            : Path.Combine(dir.FullName,
+                "tests", "RoslynCodeGraph.Tests", "Fixtures", "TestSolution", "TestSolution.slnx");
     }
 
     [GlobalSetup]
     public async Task Setup()
     {
-        _loaded = await new SolutionLoader().LoadAsync(FixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(FixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
     }
 
     [Benchmark(Description = "Load and compile solution")]
     public async Task<LoadedSolution> SolutionLoading()
     {
-        return await new SolutionLoader().LoadAsync(FixturePath);
+        return await new SolutionLoader().LoadAsync(FixturePath).ConfigureAwait(false);
     }
 
     [Benchmark(Description = "find_implementations: IGreeter")]

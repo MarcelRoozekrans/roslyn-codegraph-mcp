@@ -4,7 +4,6 @@ namespace RoslynCodeGraph;
 
 public class SymbolResolver
 {
-    private readonly LoadedSolution _loaded;
     private readonly List<INamedTypeSymbol> _allTypes;
     private readonly Dictionary<string, List<INamedTypeSymbol>> _typesBySimpleName;
     private readonly Dictionary<string, INamedTypeSymbol> _typesByFullName;
@@ -18,8 +17,6 @@ public class SymbolResolver
 
     public SymbolResolver(LoadedSolution loaded)
     {
-        _loaded = loaded;
-
         _allTypes = CollectAllTypes(loaded);
         (_typesBySimpleName, _typesByFullName) = BuildTypeLookups(_allTypes);
         (_fileToProjectName, _projectIdToName) = BuildProjectLookups(loaded);
@@ -35,7 +32,7 @@ public class SymbolResolver
     private static List<INamedTypeSymbol> CollectAllTypes(LoadedSolution loaded)
     {
         var allTypes = new List<INamedTypeSymbol>();
-        var seen = new HashSet<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var compilation in loaded.Compilations.Values)
         {
@@ -52,8 +49,8 @@ public class SymbolResolver
     private static (Dictionary<string, List<INamedTypeSymbol>>, Dictionary<string, INamedTypeSymbol>)
         BuildTypeLookups(List<INamedTypeSymbol> allTypes)
     {
-        var bySimple = new Dictionary<string, List<INamedTypeSymbol>>();
-        var byFull = new Dictionary<string, INamedTypeSymbol>();
+        var bySimple = new Dictionary<string, List<INamedTypeSymbol>>(StringComparer.Ordinal);
+        var byFull = new Dictionary<string, INamedTypeSymbol>(StringComparer.Ordinal);
 
         foreach (var type in allTypes)
         {
@@ -200,9 +197,9 @@ public class SymbolResolver
     /// </summary>
     public IReadOnlyList<INamedTypeSymbol> AllTypes => _allTypes;
 
-    public List<INamedTypeSymbol> FindNamedTypes(string symbol)
+    public IReadOnlyList<INamedTypeSymbol> FindNamedTypes(string symbol)
     {
-        if (symbol.Contains('.'))
+        if (symbol.Contains('.', StringComparison.Ordinal))
         {
             return _typesByFullName.TryGetValue(symbol, out var type)
                 ? [type]
@@ -214,7 +211,7 @@ public class SymbolResolver
             : [];
     }
 
-    public List<IMethodSymbol> FindMethods(string symbol)
+    public IReadOnlyList<IMethodSymbol> FindMethods(string symbol)
     {
         var results = new List<IMethodSymbol>();
         var parts = symbol.Split('.');
@@ -233,30 +230,17 @@ public class SymbolResolver
 
     public static IEnumerable<INamedTypeSymbol> GetAllTypes(INamespaceSymbol ns)
     {
-        foreach (var type in ns.GetTypeMembers())
-        {
-            foreach (var t in GetAllNestedTypes(type))
-                yield return t;
-        }
-
-        foreach (var childNs in ns.GetNamespaceMembers())
-        {
-            foreach (var type in GetAllTypes(childNs))
-                yield return type;
-        }
+        return ns.GetTypeMembers().SelectMany(GetAllNestedTypes)
+            .Concat(ns.GetNamespaceMembers().SelectMany(GetAllTypes));
     }
 
     private static IEnumerable<INamedTypeSymbol> GetAllNestedTypes(INamedTypeSymbol type)
     {
-        yield return type;
-        foreach (var nested in type.GetTypeMembers())
-        {
-            foreach (var t in GetAllNestedTypes(nested))
-                yield return t;
-        }
+        return new[] { type }
+            .Concat(type.GetTypeMembers().SelectMany(GetAllNestedTypes));
     }
 
-    public Location? GetLocation(ISymbol symbol)
+    public static Location? GetLocation(ISymbol symbol)
     {
         return symbol.Locations.FirstOrDefault(l => l.IsInSource);
     }
@@ -285,7 +269,7 @@ public class SymbolResolver
         return _projectIdToName.TryGetValue(projectId, out var name) ? name : "";
     }
 
-    public List<ISymbol> FindMembers(string symbol)
+    public IReadOnlyList<ISymbol> FindMembers(string symbol)
     {
         var results = new List<ISymbol>();
         var parts = symbol.Split('.');
@@ -302,7 +286,7 @@ public class SymbolResolver
         return results;
     }
 
-    public List<ISymbol> FindSymbols(string symbol)
+    public IReadOnlyList<ISymbol> FindSymbols(string symbol)
     {
         // Try as type first
         var types = FindNamedTypes(symbol);
@@ -324,7 +308,7 @@ public class SymbolResolver
     /// <summary>
     /// Returns all types that implement the given interface, using pre-built index.
     /// </summary>
-    public List<INamedTypeSymbol> GetInterfaceImplementors(INamedTypeSymbol iface)
+    public IReadOnlyList<INamedTypeSymbol> GetInterfaceImplementors(INamedTypeSymbol iface)
     {
         return _interfaceImplementors.TryGetValue(iface, out var list) ? list : [];
     }
@@ -332,7 +316,7 @@ public class SymbolResolver
     /// <summary>
     /// Returns all types that derive from the given type (directly or transitively), using pre-built index.
     /// </summary>
-    public List<INamedTypeSymbol> GetDerivedTypes(INamedTypeSymbol baseType)
+    public IReadOnlyList<INamedTypeSymbol> GetDerivedTypes(INamedTypeSymbol baseType)
     {
         return _derivedTypes.TryGetValue(baseType, out var list) ? list : [];
     }
@@ -350,7 +334,7 @@ public class SymbolResolver
     {
         if (string.IsNullOrEmpty(path))
             return true;
-        return path.Contains("/obj/")
-            || path.Contains("\\obj\\");
+        return path.Contains("/obj/", StringComparison.Ordinal)
+            || path.Contains("\\obj\\", StringComparison.Ordinal);
     }
 }

@@ -4,11 +4,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace RoslynCodeGraph;
 
-public class AnalyzerRunner
+public static class AnalyzerRunner
 {
     private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(30);
 
-    public async Task<ImmutableArray<Diagnostic>> RunAnalyzersAsync(
+    public static async Task<ImmutableArray<Diagnostic>> RunAnalyzersAsync(
         Project project,
         Compilation compilation,
         CancellationToken ct)
@@ -24,7 +24,7 @@ public class AnalyzerRunner
 
         try
         {
-            var results = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(timeoutCts.Token);
+            var results = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(timeoutCts.Token).ConfigureAwait(false);
             return results;
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)

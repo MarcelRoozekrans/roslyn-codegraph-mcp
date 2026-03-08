@@ -12,7 +12,7 @@ public class GetSymbolContextToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
     }
 
@@ -25,7 +25,7 @@ public class GetSymbolContextToolTests : IAsyncLifetime
 
         Assert.NotNull(result);
         Assert.Equal("TestLib2", result.Namespace);
-        Assert.Contains(result.InjectedDependencies, d => d.Contains("IGreeter"));
-        Assert.Contains(result.PublicMembers, m => m.Contains("SayHello"));
+        Assert.Contains(result.InjectedDependencies, d => d.Contains("IGreeter", StringComparison.Ordinal));
+        Assert.Contains(result.PublicMembers, m => m.Contains("SayHello", StringComparison.Ordinal));
     }
 }

@@ -11,7 +11,7 @@ public class AnalyzerRunnerTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -19,25 +19,23 @@ public class AnalyzerRunnerTests : IAsyncLifetime
     [Fact]
     public async Task RunAnalyzersAsync_ReturnsAnalyzerDiagnostics()
     {
-        var runner = new AnalyzerRunner();
-        var project = _loaded.Solution.Projects.First(p => p.Name == "TestLib");
+        var project = _loaded.Solution.Projects.First(p => string.Equals(p.Name, "TestLib", StringComparison.Ordinal));
         var compilation = _loaded.Compilations[project.Id];
 
-        var diagnostics = await runner.RunAnalyzersAsync(project, compilation, CancellationToken.None);
+        var diagnostics = await AnalyzerRunner.RunAnalyzersAsync(project, compilation, CancellationToken.None);
 
         Assert.NotEmpty(diagnostics);
-        Assert.Contains(diagnostics, d => d.Id.StartsWith("CA"));
+        Assert.Contains(diagnostics, d => d.Id.StartsWith("CA", StringComparison.Ordinal));
     }
 
     [Fact]
     public async Task RunAnalyzersAsync_NoAnalyzers_ReturnsEmpty()
     {
-        var runner = new AnalyzerRunner();
-        var project = _loaded.Solution.Projects.First(p => p.Name == "TestLib2");
+        var project = _loaded.Solution.Projects.First(p => string.Equals(p.Name, "TestLib2", StringComparison.Ordinal));
         var compilation = _loaded.Compilations[project.Id];
 
-        var diagnostics = await runner.RunAnalyzersAsync(project, compilation, CancellationToken.None);
+        var diagnostics = await AnalyzerRunner.RunAnalyzersAsync(project, compilation, CancellationToken.None);
 
-        Assert.NotNull(diagnostics);
+        Assert.False(diagnostics.IsDefault);
     }
 }

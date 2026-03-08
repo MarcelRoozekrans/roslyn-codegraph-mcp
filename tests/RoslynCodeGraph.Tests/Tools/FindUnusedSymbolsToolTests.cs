@@ -12,7 +12,7 @@ public class FindUnusedSymbolsToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
     }
 
@@ -29,6 +29,6 @@ public class FindUnusedSymbolsToolTests : IAsyncLifetime
     public void FindUnusedSymbols_ProjectFilter_FiltersResults()
     {
         var results = FindUnusedSymbolsLogic.Execute(_loaded, _resolver, "TestLib", false);
-        Assert.All(results, r => Assert.Contains("TestLib", r.Project));
+        Assert.All(results, r => Assert.Contains("TestLib", r.Project, StringComparison.Ordinal));
     }
 }

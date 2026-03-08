@@ -12,7 +12,7 @@ public class GetComplexityMetricsToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
     }
 
@@ -35,7 +35,7 @@ public class GetComplexityMetricsToolTests : IAsyncLifetime
     [Fact]
     public void GetComplexityMetrics_ProjectFilter_FiltersResults()
     {
-        var all = GetComplexityMetricsLogic.Execute(_loaded, _resolver, null, 0);
+        _ = GetComplexityMetricsLogic.Execute(_loaded, _resolver, null, 0);
         var filtered = GetComplexityMetricsLogic.Execute(_loaded, _resolver, "TestLib2", 0);
         Assert.All(filtered, r => Assert.Equal("TestLib2", r.Project));
     }

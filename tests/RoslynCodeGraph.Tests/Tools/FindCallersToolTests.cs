@@ -12,7 +12,7 @@ public class FindCallersToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
     }
 
@@ -23,6 +23,6 @@ public class FindCallersToolTests : IAsyncLifetime
     {
         var results = FindCallersLogic.Execute(_loaded, _resolver, "IGreeter.Greet");
 
-        Assert.Contains(results, r => r.Caller.Contains("GreeterConsumer"));
+        Assert.Contains(results, r => r.Caller.Contains("GreeterConsumer", StringComparison.Ordinal));
     }
 }

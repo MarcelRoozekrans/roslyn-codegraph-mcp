@@ -3,13 +3,13 @@ using Microsoft.CodeAnalysis.MSBuild;
 
 namespace RoslynCodeGraph;
 
-public class SolutionManager : IDisposable
+public sealed class SolutionManager : IDisposable
 {
     private LoadedSolution _loaded;
     private SymbolResolver _resolver;
     private readonly string? _solutionPath;
     private readonly FileChangeTracker? _tracker;
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private volatile bool _rebuilding;
 
     private SolutionManager(LoadedSolution loaded, string? solutionPath)
@@ -27,7 +27,7 @@ public class SolutionManager : IDisposable
     public static async Task<SolutionManager> CreateAsync(string solutionPath)
     {
         var loader = new SolutionLoader();
-        var loaded = await loader.LoadAsync(solutionPath);
+        var loaded = await loader.LoadAsync(solutionPath).ConfigureAwait(false);
         return new SolutionManager(loaded, solutionPath);
     }
 
@@ -71,7 +71,7 @@ public class SolutionManager : IDisposable
         }
 
         // Rebuild outside the lock to avoid blocking other reads
-        var staleIds = _tracker.StaleProjectIds;
+        var staleIds = _tracker.GetStaleProjectIds();
         Console.Error.WriteLine(
             $"[roslyn-codegraph] Rebuilding {staleIds.Count} stale project(s)...");
 
@@ -100,7 +100,7 @@ public class SolutionManager : IDisposable
         workspace.WorkspaceFailed += (_, e) =>
             Console.Error.WriteLine($"[roslyn-codegraph] Warning: {e.Diagnostic.Message}");
 
-        var solution = await workspace.OpenSolutionAsync(_solutionPath!);
+        var solution = await workspace.OpenSolutionAsync(_solutionPath!).ConfigureAwait(false);
         var compilations = new Dictionary<ProjectId, Compilation>(_loaded.Compilations);
 
         foreach (var project in solution.Projects)
@@ -108,8 +108,8 @@ public class SolutionManager : IDisposable
             if (!staleIds.Contains(project.Id))
                 continue;
 
-            Console.Error.WriteLine($"[roslyn-codegraph] Recompiling: {project.Name}");
-            var compilation = await project.GetCompilationAsync();
+            await Console.Error.WriteLineAsync($"[roslyn-codegraph] Recompiling: {project.Name}").ConfigureAwait(false);
+            var compilation = await project.GetCompilationAsync().ConfigureAwait(false);
             if (compilation != null)
                 compilations[project.Id] = compilation;
         }
@@ -129,7 +129,7 @@ public class SolutionManager : IDisposable
 
         _tracker!.UpdateMappings(newLoaded);
 
-        Console.Error.WriteLine("[roslyn-codegraph] Rebuild complete.");
+        await Console.Error.WriteLineAsync("[roslyn-codegraph] Rebuild complete.").ConfigureAwait(false);
     }
 
     public void Dispose()

@@ -12,7 +12,7 @@ public class FindReferencesToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
     }
 
@@ -24,7 +24,7 @@ public class FindReferencesToolTests : IAsyncLifetime
         var results = FindReferencesLogic.Execute(_loaded, _resolver, "IGreeter");
 
         Assert.NotEmpty(results);
-        Assert.Contains(results, r => r.File.Contains("GreeterConsumer"));
+        Assert.Contains(results, r => r.File.Contains("GreeterConsumer", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class FindReferencesToolTests : IAsyncLifetime
         var results = FindReferencesLogic.Execute(_loaded, _resolver, "IGreeter.Greet");
 
         Assert.NotEmpty(results);
-        Assert.Contains(results, r => r.File.Contains("GreeterConsumer"));
+        Assert.Contains(results, r => r.File.Contains("GreeterConsumer", StringComparison.Ordinal));
     }
 
     [Fact]

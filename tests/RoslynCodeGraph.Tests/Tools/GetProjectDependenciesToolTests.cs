@@ -11,7 +11,7 @@ public class GetProjectDependenciesToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -22,6 +22,6 @@ public class GetProjectDependenciesToolTests : IAsyncLifetime
         var result = GetProjectDependenciesLogic.Execute(_loaded, "TestLib2");
 
         Assert.NotNull(result);
-        Assert.Contains(result.Direct, d => d.Name == "TestLib");
+        Assert.Contains(result.Direct, d => string.Equals(d.Name, "TestLib", StringComparison.Ordinal));
     }
 }

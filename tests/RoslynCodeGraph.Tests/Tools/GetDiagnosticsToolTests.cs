@@ -12,7 +12,7 @@ public class GetDiagnosticsToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
     }
 
@@ -34,7 +34,7 @@ public class GetDiagnosticsToolTests : IAsyncLifetime
         var filtered = GetDiagnosticsLogic.Execute(_loaded, _resolver, "TestLib", null);
 
         Assert.True(filtered.Count <= all.Count);
-        Assert.All(filtered, d => Assert.Contains("TestLib", d.Project));
+        Assert.All(filtered, d => Assert.Contains("TestLib", d.Project, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -44,13 +44,13 @@ public class GetDiagnosticsToolTests : IAsyncLifetime
             _loaded, _resolver, null, null, includeAnalyzers: true);
 
         // Any analyzer diagnostics should have Source starting with "analyzer"
-        var analyzerResults = results.Where(d => d.Source.StartsWith("analyzer")).ToList();
+        _ = results.Where(d => d.Source.StartsWith("analyzer", StringComparison.Ordinal)).ToList();
         // Compiler diagnostics should still be present with Source == "compiler"
-        var compilerResults = results.Where(d => d.Source == "compiler").ToList();
+        _ = results.Where(d => string.Equals(d.Source, "compiler", StringComparison.Ordinal)).ToList();
 
         // All results should have a valid source
         Assert.All(results, d => Assert.True(
-            d.Source == "compiler" || d.Source.StartsWith("analyzer:"),
+            string.Equals(d.Source, "compiler", StringComparison.Ordinal) || d.Source.StartsWith("analyzer:", StringComparison.Ordinal),
             $"Unexpected source: {d.Source}"));
     }
 

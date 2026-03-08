@@ -12,7 +12,7 @@ public class GetDiRegistrationsToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
     }
 
@@ -25,6 +25,6 @@ public class GetDiRegistrationsToolTests : IAsyncLifetime
 
         Assert.Single(results);
         Assert.Equal("Scoped", results[0].Lifetime);
-        Assert.Contains("Greeter", results[0].Implementation);
+        Assert.Contains("Greeter", results[0].Implementation, StringComparison.Ordinal);
     }
 }

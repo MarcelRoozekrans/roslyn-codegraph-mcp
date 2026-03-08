@@ -11,7 +11,7 @@ public class GetNugetDependenciesToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -23,7 +23,7 @@ public class GetNugetDependenciesToolTests : IAsyncLifetime
 
         Assert.NotNull(result);
         Assert.NotEmpty(result!.Packages);
-        Assert.Contains(result.Packages, p => p.PackageName == "Microsoft.Extensions.DependencyInjection.Abstractions");
+        Assert.Contains(result.Packages, p => string.Equals(p.PackageName, "Microsoft.Extensions.DependencyInjection.Abstractions", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class GetNugetDependenciesToolTests : IAsyncLifetime
         var result = GetNugetDependenciesLogic.Execute(_loaded, null);
 
         Assert.NotNull(result);
-        var diPkg = result!.Packages.First(p => p.PackageName == "Microsoft.Extensions.DependencyInjection.Abstractions");
+        var diPkg = result!.Packages.First(p => string.Equals(p.PackageName, "Microsoft.Extensions.DependencyInjection.Abstractions", StringComparison.Ordinal));
         Assert.False(string.IsNullOrEmpty(diPkg.Version));
     }
 

@@ -12,7 +12,7 @@ public class GoToDefinitionToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
     }
 
@@ -24,7 +24,7 @@ public class GoToDefinitionToolTests : IAsyncLifetime
         var results = GoToDefinitionLogic.Execute(_resolver, "Greeter");
 
         Assert.Single(results);
-        Assert.Contains("Greeter.cs", results[0].File);
+        Assert.Contains("Greeter.cs", results[0].File, StringComparison.Ordinal);
         Assert.Equal("class", results[0].Type);
     }
 
@@ -34,7 +34,7 @@ public class GoToDefinitionToolTests : IAsyncLifetime
         var results = GoToDefinitionLogic.Execute(_resolver, "IGreeter");
 
         Assert.Single(results);
-        Assert.Contains("IGreeter.cs", results[0].File);
+        Assert.Contains("IGreeter.cs", results[0].File, StringComparison.Ordinal);
         Assert.Equal("interface", results[0].Type);
     }
 

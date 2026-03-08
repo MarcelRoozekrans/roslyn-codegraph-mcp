@@ -14,11 +14,11 @@ SolutionManager manager;
 
 if (solutionPath != null)
 {
-    manager = await SolutionManager.CreateAsync(solutionPath);
+    manager = await SolutionManager.CreateAsync(solutionPath).ConfigureAwait(false);
 }
 else
 {
-    Console.Error.WriteLine("[roslyn-codegraph] No .sln file found. Tools will return errors.");
+    await Console.Error.WriteLineAsync("[roslyn-codegraph] No .sln file found. Tools will return errors.").ConfigureAwait(false);
     manager = SolutionManager.CreateEmpty();
 }
 
@@ -30,4 +30,4 @@ builder.Services
     .WithStdioServerTransport()
     .WithToolsFromAssembly();
 
-await builder.Build().RunAsync();
+await builder.Build().RunAsync().ConfigureAwait(false);

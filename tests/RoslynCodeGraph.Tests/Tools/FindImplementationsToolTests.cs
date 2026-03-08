@@ -12,7 +12,7 @@ public class FindImplementationsToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
     }
 
@@ -23,7 +23,7 @@ public class FindImplementationsToolTests : IAsyncLifetime
     {
         var results = FindImplementationsLogic.Execute(_loaded, _resolver, "IGreeter");
 
-        Assert.Contains(results, r => r.FullName.Contains("Greeter"));
+        Assert.Contains(results, r => r.FullName.Contains("Greeter", StringComparison.Ordinal));
         Assert.True(results.Count >= 1);
     }
 
@@ -32,6 +32,6 @@ public class FindImplementationsToolTests : IAsyncLifetime
     {
         var results = FindImplementationsLogic.Execute(_loaded, _resolver, "Greeter");
 
-        Assert.Contains(results, r => r.FullName.Contains("FancyGreeter"));
+        Assert.Contains(results, r => r.FullName.Contains("FancyGreeter", StringComparison.Ordinal));
     }
 }

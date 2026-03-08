@@ -12,7 +12,7 @@ public class SearchSymbolsToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
     }
 
@@ -24,7 +24,7 @@ public class SearchSymbolsToolTests : IAsyncLifetime
         var results = SearchSymbolsLogic.Execute(_resolver, "Greeter");
 
         Assert.NotEmpty(results);
-        Assert.Contains(results, r => r.FullName.Contains("Greeter"));
+        Assert.Contains(results, r => r.FullName.Contains("Greeter", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class SearchSymbolsToolTests : IAsyncLifetime
         var results = SearchSymbolsLogic.Execute(_resolver, "Greet");
 
         Assert.NotEmpty(results);
-        Assert.Contains(results, r => r.Type == "method");
+        Assert.Contains(results, r => string.Equals(r.Type, "method", StringComparison.Ordinal));
     }
 
     [Fact]

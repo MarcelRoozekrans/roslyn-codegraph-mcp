@@ -11,7 +11,7 @@ public class FileChangeTrackerTests : IAsyncLifetime
     {
         _solutionPath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(_solutionPath);
+        _loaded = await new SolutionLoader().LoadAsync(_solutionPath).ConfigureAwait(false);
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -33,7 +33,7 @@ public class FileChangeTrackerTests : IAsyncLifetime
         tracker.MarkProjectStale(projectId);
 
         Assert.True(tracker.HasStaleProjects);
-        Assert.Contains(projectId, tracker.StaleProjectIds);
+        Assert.Contains(projectId, tracker.GetStaleProjectIds());
         tracker.Dispose();
     }
 
@@ -54,7 +54,7 @@ public class FileChangeTrackerTests : IAsyncLifetime
                 .Select(p => p.Id);
 
             foreach (var dep in dependents)
-                Assert.Contains(dep, tracker.StaleProjectIds);
+                Assert.Contains(dep, tracker.GetStaleProjectIds());
         }
         tracker.Dispose();
     }
@@ -70,7 +70,7 @@ public class FileChangeTrackerTests : IAsyncLifetime
 
         tracker.ClearStale();
         Assert.False(tracker.HasStaleProjects);
-        Assert.Empty(tracker.StaleProjectIds);
+        Assert.Empty(tracker.GetStaleProjectIds());
         tracker.Dispose();
     }
 
@@ -86,6 +86,38 @@ public class FileChangeTrackerTests : IAsyncLifetime
             var foundId = tracker.FindProjectForFile(doc.FilePath!);
             Assert.Equal(project.Id, foundId);
         }
+        tracker.Dispose();
+    }
+
+    [Fact]
+    public void Constructor_WithRelativePath_DoesNotThrow()
+    {
+        // This was the bug: a relative path like "TestSolution.slnx" caused
+        // Path.GetDirectoryName to return "" which is invalid for FileSystemWatcher.
+        var originalDir = Directory.GetCurrentDirectory();
+        try
+        {
+            var solutionDir = Path.GetDirectoryName(_solutionPath)!;
+            Directory.SetCurrentDirectory(solutionDir);
+            var relativePath = Path.GetFileName(_solutionPath);
+
+            var tracker = new FileChangeTracker(_loaded, relativePath);
+            Assert.False(tracker.HasStaleProjects);
+            tracker.Dispose();
+        }
+        finally
+        {
+            Directory.SetCurrentDirectory(originalDir);
+        }
+    }
+
+    [Fact]
+    public void Constructor_WithAbsolutePath_DoesNotThrow()
+    {
+        var absolutePath = Path.GetFullPath(_solutionPath);
+        var tracker = new FileChangeTracker(_loaded, absolutePath);
+        Assert.False(tracker.HasStaleProjects);
+        Assert.NotNull(tracker);
         tracker.Dispose();
     }
 }

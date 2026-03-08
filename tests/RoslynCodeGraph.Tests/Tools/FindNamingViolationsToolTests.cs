@@ -12,7 +12,7 @@ public class FindNamingViolationsToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
     }
 
@@ -29,6 +29,6 @@ public class FindNamingViolationsToolTests : IAsyncLifetime
     public void FindNamingViolations_ProjectFilter_FiltersResults()
     {
         var filtered = FindNamingViolationsLogic.Execute(_loaded, _resolver, "TestLib");
-        Assert.All(filtered, r => Assert.Contains("TestLib", r.Project));
+        Assert.All(filtered, r => Assert.Contains("TestLib", r.Project, StringComparison.Ordinal));
     }
 }

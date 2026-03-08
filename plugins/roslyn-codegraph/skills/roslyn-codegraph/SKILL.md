@@ -9,9 +9,15 @@ description: Use Roslyn-powered semantic code intelligence when working with .NE
 
 Check if `find_implementations` is available as an MCP tool. If not, this skill is inert — do nothing.
 
+## Critical Rules
+
+1. **Never use `dotnet build`, `dotnet msbuild`, or MSBuild output** to find compiler errors, warnings, or code quality issues. Use `get_diagnostics` instead — it returns the same diagnostics (and more, including analyzer results) without a separate build step.
+2. **Never use Grep/Glob** for navigating .NET codebases when these tools are available. They provide semantic accuracy that text search cannot match — finding true callers, implementations, and references rather than string matches.
+3. **Always prefer these MCP tools first** for any .NET code understanding, navigation, or quality task. Only fall back to Grep/Glob for non-.NET files or when searching for string literals/comments.
+
 ## When to Use These Tools
 
-Use these tools **instead of Grep/Glob** whenever you need to understand .NET code structure. They provide semantic accuracy that text search cannot match.
+Use these tools **instead of Grep/Glob and instead of MSBuild** whenever you need to understand .NET code structure, find issues, or navigate the codebase.
 
 ### Understanding a Codebase
 
@@ -21,9 +27,11 @@ Use these tools **instead of Grep/Glob** whenever you need to understand .NET co
 
 ### Navigating Code
 
-- Use `go_to_definition` to jump to where a type or member is defined — faster than file search
-- Use `search_symbols` to fuzzy-find types, methods, properties, and fields by name
-- Use `find_references` to find every reference to a symbol across the entire solution
+**Do NOT use Grep/Glob to find .NET types, methods, or usages.** Text search gives false positives (comments, strings, partial matches). These tools understand the actual code:
+
+- Use `go_to_definition` to jump to where a type or member is defined — replaces Grep/Glob file search
+- Use `search_symbols` to fuzzy-find types, methods, properties, and fields by name — replaces `Grep` for symbol lookup
+- Use `find_references` to find every reference to a symbol across the entire solution — replaces `Grep` for usage search
 
 ### Finding Dependencies and Usage
 
@@ -36,10 +44,14 @@ Use these tools **instead of Grep/Glob** whenever you need to understand .NET co
 
 ### Diagnosing Issues
 
-- Use `get_diagnostics` to list compiler errors, warnings, and Roslyn analyzer diagnostics across the solution
-- Use `get_code_fixes` to get structured text edits for fixing a specific diagnostic — review and apply via Edit tool
+**Do NOT run `dotnet build` or `dotnet msbuild` to check for errors/warnings.** These MCP tools provide the same diagnostics plus analyzer results, structured as data you can act on:
+
+- Use `get_diagnostics` to list compiler errors, warnings, and Roslyn analyzer diagnostics across the solution — this replaces `dotnet build` output entirely
+- Use `get_code_fixes` to get structured text edits for fixing a specific diagnostic — review and apply via Edit tool (replaces manually interpreting build warnings)
 
 ### Code Quality Analysis
+
+**Do NOT rely on MSBuild warnings or manual code inspection for quality checks.** Use these purpose-built tools:
 
 - Use `find_unused_symbols` to detect dead code — types/members with no references
 - Use `get_complexity_metrics` to find overly complex methods (cyclomatic complexity above threshold)

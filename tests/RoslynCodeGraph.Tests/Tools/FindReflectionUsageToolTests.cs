@@ -12,7 +12,7 @@ public class FindReflectionUsageToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
     }
 
@@ -23,8 +23,8 @@ public class FindReflectionUsageToolTests : IAsyncLifetime
     {
         var results = FindReflectionUsageLogic.Execute(_loaded, _resolver, null);
 
-        Assert.Contains(results, r => r.Kind == "dynamic_instantiation"
-            && r.Snippet.Contains("Activator.CreateInstance"));
+        Assert.Contains(results, r => string.Equals(r.Kind, "dynamic_instantiation", StringComparison.Ordinal)
+            && r.Snippet.Contains("Activator.CreateInstance", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -32,6 +32,6 @@ public class FindReflectionUsageToolTests : IAsyncLifetime
     {
         var results = FindReflectionUsageLogic.Execute(_loaded, _resolver, null);
 
-        Assert.Contains(results, r => r.Snippet.Contains("Type.GetType"));
+        Assert.Contains(results, r => r.Snippet.Contains("Type.GetType", StringComparison.Ordinal));
     }
 }

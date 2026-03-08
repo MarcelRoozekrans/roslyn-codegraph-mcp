@@ -7,6 +7,6 @@ public record SymbolContext(
     string File,
     int Line,
     string? BaseClass,
-    List<string> Interfaces,
-    List<string> InjectedDependencies,
-    List<string> PublicMembers);
+    IReadOnlyList<string> Interfaces,
+    IReadOnlyList<string> InjectedDependencies,
+    IReadOnlyList<string> PublicMembers);

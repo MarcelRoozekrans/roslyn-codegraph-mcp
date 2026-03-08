@@ -12,7 +12,7 @@ public class FindAttributeUsagesToolTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
     }
 
@@ -24,7 +24,7 @@ public class FindAttributeUsagesToolTests : IAsyncLifetime
         var results = FindAttributeUsagesLogic.Execute(_loaded, _resolver, "Obsolete");
 
         Assert.NotEmpty(results);
-        Assert.Contains(results, r => r.TargetName.Contains("OldGreet") && r.TargetKind == "method");
+        Assert.Contains(results, r => r.TargetName.Contains("OldGreet", StringComparison.Ordinal) && string.Equals(r.TargetKind, "method", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class FindAttributeUsagesToolTests : IAsyncLifetime
         var results = FindAttributeUsagesLogic.Execute(_loaded, _resolver, "Serializable");
 
         Assert.NotEmpty(results);
-        Assert.Contains(results, r => r.TargetName.Contains("Greeter") && r.TargetKind == "class");
+        Assert.Contains(results, r => r.TargetName.Contains("Greeter", StringComparison.Ordinal) && string.Equals(r.TargetKind, "class", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public class FindAttributeUsagesToolTests : IAsyncLifetime
         var results = FindAttributeUsagesLogic.Execute(_loaded, _resolver, "ObsoleteAttribute");
 
         Assert.NotEmpty(results);
-        Assert.Contains(results, r => r.TargetName.Contains("OldGreet"));
+        Assert.Contains(results, r => r.TargetName.Contains("OldGreet", StringComparison.Ordinal));
     }
 
     [Fact]

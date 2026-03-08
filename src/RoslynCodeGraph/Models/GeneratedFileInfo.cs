@@ -4,5 +4,5 @@ public record GeneratedFileInfo(
     string FilePath,
     string Project,
     string? GeneratorName,
-    List<string> DefinedTypes,
+    IReadOnlyList<string> DefinedTypes,
     string SourceText);

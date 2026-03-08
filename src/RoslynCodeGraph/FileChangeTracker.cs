@@ -2,15 +2,15 @@ using Microsoft.CodeAnalysis;
 
 namespace RoslynCodeGraph;
 
-public class FileChangeTracker : IDisposable
+public sealed class FileChangeTracker : IDisposable
 {
     private readonly Dictionary<string, ProjectId> _fileToProject;
     private readonly Dictionary<ProjectId, List<ProjectId>> _reverseDeps;
     private readonly HashSet<ProjectId> _staleProjects = new();
     private readonly FileSystemWatcher[] _watchers;
-    private readonly object _lock = new();
+    private readonly Lock _lock = new();
     private Timer? _debounceTimer;
-    private readonly HashSet<string> _pendingChanges = new();
+    private readonly HashSet<string> _pendingChanges = new(StringComparer.OrdinalIgnoreCase);
 
     private static readonly string[] WatchedExtensions = [".cs", ".csproj", ".props", ".targets"];
 
@@ -21,7 +21,8 @@ public class FileChangeTracker : IDisposable
         PopulateMappings(loaded);
 
         // Start file watchers
-        var solutionDir = Path.GetDirectoryName(solutionPath)!;
+        var fullSolutionPath = Path.GetFullPath(solutionPath);
+        var solutionDir = Path.GetDirectoryName(fullSolutionPath)!;
         _watchers = WatchedExtensions.Select(ext =>
         {
             var watcher = new FileSystemWatcher(solutionDir)
@@ -51,9 +52,9 @@ public class FileChangeTracker : IDisposable
         get { lock (_lock) return _staleProjects.Count > 0; }
     }
 
-    public IReadOnlySet<ProjectId> StaleProjectIds
+    public IReadOnlySet<ProjectId> GetStaleProjectIds()
     {
-        get { lock (_lock) return new HashSet<ProjectId>(_staleProjects); }
+        lock (_lock) return new HashSet<ProjectId>(_staleProjects);
     }
 
     public void MarkProjectStale(ProjectId projectId)
@@ -152,7 +153,7 @@ public class FileChangeTracker : IDisposable
     {
         lock (_lock)
         {
-            var changes = new HashSet<string>(_pendingChanges);
+            var changes = new HashSet<string>(_pendingChanges, StringComparer.OrdinalIgnoreCase);
             _pendingChanges.Clear();
 
             foreach (var filePath in changes)

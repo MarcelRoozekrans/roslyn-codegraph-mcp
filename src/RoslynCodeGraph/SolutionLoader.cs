@@ -3,25 +3,6 @@ using Microsoft.CodeAnalysis.MSBuild;
 
 namespace RoslynCodeGraph;
 
-public class LoadedSolution
-{
-    public required Solution Solution { get; init; }
-    public required Dictionary<ProjectId, Compilation> Compilations { get; init; }
-    public bool IsEmpty => Compilations.Count == 0;
-
-    public static LoadedSolution Empty { get; } = CreateEmpty();
-
-    private static LoadedSolution CreateEmpty()
-    {
-        var workspace = new AdhocWorkspace();
-        return new LoadedSolution
-        {
-            Solution = workspace.CurrentSolution,
-            Compilations = new Dictionary<ProjectId, Compilation>()
-        };
-    }
-}
-
 public class SolutionLoader
 {
     public async Task<LoadedSolution> LoadAsync(string solutionPath)
@@ -33,8 +14,8 @@ public class SolutionLoader
             Console.Error.WriteLine($"[roslyn-codegraph] Warning: {e.Diagnostic.Message}");
         };
 
-        Console.Error.WriteLine($"[roslyn-codegraph] Loading solution: {Path.GetFileName(solutionPath)}");
-        var solution = await workspace.OpenSolutionAsync(solutionPath);
+        await Console.Error.WriteLineAsync($"[roslyn-codegraph] Loading solution: {Path.GetFileName(solutionPath)}").ConfigureAwait(false);
+        var solution = await workspace.OpenSolutionAsync(solutionPath).ConfigureAwait(false);
 
         var compilations = new Dictionary<ProjectId, Compilation>();
         var projects = solution.Projects.ToList();
@@ -42,18 +23,18 @@ public class SolutionLoader
         for (var i = 0; i < projects.Count; i++)
         {
             var project = projects[i];
-            Console.Error.WriteLine(
-                $"[roslyn-codegraph] Compiling project {i + 1}/{projects.Count}: {project.Name}");
+            await Console.Error.WriteLineAsync(
+                $"[roslyn-codegraph] Compiling project {i + 1}/{projects.Count}: {project.Name}").ConfigureAwait(false);
 
-            var compilation = await project.GetCompilationAsync();
+            var compilation = await project.GetCompilationAsync().ConfigureAwait(false);
             if (compilation != null)
             {
                 compilations[project.Id] = compilation;
             }
         }
 
-        Console.Error.WriteLine(
-            $"[roslyn-codegraph] Ready. {compilations.Count} projects compiled.");
+        await Console.Error.WriteLineAsync(
+            $"[roslyn-codegraph] Ready. {compilations.Count} projects compiled.").ConfigureAwait(false);
 
         return new LoadedSolution
         {

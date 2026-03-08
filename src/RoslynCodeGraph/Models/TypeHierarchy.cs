@@ -1,6 +1,6 @@
 namespace RoslynCodeGraph.Models;
 
 public record TypeHierarchy(
-    List<SymbolLocation> Bases,
-    List<SymbolLocation> Interfaces,
-    List<SymbolLocation> Derived);
+    IReadOnlyList<SymbolLocation> Bases,
+    IReadOnlyList<SymbolLocation> Interfaces,
+    IReadOnlyList<SymbolLocation> Derived);

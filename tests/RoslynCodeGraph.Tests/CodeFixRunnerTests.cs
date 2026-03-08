@@ -12,7 +12,7 @@ public class CodeFixRunnerTests : IAsyncLifetime
     {
         var fixturePath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath);
+        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -20,30 +20,27 @@ public class CodeFixRunnerTests : IAsyncLifetime
     [Fact]
     public async Task GetFixesAsync_ForKnownDiagnostic_ReturnsFixes()
     {
-        var runner = new CodeFixRunner();
-        var project = _loaded.Solution.Projects.First(p => p.Name == "TestLib");
+        var project = _loaded.Solution.Projects.First(p => string.Equals(p.Name, "TestLib", StringComparison.Ordinal));
         var compilation = _loaded.Compilations[project.Id];
 
-        var analyzerRunner = new AnalyzerRunner();
-        var diagnostics = await analyzerRunner.RunAnalyzersAsync(project, compilation, CancellationToken.None);
+        var diagnostics = await AnalyzerRunner.RunAnalyzersAsync(project, compilation, CancellationToken.None);
         var fixable = diagnostics.FirstOrDefault(d => d.Location.IsInSource);
 
         if (fixable == null) return;
 
-        var fixes = await runner.GetFixesAsync(project, fixable, CancellationToken.None);
+        var fixes = await CodeFixRunner.GetFixesAsync(project, fixable, CancellationToken.None);
         Assert.NotNull(fixes);
     }
 
     [Fact]
     public async Task GetFixesAsync_NoDiagnostic_ReturnsEmpty()
     {
-        var runner = new CodeFixRunner();
-        var project = _loaded.Solution.Projects.First(p => p.Name == "TestLib");
+        var project = _loaded.Solution.Projects.First(p => string.Equals(p.Name, "TestLib", StringComparison.Ordinal));
 
         var diagnostic = Diagnostic.Create("FAKE001", "Test", "Fake message",
             DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 1);
 
-        var fixes = await runner.GetFixesAsync(project, diagnostic, CancellationToken.None);
+        var fixes = await CodeFixRunner.GetFixesAsync(project, diagnostic, CancellationToken.None);
         Assert.Empty(fixes);
     }
 }
