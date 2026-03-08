@@ -13,11 +13,11 @@
 ### Task 1: Add `IsGenerated` to Location Models
 
 **Files:**
-- Modify: `src/RoslynCodeGraph/Models/SymbolLocation.cs`
-- Modify: `src/RoslynCodeGraph/Models/CallerInfo.cs`
-- Modify: `src/RoslynCodeGraph/Models/SymbolReference.cs`
-- Modify: `src/RoslynCodeGraph/Models/UnusedSymbolInfo.cs`
-- Modify: `src/RoslynCodeGraph/Models/ReflectionUsage.cs`
+- Modify: `src/RoslynCodeLens/Models/SymbolLocation.cs`
+- Modify: `src/RoslynCodeLens/Models/CallerInfo.cs`
+- Modify: `src/RoslynCodeLens/Models/SymbolReference.cs`
+- Modify: `src/RoslynCodeLens/Models/UnusedSymbolInfo.cs`
+- Modify: `src/RoslynCodeLens/Models/ReflectionUsage.cs`
 
 **Step 1: Add optional IsGenerated parameter to each record**
 
@@ -80,16 +80,16 @@ public record ReflectionUsage(
 
 **Step 2: Build and run tests**
 
-Run: `dotnet build src/RoslynCodeGraph/RoslynCodeGraph.csproj`
+Run: `dotnet build src/RoslynCodeLens/RoslynCodeLens.csproj`
 Expected: BUILD SUCCEEDED (default values keep all call sites valid)
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj`
 Expected: All existing tests pass
 
 **Step 3: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Models/SymbolLocation.cs src/RoslynCodeGraph/Models/CallerInfo.cs src/RoslynCodeGraph/Models/SymbolReference.cs src/RoslynCodeGraph/Models/UnusedSymbolInfo.cs src/RoslynCodeGraph/Models/ReflectionUsage.cs
+git add src/RoslynCodeLens/Models/SymbolLocation.cs src/RoslynCodeLens/Models/CallerInfo.cs src/RoslynCodeLens/Models/SymbolReference.cs src/RoslynCodeLens/Models/UnusedSymbolInfo.cs src/RoslynCodeLens/Models/ReflectionUsage.cs
 git commit -m "feat: add IsGenerated flag to location models"
 ```
 
@@ -98,8 +98,8 @@ git commit -m "feat: add IsGenerated flag to location models"
 ### Task 2: Add Generated File Detection to `SymbolResolver`
 
 **Files:**
-- Modify: `src/RoslynCodeGraph/SymbolResolver.cs`
-- Test: `tests/RoslynCodeGraph.Tests/SymbolResolverTests.cs`
+- Modify: `src/RoslynCodeLens/SymbolResolver.cs`
+- Test: `tests/RoslynCodeLens.Tests/SymbolResolverTests.cs`
 
 **Step 1: Write the failing test**
 
@@ -139,7 +139,7 @@ public void IsGenerated_ReturnsTrue_ForNullOrEmptyPaths()
 
 **Step 2: Run tests to verify they fail**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj --filter "IsGenerated"`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj --filter "IsGenerated"`
 Expected: FAIL — `IsGenerated` method does not exist
 
 **Step 3: Implement generated file detection**
@@ -188,16 +188,16 @@ private static bool IsGeneratedPath(string? path)
 
 **Step 4: Run tests to verify they pass**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj --filter "IsGenerated"`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj --filter "IsGenerated"`
 Expected: PASS
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj`
 Expected: All tests pass
 
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/SymbolResolver.cs tests/RoslynCodeGraph.Tests/SymbolResolverTests.cs
+git add src/RoslynCodeLens/SymbolResolver.cs tests/RoslynCodeLens.Tests/SymbolResolverTests.cs
 git commit -m "feat: add generated file detection to SymbolResolver"
 ```
 
@@ -206,17 +206,17 @@ git commit -m "feat: add generated file detection to SymbolResolver"
 ### Task 3: Create `FileChangeTracker`
 
 **Files:**
-- Create: `src/RoslynCodeGraph/FileChangeTracker.cs`
-- Test: `tests/RoslynCodeGraph.Tests/FileChangeTrackerTests.cs`
+- Create: `src/RoslynCodeLens/FileChangeTracker.cs`
+- Test: `tests/RoslynCodeLens.Tests/FileChangeTrackerTests.cs`
 
 **Step 1: Write the failing tests**
 
-Create `tests/RoslynCodeGraph.Tests/FileChangeTrackerTests.cs`:
+Create `tests/RoslynCodeLens.Tests/FileChangeTrackerTests.cs`:
 
 ```csharp
 using Microsoft.CodeAnalysis;
 
-namespace RoslynCodeGraph.Tests;
+namespace RoslynCodeLens.Tests;
 
 public class FileChangeTrackerTests : IAsyncLifetime
 {
@@ -312,17 +312,17 @@ public class FileChangeTrackerTests : IAsyncLifetime
 
 **Step 2: Run tests to verify they fail**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj --filter "FileChangeTracker"`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj --filter "FileChangeTracker"`
 Expected: FAIL — `FileChangeTracker` class does not exist
 
 **Step 3: Implement `FileChangeTracker`**
 
-Create `src/RoslynCodeGraph/FileChangeTracker.cs`:
+Create `src/RoslynCodeLens/FileChangeTracker.cs`:
 
 ```csharp
 using Microsoft.CodeAnalysis;
 
-namespace RoslynCodeGraph;
+namespace RoslynCodeLens;
 
 public class FileChangeTracker : IDisposable
 {
@@ -531,13 +531,13 @@ public class FileChangeTracker : IDisposable
 
 **Step 4: Run tests to verify they pass**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj --filter "FileChangeTracker"`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj --filter "FileChangeTracker"`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/FileChangeTracker.cs tests/RoslynCodeGraph.Tests/FileChangeTrackerTests.cs
+git add src/RoslynCodeLens/FileChangeTracker.cs tests/RoslynCodeLens.Tests/FileChangeTrackerTests.cs
 git commit -m "feat: add FileChangeTracker with reverse dependency graph"
 ```
 
@@ -546,15 +546,15 @@ git commit -m "feat: add FileChangeTracker with reverse dependency graph"
 ### Task 4: Create `SolutionManager`
 
 **Files:**
-- Create: `src/RoslynCodeGraph/SolutionManager.cs`
-- Test: `tests/RoslynCodeGraph.Tests/SolutionManagerTests.cs`
+- Create: `src/RoslynCodeLens/SolutionManager.cs`
+- Test: `tests/RoslynCodeLens.Tests/SolutionManagerTests.cs`
 
 **Step 1: Write the failing tests**
 
-Create `tests/RoslynCodeGraph.Tests/SolutionManagerTests.cs`:
+Create `tests/RoslynCodeLens.Tests/SolutionManagerTests.cs`:
 
 ```csharp
-namespace RoslynCodeGraph.Tests;
+namespace RoslynCodeLens.Tests;
 
 public class SolutionManagerTests : IAsyncLifetime
 {
@@ -603,18 +603,18 @@ public class SolutionManagerTests : IAsyncLifetime
 
 **Step 2: Run tests to verify they fail**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj --filter "SolutionManager"`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj --filter "SolutionManager"`
 Expected: FAIL — `SolutionManager` class does not exist
 
 **Step 3: Implement `SolutionManager`**
 
-Create `src/RoslynCodeGraph/SolutionManager.cs`:
+Create `src/RoslynCodeLens/SolutionManager.cs`:
 
 ```csharp
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
-namespace RoslynCodeGraph;
+namespace RoslynCodeLens;
 
 public class SolutionManager : IDisposable
 {
@@ -665,7 +665,7 @@ public class SolutionManager : IDisposable
         if (_loaded.IsEmpty)
             throw new InvalidOperationException(
                 "No .sln file found. Either run from a directory containing a .sln/.slnx file, " +
-                "or pass the solution path as argument: roslyn-codegraph-mcp /path/to/Solution.sln");
+                "or pass the solution path as argument: roslyn-codelens-mcp /path/to/Solution.sln");
     }
 
     private void RebuildIfStale()
@@ -681,7 +681,7 @@ public class SolutionManager : IDisposable
 
             var staleIds = _tracker.StaleProjectIds;
             Console.Error.WriteLine(
-                $"[roslyn-codegraph] Rebuilding {staleIds.Count} stale project(s)...");
+                $"[roslyn-codelens] Rebuilding {staleIds.Count} stale project(s)...");
 
             try
             {
@@ -690,7 +690,7 @@ public class SolutionManager : IDisposable
             catch (Exception ex)
             {
                 Console.Error.WriteLine(
-                    $"[roslyn-codegraph] Rebuild failed: {ex.Message}. Using cached data.");
+                    $"[roslyn-codelens] Rebuild failed: {ex.Message}. Using cached data.");
             }
 
             _tracker.ClearStale();
@@ -701,7 +701,7 @@ public class SolutionManager : IDisposable
     {
         var workspace = MSBuildWorkspace.Create();
         workspace.WorkspaceFailed += (_, e) =>
-            Console.Error.WriteLine($"[roslyn-codegraph] Warning: {e.Diagnostic.Message}");
+            Console.Error.WriteLine($"[roslyn-codelens] Warning: {e.Diagnostic.Message}");
 
         var solution = await workspace.OpenSolutionAsync(_solutionPath!);
         var compilations = new Dictionary<ProjectId, Compilation>(_loaded.Compilations);
@@ -711,7 +711,7 @@ public class SolutionManager : IDisposable
             if (!staleIds.Contains(project.Id))
                 continue;
 
-            Console.Error.WriteLine($"[roslyn-codegraph] Recompiling: {project.Name}");
+            Console.Error.WriteLine($"[roslyn-codelens] Recompiling: {project.Name}");
             var compilation = await project.GetCompilationAsync();
             if (compilation != null)
                 compilations[project.Id] = compilation;
@@ -725,7 +725,7 @@ public class SolutionManager : IDisposable
         _resolver = new SymbolResolver(_loaded);
         _tracker!.UpdateMappings(_loaded);
 
-        Console.Error.WriteLine("[roslyn-codegraph] Rebuild complete.");
+        Console.Error.WriteLine("[roslyn-codelens] Rebuild complete.");
     }
 
     public void Dispose()
@@ -737,13 +737,13 @@ public class SolutionManager : IDisposable
 
 **Step 4: Run tests to verify they pass**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj --filter "SolutionManager"`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj --filter "SolutionManager"`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/SolutionManager.cs tests/RoslynCodeGraph.Tests/SolutionManagerTests.cs
+git add src/RoslynCodeLens/SolutionManager.cs tests/RoslynCodeLens.Tests/SolutionManagerTests.cs
 git commit -m "feat: add SolutionManager with lazy rebuild on stale projects"
 ```
 
@@ -752,8 +752,8 @@ git commit -m "feat: add SolutionManager with lazy rebuild on stale projects"
 ### Task 5: Update All 19 Tools to Use `SolutionManager`
 
 **Files:**
-- Modify: All 19 files in `src/RoslynCodeGraph/Tools/`
-- Modify: `src/RoslynCodeGraph/SolutionGuard.cs` (delete or keep as empty — no longer needed)
+- Modify: All 19 files in `src/RoslynCodeLens/Tools/`
+- Modify: `src/RoslynCodeLens/SolutionGuard.cs` (delete or keep as empty — no longer needed)
 
 **Step 1: Update every tool file**
 
@@ -815,18 +815,18 @@ The `EnsureLoaded()` check now lives in `SolutionManager`. Delete the file.
 
 **Step 3: Build to verify**
 
-Run: `dotnet build src/RoslynCodeGraph/RoslynCodeGraph.csproj`
+Run: `dotnet build src/RoslynCodeLens/RoslynCodeLens.csproj`
 Expected: BUILD SUCCEEDED
 
 **Step 4: Run all tests**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj`
 Expected: All tests pass (test Logic classes directly, not through tools)
 
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Tools/ src/RoslynCodeGraph/SolutionGuard.cs
+git add src/RoslynCodeLens/Tools/ src/RoslynCodeLens/SolutionGuard.cs
 git commit -m "refactor: update all tools to use SolutionManager"
 ```
 
@@ -835,7 +835,7 @@ git commit -m "refactor: update all tools to use SolutionManager"
 ### Task 6: Update `Program.cs` DI Registration
 
 **Files:**
-- Modify: `src/RoslynCodeGraph/Program.cs`
+- Modify: `src/RoslynCodeLens/Program.cs`
 
 **Step 1: Rewrite Program.cs**
 
@@ -844,7 +844,7 @@ using Microsoft.Build.Locator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ModelContextProtocol;
-using RoslynCodeGraph;
+using RoslynCodeLens;
 
 MSBuildLocator.RegisterDefaults();
 
@@ -860,7 +860,7 @@ if (solutionPath != null)
 }
 else
 {
-    Console.Error.WriteLine("[roslyn-codegraph] No .sln file found. Tools will return errors.");
+    Console.Error.WriteLine("[roslyn-codelens] No .sln file found. Tools will return errors.");
     manager = SolutionManager.CreateEmpty();
 }
 
@@ -877,16 +877,16 @@ await builder.Build().RunAsync();
 
 **Step 2: Build and run tests**
 
-Run: `dotnet build src/RoslynCodeGraph/RoslynCodeGraph.csproj`
+Run: `dotnet build src/RoslynCodeLens/RoslynCodeLens.csproj`
 Expected: BUILD SUCCEEDED
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj`
 Expected: All tests pass
 
 **Step 3: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Program.cs
+git add src/RoslynCodeLens/Program.cs
 git commit -m "refactor: wire SolutionManager in Program.cs"
 ```
 
@@ -895,14 +895,14 @@ git commit -m "refactor: wire SolutionManager in Program.cs"
 ### Task 7: Add New Model Types for Source Generators
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Models/SourceGeneratorInfo.cs`
-- Create: `src/RoslynCodeGraph/Models/GeneratedFileInfo.cs`
+- Create: `src/RoslynCodeLens/Models/SourceGeneratorInfo.cs`
+- Create: `src/RoslynCodeLens/Models/GeneratedFileInfo.cs`
 
 **Step 1: Create model records**
 
-`src/RoslynCodeGraph/Models/SourceGeneratorInfo.cs`:
+`src/RoslynCodeLens/Models/SourceGeneratorInfo.cs`:
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record SourceGeneratorInfo(
     string GeneratorName,
@@ -911,9 +911,9 @@ public record SourceGeneratorInfo(
     List<string> GeneratedFiles);
 ```
 
-`src/RoslynCodeGraph/Models/GeneratedFileInfo.cs`:
+`src/RoslynCodeLens/Models/GeneratedFileInfo.cs`:
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record GeneratedFileInfo(
     string FilePath,
@@ -925,13 +925,13 @@ public record GeneratedFileInfo(
 
 **Step 2: Build**
 
-Run: `dotnet build src/RoslynCodeGraph/RoslynCodeGraph.csproj`
+Run: `dotnet build src/RoslynCodeLens/RoslynCodeLens.csproj`
 Expected: BUILD SUCCEEDED
 
 **Step 3: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Models/SourceGeneratorInfo.cs src/RoslynCodeGraph/Models/GeneratedFileInfo.cs
+git add src/RoslynCodeLens/Models/SourceGeneratorInfo.cs src/RoslynCodeLens/Models/GeneratedFileInfo.cs
 git commit -m "feat: add SourceGeneratorInfo and GeneratedFileInfo models"
 ```
 
@@ -940,17 +940,17 @@ git commit -m "feat: add SourceGeneratorInfo and GeneratedFileInfo models"
 ### Task 8: Add `get_source_generators` Tool
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Tools/GetSourceGeneratorsTool.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Tools/GetSourceGeneratorsToolTests.cs`
+- Create: `src/RoslynCodeLens/Tools/GetSourceGeneratorsTool.cs`
+- Create: `tests/RoslynCodeLens.Tests/Tools/GetSourceGeneratorsToolTests.cs`
 
 **Step 1: Write the failing test**
 
-Create `tests/RoslynCodeGraph.Tests/Tools/GetSourceGeneratorsToolTests.cs`:
+Create `tests/RoslynCodeLens.Tests/Tools/GetSourceGeneratorsToolTests.cs`:
 
 ```csharp
-using RoslynCodeGraph.Tools;
+using RoslynCodeLens.Tools;
 
-namespace RoslynCodeGraph.Tests.Tools;
+namespace RoslynCodeLens.Tests.Tools;
 
 public class GetSourceGeneratorsToolTests : IAsyncLifetime
 {
@@ -988,20 +988,20 @@ public class GetSourceGeneratorsToolTests : IAsyncLifetime
 
 **Step 2: Run tests to verify they fail**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj --filter "GetSourceGenerators"`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj --filter "GetSourceGenerators"`
 Expected: FAIL — class does not exist
 
 **Step 3: Implement the tool**
 
-Create `src/RoslynCodeGraph/Tools/GetSourceGeneratorsTool.cs`:
+Create `src/RoslynCodeLens/Tools/GetSourceGeneratorsTool.cs`:
 
 ```csharp
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class GetSourceGeneratorsLogic
 {
@@ -1087,13 +1087,13 @@ public static class GetSourceGeneratorsTool
 
 **Step 4: Run tests to verify they pass**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj --filter "GetSourceGenerators"`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj --filter "GetSourceGenerators"`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Tools/GetSourceGeneratorsTool.cs tests/RoslynCodeGraph.Tests/Tools/GetSourceGeneratorsToolTests.cs
+git add src/RoslynCodeLens/Tools/GetSourceGeneratorsTool.cs tests/RoslynCodeLens.Tests/Tools/GetSourceGeneratorsToolTests.cs
 git commit -m "feat: add get_source_generators tool"
 ```
 
@@ -1102,17 +1102,17 @@ git commit -m "feat: add get_source_generators tool"
 ### Task 9: Add `get_generated_code` Tool
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Tools/GetGeneratedCodeTool.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Tools/GetGeneratedCodeToolTests.cs`
+- Create: `src/RoslynCodeLens/Tools/GetGeneratedCodeTool.cs`
+- Create: `tests/RoslynCodeLens.Tests/Tools/GetGeneratedCodeToolTests.cs`
 
 **Step 1: Write the failing test**
 
-Create `tests/RoslynCodeGraph.Tests/Tools/GetGeneratedCodeToolTests.cs`:
+Create `tests/RoslynCodeLens.Tests/Tools/GetGeneratedCodeToolTests.cs`:
 
 ```csharp
-using RoslynCodeGraph.Tools;
+using RoslynCodeLens.Tools;
 
-namespace RoslynCodeGraph.Tests.Tools;
+namespace RoslynCodeLens.Tests.Tools;
 
 public class GetGeneratedCodeToolTests : IAsyncLifetime
 {
@@ -1147,20 +1147,20 @@ public class GetGeneratedCodeToolTests : IAsyncLifetime
 
 **Step 2: Run tests to verify they fail**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj --filter "GetGeneratedCode"`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj --filter "GetGeneratedCode"`
 Expected: FAIL — class does not exist
 
 **Step 3: Implement the tool**
 
-Create `src/RoslynCodeGraph/Tools/GetGeneratedCodeTool.cs`:
+Create `src/RoslynCodeLens/Tools/GetGeneratedCodeTool.cs`:
 
 ```csharp
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class GetGeneratedCodeLogic
 {
@@ -1255,13 +1255,13 @@ public static class GetGeneratedCodeTool
 
 **Step 4: Run tests to verify they pass**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj --filter "GetGeneratedCode"`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj --filter "GetGeneratedCode"`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Tools/GetGeneratedCodeTool.cs tests/RoslynCodeGraph.Tests/Tools/GetGeneratedCodeToolTests.cs
+git add src/RoslynCodeLens/Tools/GetGeneratedCodeTool.cs tests/RoslynCodeLens.Tests/Tools/GetGeneratedCodeToolTests.cs
 git commit -m "feat: add get_generated_code tool"
 ```
 
@@ -1270,12 +1270,12 @@ git commit -m "feat: add get_generated_code tool"
 ### Task 10: Populate `IsGenerated` in Location-Returning Tools
 
 **Files:**
-- Modify: `src/RoslynCodeGraph/Tools/FindImplementationsTool.cs` (Logic class)
-- Modify: `src/RoslynCodeGraph/Tools/FindCallersTool.cs` (Logic class)
-- Modify: `src/RoslynCodeGraph/Tools/FindReferencesTool.cs` (Logic class)
-- Modify: `src/RoslynCodeGraph/Tools/GoToDefinitionTool.cs` (Logic class)
-- Modify: `src/RoslynCodeGraph/Tools/FindUnusedSymbolsTool.cs` (Logic class)
-- Modify: `src/RoslynCodeGraph/Tools/FindReflectionUsageTool.cs` (Logic class)
+- Modify: `src/RoslynCodeLens/Tools/FindImplementationsTool.cs` (Logic class)
+- Modify: `src/RoslynCodeLens/Tools/FindCallersTool.cs` (Logic class)
+- Modify: `src/RoslynCodeLens/Tools/FindReferencesTool.cs` (Logic class)
+- Modify: `src/RoslynCodeLens/Tools/GoToDefinitionTool.cs` (Logic class)
+- Modify: `src/RoslynCodeLens/Tools/FindUnusedSymbolsTool.cs` (Logic class)
+- Modify: `src/RoslynCodeLens/Tools/FindReflectionUsageTool.cs` (Logic class)
 
 **Step 1: Update each Logic class to pass `IsGenerated`**
 
@@ -1315,16 +1315,16 @@ Apply this pattern to all location-constructing call sites in:
 
 **Step 2: Build and run all tests**
 
-Run: `dotnet build src/RoslynCodeGraph/RoslynCodeGraph.csproj`
+Run: `dotnet build src/RoslynCodeLens/RoslynCodeLens.csproj`
 Expected: BUILD SUCCEEDED
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj`
 Expected: All tests pass (existing tests still pass because test fixtures use hand-written code, so `IsGenerated` will be `false`)
 
 **Step 3: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Tools/FindImplementationsTool.cs src/RoslynCodeGraph/Tools/FindCallersTool.cs src/RoslynCodeGraph/Tools/FindReferencesTool.cs src/RoslynCodeGraph/Tools/GoToDefinitionTool.cs src/RoslynCodeGraph/Tools/FindUnusedSymbolsTool.cs src/RoslynCodeGraph/Tools/FindReflectionUsageTool.cs
+git add src/RoslynCodeLens/Tools/FindImplementationsTool.cs src/RoslynCodeLens/Tools/FindCallersTool.cs src/RoslynCodeLens/Tools/FindReferencesTool.cs src/RoslynCodeLens/Tools/GoToDefinitionTool.cs src/RoslynCodeLens/Tools/FindUnusedSymbolsTool.cs src/RoslynCodeLens/Tools/FindReflectionUsageTool.cs
 git commit -m "feat: populate IsGenerated flag in location-returning tools"
 ```
 
@@ -1333,7 +1333,7 @@ git commit -m "feat: populate IsGenerated flag in location-returning tools"
 ### Task 11: Update Tests to Use `SolutionManager` Pattern
 
 **Files:**
-- Modify: All test files in `tests/RoslynCodeGraph.Tests/Tools/` that directly test tool wrapper classes (if any)
+- Modify: All test files in `tests/RoslynCodeLens.Tests/Tools/` that directly test tool wrapper classes (if any)
 
 **Step 1: Verify test approach**
 
@@ -1341,13 +1341,13 @@ All existing tests call `*Logic.Execute()` directly with `LoadedSolution` and `S
 
 **Step 2: Run full test suite**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj`
+Run: `dotnet test tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj`
 Expected: All tests pass
 
 **Step 3: Commit (if any changes were needed)**
 
 ```bash
-git add tests/RoslynCodeGraph.Tests/
+git add tests/RoslynCodeLens.Tests/
 git commit -m "test: update tool tests for SolutionManager"
 ```
 
@@ -1356,7 +1356,7 @@ git commit -m "test: update tool tests for SolutionManager"
 ### Task 12: Update SKILL.md and README
 
 **Files:**
-- Modify: `plugins/roslyn-codegraph/skills/roslyn-codegraph/SKILL.md`
+- Modify: `plugins/roslyn-codelens/skills/roslyn-codelens/SKILL.md`
 - Modify: `README.md`
 
 **Step 1: Add new tools to SKILL.md tool matrix**
@@ -1370,7 +1370,7 @@ Add the two new tools to the tool list in README.md. Update the total tool count
 **Step 3: Commit**
 
 ```bash
-git add plugins/roslyn-codegraph/skills/roslyn-codegraph/SKILL.md README.md
+git add plugins/roslyn-codelens/skills/roslyn-codelens/SKILL.md README.md
 git commit -m "docs: add source generator tools and hot reload to docs"
 ```
 
@@ -1390,5 +1390,5 @@ Expected: All tests pass
 
 **Step 3: Manual smoke test**
 
-Run: `dotnet run --project src/RoslynCodeGraph/RoslynCodeGraph.csproj`
+Run: `dotnet run --project src/RoslynCodeLens/RoslynCodeLens.csproj`
 Expected: Server starts, loads solution, outputs "Ready" to stderr. FileChangeTracker starts watching. Server accepts MCP requests via stdio.

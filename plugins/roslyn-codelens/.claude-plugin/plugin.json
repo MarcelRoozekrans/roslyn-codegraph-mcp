@@ -1,0 +1,14 @@
+{
+  "name": "roslyn-codelens",
+  "description": "Roslyn-based code graph intelligence for .NET codebases. Requires .NET 10 SDK and the global tool: dotnet tool install -g RoslynCodeLens.Mcp",
+  "author": {
+    "name": "Marcel Roozekrans"
+  },
+  "mcpServers": {
+    "roslyn-codelens": {
+      "command": "roslyn-codelens-mcp",
+      "args": [],
+      "transport": "stdio"
+    }
+  }
+}

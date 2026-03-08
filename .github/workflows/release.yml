@@ -29,6 +29,8 @@ jobs:
       - name: Calculate Version
         id: gitversion
         uses: gittools/actions/gitversion/execute@v3.2.1
+        with:
+          useConfigFile: true
 
       - name: Display Version
         run: echo "Version:${{ steps.gitversion.outputs.semVer }}"
@@ -37,7 +39,7 @@ jobs:
         run: dotnet restore
 
       - name: Restore test fixtures
-        run: dotnet restore tests/RoslynCodeGraph.Tests/Fixtures/TestSolution/TestSolution.slnx
+        run: dotnet restore tests/RoslynCodeLens.Tests/Fixtures/TestSolution/TestSolution.slnx
 
       - name: Build
         run: dotnet build --no-restore -c Release -p:Version=${{ steps.gitversion.outputs.semVer }}
@@ -46,7 +48,7 @@ jobs:
         run: dotnet test --no-build -c Release --verbosity normal
 
       - name: Pack
-        run: dotnet pack src/RoslynCodeGraph/RoslynCodeGraph.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.semVer }} -o ./artifacts
+        run: dotnet pack src/RoslynCodeLens/RoslynCodeLens.csproj --no-build -c Release -p:PackageVersion=${{ steps.gitversion.outputs.semVer }} -o ./artifacts
 
       - name: Push to NuGet
         if: env.NUGET_API_KEY != ''

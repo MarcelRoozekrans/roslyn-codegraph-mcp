@@ -50,12 +50,12 @@ git commit -m "ci: add GitVersion configuration for semantic versioning"
 ## Task 2: NuGet Package Metadata
 
 **Files:**
-- Modify: `src/RoslynCodeGraph/RoslynCodeGraph.csproj`
+- Modify: `src/RoslynCodeLens/RoslynCodeLens.csproj`
 
 **Step 1: Read the current csproj**
 
 ```bash
-cat src/RoslynCodeGraph/RoslynCodeGraph.csproj
+cat src/RoslynCodeLens/RoslynCodeLens.csproj
 ```
 
 **Step 2: Add NuGet metadata to the first PropertyGroup**
@@ -63,11 +63,11 @@ cat src/RoslynCodeGraph/RoslynCodeGraph.csproj
 Add these properties inside the existing `<PropertyGroup>` (after `ToolCommandName`):
 
 ```xml
-<PackageId>RoslynCodeGraph</PackageId>
+<PackageId>RoslynCodeLens</PackageId>
 <Authors>Marcel Roozekrans</Authors>
 <Description>Roslyn-based MCP server providing semantic code intelligence for .NET codebases</Description>
-<PackageProjectUrl>https://github.com/MarcelRoozekrans/roslyn-codegraph-mcp</PackageProjectUrl>
-<RepositoryUrl>https://github.com/MarcelRoozekrans/roslyn-codegraph-mcp</RepositoryUrl>
+<PackageProjectUrl>https://github.com/MarcelRoozekrans/roslyn-codelens-mcp</PackageProjectUrl>
+<RepositoryUrl>https://github.com/MarcelRoozekrans/roslyn-codelens-mcp</RepositoryUrl>
 <PackageLicenseExpression>MIT</PackageLicenseExpression>
 <PackageTags>roslyn;mcp;code-analysis;dotnet-tool</PackageTags>
 <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -85,7 +85,7 @@ Add a new ItemGroup for the README:
 
 ```bash
 dotnet build
-dotnet pack src/RoslynCodeGraph/RoslynCodeGraph.csproj -o ./artifacts
+dotnet pack src/RoslynCodeLens/RoslynCodeLens.csproj -o ./artifacts
 ```
 
 Expected: Build succeeds, `.nupkg` file created in `./artifacts/`.
@@ -99,7 +99,7 @@ rm -rf ./artifacts
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/RoslynCodeGraph.csproj
+git add src/RoslynCodeLens/RoslynCodeLens.csproj
 git commit -m "ci: add NuGet package metadata to csproj"
 ```
 
@@ -230,7 +230,7 @@ jobs:
         run: dotnet test --no-build --verbosity normal
 
       - name: Pack
-        run: dotnet pack src/RoslynCodeGraph/RoslynCodeGraph.csproj --no-build -p:PackageVersion=${{ steps.gitversion.outputs.semVer }} -o ./artifacts
+        run: dotnet pack src/RoslynCodeLens/RoslynCodeLens.csproj --no-build -p:PackageVersion=${{ steps.gitversion.outputs.semVer }} -o ./artifacts
 
       - name: Push to NuGet
         if: env.NUGET_API_KEY != ''
@@ -297,12 +297,12 @@ git commit -m "chore: add artifacts/ to .gitignore"
 The csproj currently uses wildcard versions (`0.*`, `4.*`, etc.) which is fine for development but should be pinned for reproducible CI builds.
 
 **Files:**
-- Modify: `src/RoslynCodeGraph/RoslynCodeGraph.csproj`
+- Modify: `src/RoslynCodeLens/RoslynCodeLens.csproj`
 
 **Step 1: Check current resolved versions**
 
 ```bash
-dotnet list src/RoslynCodeGraph package
+dotnet list src/RoslynCodeLens package
 ```
 
 **Step 2: Replace wildcard versions with the resolved versions**
@@ -321,7 +321,7 @@ Expected: Build succeeds, all tests pass.
 **Step 4: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/RoslynCodeGraph.csproj
+git add src/RoslynCodeLens/RoslynCodeLens.csproj
 git commit -m "chore: pin NuGet package versions for reproducible builds"
 ```
 
@@ -340,10 +340,10 @@ Expected: All 16 tests pass.
 **Step 2: Test pack with a version**
 
 ```bash
-dotnet pack src/RoslynCodeGraph/RoslynCodeGraph.csproj -p:PackageVersion=0.0.1-local -o ./artifacts
+dotnet pack src/RoslynCodeLens/RoslynCodeLens.csproj -p:PackageVersion=0.0.1-local -o ./artifacts
 ```
 
-Expected: `RoslynCodeGraph.0.0.1-local.nupkg` created.
+Expected: `RoslynCodeLens.0.0.1-local.nupkg` created.
 
 **Step 3: Inspect the package**
 
@@ -373,11 +373,11 @@ Expected: Clean working tree.
 | Task | What | Files |
 |------|------|-------|
 | 1 | GitVersion config | `GitVersion.yml` |
-| 2 | NuGet package metadata | `src/RoslynCodeGraph/RoslynCodeGraph.csproj` |
+| 2 | NuGet package metadata | `src/RoslynCodeLens/RoslynCodeLens.csproj` |
 | 3 | CI workflow (PR validation) | `.github/workflows/ci.yml` |
 | 4 | Release workflow (publish) | `.github/workflows/release.yml` |
 | 5 | Gitignore artifacts | `.gitignore` |
-| 6 | Pin NuGet versions | `src/RoslynCodeGraph/RoslynCodeGraph.csproj` |
+| 6 | Pin NuGet versions | `src/RoslynCodeLens/RoslynCodeLens.csproj` |
 | 7 | Local verification | — |
 
 ## Post-Implementation (Manual)

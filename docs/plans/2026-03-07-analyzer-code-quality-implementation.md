@@ -19,7 +19,7 @@
 Add a well-known analyzer package to the test solution so we have analyzer diagnostics to test against.
 
 **Files:**
-- Modify: `tests/RoslynCodeGraph.Tests/Fixtures/TestSolution/TestLib/TestLib.csproj`
+- Modify: `tests/RoslynCodeLens.Tests/Fixtures/TestSolution/TestLib/TestLib.csproj`
 
 **Step 1: Add the Microsoft.CodeAnalysis.NetAnalyzers package**
 
@@ -33,14 +33,14 @@ This ships CA* analyzers (e.g., CA1822 "Make member static") that will produce d
 
 **Step 2: Verify the project still builds**
 
-Run: `dotnet build tests/RoslynCodeGraph.Tests/Fixtures/TestSolution/TestSolution.slnx`
+Run: `dotnet build tests/RoslynCodeLens.Tests/Fixtures/TestSolution/TestSolution.slnx`
 
 Expected: Build succeeds (analyzer warnings are non-blocking)
 
 **Step 3: Commit**
 
 ```bash
-git add tests/RoslynCodeGraph.Tests/Fixtures/TestSolution/TestLib/TestLib.csproj
+git add tests/RoslynCodeLens.Tests/Fixtures/TestSolution/TestLib/TestLib.csproj
 git commit -m "test: add NetAnalyzers to test fixture for analyzer integration tests"
 ```
 
@@ -51,14 +51,14 @@ git commit -m "test: add NetAnalyzers to test fixture for analyzer integration t
 Extend the existing `DiagnosticInfo` record to distinguish compiler vs analyzer diagnostics.
 
 **Files:**
-- Modify: `src/RoslynCodeGraph/Models/DiagnosticInfo.cs`
+- Modify: `src/RoslynCodeLens/Models/DiagnosticInfo.cs`
 
 **Step 1: Add Source parameter to the record**
 
 Replace the record with:
 
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record DiagnosticInfo(string Id, string Severity, string Message, string File, int Line, string Project, string Source = "compiler");
 ```
@@ -67,14 +67,14 @@ The `Source` field defaults to `"compiler"` for backward compatibility. Analyzer
 
 **Step 2: Run existing tests to verify backward compatibility**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests`
+Run: `dotnet test tests/RoslynCodeLens.Tests`
 
 Expected: All existing tests pass (default parameter preserves behavior).
 
 **Step 3: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Models/DiagnosticInfo.cs
+git add src/RoslynCodeLens/Models/DiagnosticInfo.cs
 git commit -m "feat: add Source field to DiagnosticInfo for analyzer attribution"
 ```
 
@@ -85,17 +85,17 @@ git commit -m "feat: add Source field to DiagnosticInfo for analyzer attribution
 New service that discovers and runs Roslyn analyzers from `Project.AnalyzerReferences`.
 
 **Files:**
-- Create: `src/RoslynCodeGraph/AnalyzerRunner.cs`
+- Create: `src/RoslynCodeLens/AnalyzerRunner.cs`
 
 **Step 1: Write the failing test**
 
-Create `tests/RoslynCodeGraph.Tests/AnalyzerRunnerTests.cs`:
+Create `tests/RoslynCodeLens.Tests/AnalyzerRunnerTests.cs`:
 
 ```csharp
 using Microsoft.CodeAnalysis;
-using RoslynCodeGraph;
+using RoslynCodeLens;
 
-namespace RoslynCodeGraph.Tests;
+namespace RoslynCodeLens.Tests;
 
 public class AnalyzerRunnerTests : IAsyncLifetime
 {
@@ -142,20 +142,20 @@ public class AnalyzerRunnerTests : IAsyncLifetime
 
 **Step 2: Run test to verify it fails**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "AnalyzerRunnerTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "AnalyzerRunnerTests" -v n`
 
 Expected: FAIL — `AnalyzerRunner` class does not exist.
 
 **Step 3: Write the AnalyzerRunner implementation**
 
-Create `src/RoslynCodeGraph/AnalyzerRunner.cs`:
+Create `src/RoslynCodeLens/AnalyzerRunner.cs`:
 
 ```csharp
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace RoslynCodeGraph;
+namespace RoslynCodeLens;
 
 public class AnalyzerRunner
 {
@@ -206,14 +206,14 @@ public class AnalyzerRunner
 
 **Step 4: Run tests to verify they pass**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "AnalyzerRunnerTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "AnalyzerRunnerTests" -v n`
 
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/AnalyzerRunner.cs tests/RoslynCodeGraph.Tests/AnalyzerRunnerTests.cs
+git add src/RoslynCodeLens/AnalyzerRunner.cs tests/RoslynCodeLens.Tests/AnalyzerRunnerTests.cs
 git commit -m "feat: add AnalyzerRunner service for Roslyn analyzer execution"
 ```
 
@@ -224,8 +224,8 @@ git commit -m "feat: add AnalyzerRunner service for Roslyn analyzer execution"
 Update the existing `GetDiagnosticsLogic` to optionally run analyzers via `AnalyzerRunner`.
 
 **Files:**
-- Modify: `src/RoslynCodeGraph/Tools/GetDiagnosticsTool.cs`
-- Modify: `tests/RoslynCodeGraph.Tests/Tools/GetDiagnosticsToolTests.cs`
+- Modify: `src/RoslynCodeLens/Tools/GetDiagnosticsTool.cs`
+- Modify: `tests/RoslynCodeLens.Tests/Tools/GetDiagnosticsToolTests.cs`
 
 **Step 1: Write the failing test**
 
@@ -251,21 +251,21 @@ public async Task GetDiagnostics_WithoutAnalyzers_OnlyCompilerDiagnostics()
 
 **Step 2: Run test to verify it fails**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "GetDiagnostics_WithAnalyzers" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "GetDiagnostics_WithAnalyzers" -v n`
 
 Expected: FAIL — `ExecuteAsync` method does not exist.
 
 **Step 3: Update GetDiagnosticsLogic with async overload**
 
-Update `src/RoslynCodeGraph/Tools/GetDiagnosticsTool.cs`. Keep the existing sync `Execute` method (for backward compatibility) and add a new async overload:
+Update `src/RoslynCodeLens/Tools/GetDiagnosticsTool.cs`. Keep the existing sync `Execute` method (for backward compatibility) and add a new async overload:
 
 ```csharp
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class GetDiagnosticsLogic
 {
@@ -385,14 +385,14 @@ Existing tests calling `GetDiagnosticsLogic.Execute(...)` still work unchanged �
 
 **Step 5: Run all tests**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests -v n`
 
 Expected: All tests pass.
 
 **Step 6: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Tools/GetDiagnosticsTool.cs tests/RoslynCodeGraph.Tests/Tools/GetDiagnosticsToolTests.cs
+git add src/RoslynCodeLens/Tools/GetDiagnosticsTool.cs tests/RoslynCodeLens.Tests/Tools/GetDiagnosticsToolTests.cs
 git commit -m "feat: enhance get_diagnostics with analyzer support"
 ```
 
@@ -403,12 +403,12 @@ git commit -m "feat: enhance get_diagnostics with analyzer support"
 ### Task 5: Create CodeFixSuggestion model
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Models/CodeFixSuggestion.cs`
+- Create: `src/RoslynCodeLens/Models/CodeFixSuggestion.cs`
 
 **Step 1: Create the model**
 
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record TextEdit(string FilePath, int StartLine, int StartColumn, int EndLine, int EndColumn, string NewText);
 
@@ -418,7 +418,7 @@ public record CodeFixSuggestion(string Title, string DiagnosticId, List<TextEdit
 **Step 2: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Models/CodeFixSuggestion.cs
+git add src/RoslynCodeLens/Models/CodeFixSuggestion.cs
 git commit -m "feat: add CodeFixSuggestion and TextEdit models"
 ```
 
@@ -427,19 +427,19 @@ git commit -m "feat: add CodeFixSuggestion and TextEdit models"
 ### Task 6: Create CodeFixRunner service
 
 **Files:**
-- Create: `src/RoslynCodeGraph/CodeFixRunner.cs`
-- Create: `tests/RoslynCodeGraph.Tests/CodeFixRunnerTests.cs`
+- Create: `src/RoslynCodeLens/CodeFixRunner.cs`
+- Create: `tests/RoslynCodeLens.Tests/CodeFixRunnerTests.cs`
 
 **Step 1: Write the failing test**
 
-Create `tests/RoslynCodeGraph.Tests/CodeFixRunnerTests.cs`:
+Create `tests/RoslynCodeLens.Tests/CodeFixRunnerTests.cs`:
 
 ```csharp
 using Microsoft.CodeAnalysis;
-using RoslynCodeGraph;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tests;
+namespace RoslynCodeLens.Tests;
 
 public class CodeFixRunnerTests : IAsyncLifetime
 {
@@ -499,13 +499,13 @@ public class CodeFixRunnerTests : IAsyncLifetime
 
 **Step 2: Run test to verify it fails**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "CodeFixRunnerTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "CodeFixRunnerTests" -v n`
 
 Expected: FAIL — `CodeFixRunner` class does not exist.
 
 **Step 3: Write the CodeFixRunner implementation**
 
-Create `src/RoslynCodeGraph/CodeFixRunner.cs`:
+Create `src/RoslynCodeLens/CodeFixRunner.cs`:
 
 ```csharp
 using System.Collections.Immutable;
@@ -514,9 +514,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph;
+namespace RoslynCodeLens;
 
 public class CodeFixRunner
 {
@@ -623,14 +623,14 @@ public class CodeFixRunner
 
 **Step 4: Run tests to verify they pass**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "CodeFixRunnerTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "CodeFixRunnerTests" -v n`
 
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/CodeFixRunner.cs tests/RoslynCodeGraph.Tests/CodeFixRunnerTests.cs
+git add src/RoslynCodeLens/CodeFixRunner.cs tests/RoslynCodeLens.Tests/CodeFixRunnerTests.cs
 git commit -m "feat: add CodeFixRunner for extracting code fix text edits"
 ```
 
@@ -639,18 +639,18 @@ git commit -m "feat: add CodeFixRunner for extracting code fix text edits"
 ### Task 7: Create get_code_fixes MCP tool
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Tools/GetCodeFixesTool.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Tools/GetCodeFixesToolTests.cs`
+- Create: `src/RoslynCodeLens/Tools/GetCodeFixesTool.cs`
+- Create: `tests/RoslynCodeLens.Tests/Tools/GetCodeFixesToolTests.cs`
 
 **Step 1: Write the failing test**
 
-Create `tests/RoslynCodeGraph.Tests/Tools/GetCodeFixesToolTests.cs`:
+Create `tests/RoslynCodeLens.Tests/Tools/GetCodeFixesToolTests.cs`:
 
 ```csharp
-using RoslynCodeGraph;
-using RoslynCodeGraph.Tools;
+using RoslynCodeLens;
+using RoslynCodeLens.Tools;
 
-namespace RoslynCodeGraph.Tests.Tools;
+namespace RoslynCodeLens.Tests.Tools;
 
 public class GetCodeFixesToolTests : IAsyncLifetime
 {
@@ -696,21 +696,21 @@ public class GetCodeFixesToolTests : IAsyncLifetime
 
 **Step 2: Run test to verify it fails**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "GetCodeFixesToolTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "GetCodeFixesToolTests" -v n`
 
 Expected: FAIL — `GetCodeFixesLogic` does not exist.
 
 **Step 3: Write the tool implementation**
 
-Create `src/RoslynCodeGraph/Tools/GetCodeFixesTool.cs`:
+Create `src/RoslynCodeLens/Tools/GetCodeFixesTool.cs`:
 
 ```csharp
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class GetCodeFixesLogic
 {
@@ -795,14 +795,14 @@ public static class GetCodeFixesTool
 
 **Step 4: Run tests to verify they pass**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "GetCodeFixesToolTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "GetCodeFixesToolTests" -v n`
 
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Tools/GetCodeFixesTool.cs tests/RoslynCodeGraph.Tests/Tools/GetCodeFixesToolTests.cs
+git add src/RoslynCodeLens/Tools/GetCodeFixesTool.cs tests/RoslynCodeLens.Tests/Tools/GetCodeFixesToolTests.cs
 git commit -m "feat: add get_code_fixes tool for surfacing code fix suggestions"
 ```
 
@@ -815,29 +815,29 @@ git commit -m "feat: add get_code_fixes tool for surfacing code fix suggestions"
 Detects cycles in project reference graph using DFS.
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Models/CircularDependency.cs`
-- Create: `src/RoslynCodeGraph/Tools/FindCircularDependenciesTool.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Tools/FindCircularDependenciesToolTests.cs`
+- Create: `src/RoslynCodeLens/Models/CircularDependency.cs`
+- Create: `src/RoslynCodeLens/Tools/FindCircularDependenciesTool.cs`
+- Create: `tests/RoslynCodeLens.Tests/Tools/FindCircularDependenciesToolTests.cs`
 
 **Step 1: Create the model**
 
-Create `src/RoslynCodeGraph/Models/CircularDependency.cs`:
+Create `src/RoslynCodeLens/Models/CircularDependency.cs`:
 
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record CircularDependency(string Level, List<string> Cycle);
 ```
 
 **Step 2: Write the failing test**
 
-Create `tests/RoslynCodeGraph.Tests/Tools/FindCircularDependenciesToolTests.cs`:
+Create `tests/RoslynCodeLens.Tests/Tools/FindCircularDependenciesToolTests.cs`:
 
 ```csharp
-using RoslynCodeGraph;
-using RoslynCodeGraph.Tools;
+using RoslynCodeLens;
+using RoslynCodeLens.Tools;
 
-namespace RoslynCodeGraph.Tests.Tools;
+namespace RoslynCodeLens.Tests.Tools;
 
 public class FindCircularDependenciesToolTests : IAsyncLifetime
 {
@@ -873,21 +873,21 @@ public class FindCircularDependenciesToolTests : IAsyncLifetime
 
 **Step 3: Run test to verify it fails**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "FindCircularDependenciesToolTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "FindCircularDependenciesToolTests" -v n`
 
 Expected: FAIL
 
 **Step 4: Write the implementation**
 
-Create `src/RoslynCodeGraph/Tools/FindCircularDependenciesTool.cs`:
+Create `src/RoslynCodeLens/Tools/FindCircularDependenciesTool.cs`:
 
 ```csharp
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class FindCircularDependenciesLogic
 {
@@ -1033,14 +1033,14 @@ public static class FindCircularDependenciesTool
 
 **Step 5: Run tests**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "FindCircularDependenciesToolTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "FindCircularDependenciesToolTests" -v n`
 
 Expected: PASS
 
 **Step 6: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Models/CircularDependency.cs src/RoslynCodeGraph/Tools/FindCircularDependenciesTool.cs tests/RoslynCodeGraph.Tests/Tools/FindCircularDependenciesToolTests.cs
+git add src/RoslynCodeLens/Models/CircularDependency.cs src/RoslynCodeLens/Tools/FindCircularDependenciesTool.cs tests/RoslynCodeLens.Tests/Tools/FindCircularDependenciesToolTests.cs
 git commit -m "feat: add find_circular_dependencies tool"
 ```
 
@@ -1051,29 +1051,29 @@ git commit -m "feat: add find_circular_dependencies tool"
 Walks syntax trees counting branches per method.
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Models/ComplexityMetric.cs`
-- Create: `src/RoslynCodeGraph/Tools/GetComplexityMetricsTool.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Tools/GetComplexityMetricsToolTests.cs`
+- Create: `src/RoslynCodeLens/Models/ComplexityMetric.cs`
+- Create: `src/RoslynCodeLens/Tools/GetComplexityMetricsTool.cs`
+- Create: `tests/RoslynCodeLens.Tests/Tools/GetComplexityMetricsToolTests.cs`
 
 **Step 1: Create the model**
 
-Create `src/RoslynCodeGraph/Models/ComplexityMetric.cs`:
+Create `src/RoslynCodeLens/Models/ComplexityMetric.cs`:
 
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record ComplexityMetric(string MethodName, string TypeName, int Complexity, string File, int Line, string Project);
 ```
 
 **Step 2: Write the failing test**
 
-Create `tests/RoslynCodeGraph.Tests/Tools/GetComplexityMetricsToolTests.cs`:
+Create `tests/RoslynCodeLens.Tests/Tools/GetComplexityMetricsToolTests.cs`:
 
 ```csharp
-using RoslynCodeGraph;
-using RoslynCodeGraph.Tools;
+using RoslynCodeLens;
+using RoslynCodeLens.Tools;
 
-namespace RoslynCodeGraph.Tests.Tools;
+namespace RoslynCodeLens.Tests.Tools;
 
 public class GetComplexityMetricsToolTests : IAsyncLifetime
 {
@@ -1119,13 +1119,13 @@ public class GetComplexityMetricsToolTests : IAsyncLifetime
 
 **Step 3: Run test to verify it fails**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "GetComplexityMetricsToolTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "GetComplexityMetricsToolTests" -v n`
 
 Expected: FAIL
 
 **Step 4: Write the implementation**
 
-Create `src/RoslynCodeGraph/Tools/GetComplexityMetricsTool.cs`:
+Create `src/RoslynCodeLens/Tools/GetComplexityMetricsTool.cs`:
 
 ```csharp
 using System.ComponentModel;
@@ -1133,9 +1133,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class GetComplexityMetricsLogic
 {
@@ -1221,14 +1221,14 @@ public static class GetComplexityMetricsTool
 
 **Step 5: Run tests**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "GetComplexityMetricsToolTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "GetComplexityMetricsToolTests" -v n`
 
 Expected: PASS
 
 **Step 6: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Models/ComplexityMetric.cs src/RoslynCodeGraph/Tools/GetComplexityMetricsTool.cs tests/RoslynCodeGraph.Tests/Tools/GetComplexityMetricsToolTests.cs
+git add src/RoslynCodeLens/Models/ComplexityMetric.cs src/RoslynCodeLens/Tools/GetComplexityMetricsTool.cs tests/RoslynCodeLens.Tests/Tools/GetComplexityMetricsToolTests.cs
 git commit -m "feat: add get_complexity_metrics tool"
 ```
 
@@ -1239,29 +1239,29 @@ git commit -m "feat: add get_complexity_metrics tool"
 Checks .NET naming conventions.
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Models/NamingViolation.cs`
-- Create: `src/RoslynCodeGraph/Tools/FindNamingViolationsTool.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Tools/FindNamingViolationsToolTests.cs`
+- Create: `src/RoslynCodeLens/Models/NamingViolation.cs`
+- Create: `src/RoslynCodeLens/Tools/FindNamingViolationsTool.cs`
+- Create: `tests/RoslynCodeLens.Tests/Tools/FindNamingViolationsToolTests.cs`
 
 **Step 1: Create the model**
 
-Create `src/RoslynCodeGraph/Models/NamingViolation.cs`:
+Create `src/RoslynCodeLens/Models/NamingViolation.cs`:
 
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record NamingViolation(string SymbolName, string SymbolKind, string Rule, string Suggestion, string File, int Line, string Project);
 ```
 
 **Step 2: Write the failing test**
 
-Create `tests/RoslynCodeGraph.Tests/Tools/FindNamingViolationsToolTests.cs`:
+Create `tests/RoslynCodeLens.Tests/Tools/FindNamingViolationsToolTests.cs`:
 
 ```csharp
-using RoslynCodeGraph;
-using RoslynCodeGraph.Tools;
+using RoslynCodeLens;
+using RoslynCodeLens.Tools;
 
-namespace RoslynCodeGraph.Tests.Tools;
+namespace RoslynCodeLens.Tests.Tools;
 
 public class FindNamingViolationsToolTests : IAsyncLifetime
 {
@@ -1297,21 +1297,21 @@ public class FindNamingViolationsToolTests : IAsyncLifetime
 
 **Step 3: Run test to verify it fails**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "FindNamingViolationsToolTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "FindNamingViolationsToolTests" -v n`
 
 Expected: FAIL
 
 **Step 4: Write the implementation**
 
-Create `src/RoslynCodeGraph/Tools/FindNamingViolationsTool.cs`:
+Create `src/RoslynCodeLens/Tools/FindNamingViolationsTool.cs`:
 
 ```csharp
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class FindNamingViolationsLogic
 {
@@ -1418,14 +1418,14 @@ public static class FindNamingViolationsTool
 
 **Step 5: Run tests**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "FindNamingViolationsToolTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "FindNamingViolationsToolTests" -v n`
 
 Expected: PASS
 
 **Step 6: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Models/NamingViolation.cs src/RoslynCodeGraph/Tools/FindNamingViolationsTool.cs tests/RoslynCodeGraph.Tests/Tools/FindNamingViolationsToolTests.cs
+git add src/RoslynCodeLens/Models/NamingViolation.cs src/RoslynCodeLens/Tools/FindNamingViolationsTool.cs tests/RoslynCodeLens.Tests/Tools/FindNamingViolationsToolTests.cs
 git commit -m "feat: add find_naming_violations tool"
 ```
 
@@ -1436,29 +1436,29 @@ git commit -m "feat: add find_naming_violations tool"
 Reports types exceeding member count or line count thresholds.
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Models/LargeClassInfo.cs`
-- Create: `src/RoslynCodeGraph/Tools/FindLargeClassesTool.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Tools/FindLargeClassesToolTests.cs`
+- Create: `src/RoslynCodeLens/Models/LargeClassInfo.cs`
+- Create: `src/RoslynCodeLens/Tools/FindLargeClassesTool.cs`
+- Create: `tests/RoslynCodeLens.Tests/Tools/FindLargeClassesToolTests.cs`
 
 **Step 1: Create the model**
 
-Create `src/RoslynCodeGraph/Models/LargeClassInfo.cs`:
+Create `src/RoslynCodeLens/Models/LargeClassInfo.cs`:
 
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record LargeClassInfo(string TypeName, int MemberCount, int LineCount, string File, int Line, string Project);
 ```
 
 **Step 2: Write the failing test**
 
-Create `tests/RoslynCodeGraph.Tests/Tools/FindLargeClassesToolTests.cs`:
+Create `tests/RoslynCodeLens.Tests/Tools/FindLargeClassesToolTests.cs`:
 
 ```csharp
-using RoslynCodeGraph;
-using RoslynCodeGraph.Tools;
+using RoslynCodeLens;
+using RoslynCodeLens.Tools;
 
-namespace RoslynCodeGraph.Tests.Tools;
+namespace RoslynCodeLens.Tests.Tools;
 
 public class FindLargeClassesToolTests : IAsyncLifetime
 {
@@ -1501,21 +1501,21 @@ public class FindLargeClassesToolTests : IAsyncLifetime
 
 **Step 3: Run test to verify it fails**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "FindLargeClassesToolTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "FindLargeClassesToolTests" -v n`
 
 Expected: FAIL
 
 **Step 4: Write the implementation**
 
-Create `src/RoslynCodeGraph/Tools/FindLargeClassesTool.cs`:
+Create `src/RoslynCodeLens/Tools/FindLargeClassesTool.cs`:
 
 ```csharp
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class FindLargeClassesLogic
 {
@@ -1584,14 +1584,14 @@ public static class FindLargeClassesTool
 
 **Step 5: Run tests**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "FindLargeClassesToolTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "FindLargeClassesToolTests" -v n`
 
 Expected: PASS
 
 **Step 6: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Models/LargeClassInfo.cs src/RoslynCodeGraph/Tools/FindLargeClassesTool.cs tests/RoslynCodeGraph.Tests/Tools/FindLargeClassesToolTests.cs
+git add src/RoslynCodeLens/Models/LargeClassInfo.cs src/RoslynCodeLens/Tools/FindLargeClassesTool.cs tests/RoslynCodeLens.Tests/Tools/FindLargeClassesToolTests.cs
 git commit -m "feat: add find_large_classes tool"
 ```
 
@@ -1602,29 +1602,29 @@ git commit -m "feat: add find_large_classes tool"
 Dead code detection using reference counting.
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Models/UnusedSymbolInfo.cs`
-- Create: `src/RoslynCodeGraph/Tools/FindUnusedSymbolsTool.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Tools/FindUnusedSymbolsToolTests.cs`
+- Create: `src/RoslynCodeLens/Models/UnusedSymbolInfo.cs`
+- Create: `src/RoslynCodeLens/Tools/FindUnusedSymbolsTool.cs`
+- Create: `tests/RoslynCodeLens.Tests/Tools/FindUnusedSymbolsToolTests.cs`
 
 **Step 1: Create the model**
 
-Create `src/RoslynCodeGraph/Models/UnusedSymbolInfo.cs`:
+Create `src/RoslynCodeLens/Models/UnusedSymbolInfo.cs`:
 
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record UnusedSymbolInfo(string SymbolName, string SymbolKind, string File, int Line, string Project);
 ```
 
 **Step 2: Write the failing test**
 
-Create `tests/RoslynCodeGraph.Tests/Tools/FindUnusedSymbolsToolTests.cs`:
+Create `tests/RoslynCodeLens.Tests/Tools/FindUnusedSymbolsToolTests.cs`:
 
 ```csharp
-using RoslynCodeGraph;
-using RoslynCodeGraph.Tools;
+using RoslynCodeLens;
+using RoslynCodeLens.Tools;
 
-namespace RoslynCodeGraph.Tests.Tools;
+namespace RoslynCodeLens.Tests.Tools;
 
 public class FindUnusedSymbolsToolTests : IAsyncLifetime
 {
@@ -1660,21 +1660,21 @@ public class FindUnusedSymbolsToolTests : IAsyncLifetime
 
 **Step 3: Run test to verify it fails**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "FindUnusedSymbolsToolTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "FindUnusedSymbolsToolTests" -v n`
 
 Expected: FAIL
 
 **Step 4: Write the implementation**
 
-Create `src/RoslynCodeGraph/Tools/FindUnusedSymbolsTool.cs`:
+Create `src/RoslynCodeLens/Tools/FindUnusedSymbolsTool.cs`:
 
 ```csharp
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class FindUnusedSymbolsLogic
 {
@@ -1806,14 +1806,14 @@ public static class FindUnusedSymbolsTool
 
 **Step 5: Run tests**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests --filter "FindUnusedSymbolsToolTests" -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests --filter "FindUnusedSymbolsToolTests" -v n`
 
 Expected: PASS
 
 **Step 6: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Models/UnusedSymbolInfo.cs src/RoslynCodeGraph/Tools/FindUnusedSymbolsTool.cs tests/RoslynCodeGraph.Tests/Tools/FindUnusedSymbolsToolTests.cs
+git add src/RoslynCodeLens/Models/UnusedSymbolInfo.cs src/RoslynCodeLens/Tools/FindUnusedSymbolsTool.cs tests/RoslynCodeLens.Tests/Tools/FindUnusedSymbolsToolTests.cs
 git commit -m "feat: add find_unused_symbols tool"
 ```
 
@@ -1824,7 +1824,7 @@ git commit -m "feat: add find_unused_symbols tool"
 ### Task 13: Add benchmarks for new tools
 
 **Files:**
-- Modify: `benchmarks/RoslynCodeGraph.Benchmarks/Benchmarks.cs`
+- Modify: `benchmarks/RoslynCodeLens.Benchmarks/Benchmarks.cs`
 
 **Step 1: Add benchmarks for the new tools**
 
@@ -1866,12 +1866,12 @@ Note: `get_diagnostics` with analyzers and `get_code_fixes` are async and slower
 
 **Step 2: Run benchmarks**
 
-Run: `dotnet run --project benchmarks/RoslynCodeGraph.Benchmarks -c Release`
+Run: `dotnet run --project benchmarks/RoslynCodeLens.Benchmarks -c Release`
 
 **Step 3: Commit**
 
 ```bash
-git add benchmarks/RoslynCodeGraph.Benchmarks/Benchmarks.cs
+git add benchmarks/RoslynCodeLens.Benchmarks/Benchmarks.cs
 git commit -m "bench: add benchmarks for code quality tools"
 ```
 
@@ -1881,7 +1881,7 @@ git commit -m "bench: add benchmarks for code quality tools"
 
 **Files:**
 - Modify: `README.md` — add new tools to feature list and performance table
-- Modify: `plugins/roslyn-codegraph/skills/roslyn-codegraph/SKILL.md` — add Code Quality Analysis section and Analyzer section
+- Modify: `plugins/roslyn-codelens/skills/roslyn-codelens/SKILL.md` — add Code Quality Analysis section and Analyzer section
 
 **Step 1: Update README.md**
 
@@ -1929,7 +1929,7 @@ Add to the quick reference table:
 **Step 3: Commit**
 
 ```bash
-git add README.md plugins/roslyn-codegraph/skills/roslyn-codegraph/SKILL.md
+git add README.md plugins/roslyn-codelens/skills/roslyn-codelens/SKILL.md
 git commit -m "docs: update README and skill with all 19 tools"
 ```
 
@@ -1939,13 +1939,13 @@ git commit -m "docs: update README and skill with all 19 tools"
 
 **Step 1: Run all tests**
 
-Run: `dotnet test tests/RoslynCodeGraph.Tests -v n`
+Run: `dotnet test tests/RoslynCodeLens.Tests -v n`
 
 Expected: All tests pass.
 
 **Step 2: Build the project**
 
-Run: `dotnet build src/RoslynCodeGraph -c Release`
+Run: `dotnet build src/RoslynCodeLens -c Release`
 
 Expected: Build succeeds with no errors.
 
