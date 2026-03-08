@@ -32,13 +32,13 @@ A Roslyn-based MCP server that provides 21 semantic code intelligence tools for 
 ### As a Claude Code Plugin
 
 ```bash
-claude install gh:MarcelRoozekrans/roslyn-codegraph-mcp
+claude install gh:MarcelRoozekrans/roslyn-codelens-mcp
 ```
 
 ### As a .NET Global Tool
 
 ```bash
-dotnet tool install -g RoslynCodeGraph.Mcp
+dotnet tool install -g RoslynCodeLens.Mcp
 ```
 
 ### Manual MCP Configuration
@@ -48,8 +48,8 @@ Add to your Claude Code MCP settings:
 ```json
 {
   "mcpServers": {
-    "roslyn-codegraph": {
-      "command": "roslyn-codegraph-mcp",
+    "roslyn-codelens": {
+      "command": "roslyn-codelens-mcp",
       "args": [],
       "transport": "stdio"
     }
@@ -62,7 +62,7 @@ Add to your Claude Code MCP settings:
 The server automatically discovers `.sln` files by walking up from the current directory. You can also pass a solution path directly:
 
 ```bash
-roslyn-codegraph-mcp /path/to/MySolution.sln
+roslyn-codelens-mcp /path/to/MySolution.sln
 ```
 
 ## Performance
@@ -109,7 +109,7 @@ Location-returning tools include an `IsGenerated` flag to distinguish source-gen
 ```bash
 dotnet build
 dotnet test
-dotnet run --project benchmarks/RoslynCodeGraph.Benchmarks -c Release
+dotnet run --project benchmarks/RoslynCodeLens.Benchmarks -c Release
 ```
 
 ## License

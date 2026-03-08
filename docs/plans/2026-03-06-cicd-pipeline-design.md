@@ -89,14 +89,14 @@ branches:
 
 ## NuGet Package Metadata
 
-Add to `RoslynCodeGraph.csproj`:
+Add to `RoslynCodeLens.csproj`:
 ```xml
 <PropertyGroup>
-  <PackageId>RoslynCodeGraph</PackageId>
+  <PackageId>RoslynCodeLens</PackageId>
   <Authors>Marcel Roozekrans</Authors>
   <Description>Roslyn-based MCP server providing semantic code intelligence for .NET codebases</Description>
-  <PackageProjectUrl>https://github.com/MarcelRoozekrans/roslyn-codegraph-mcp</PackageProjectUrl>
-  <RepositoryUrl>https://github.com/MarcelRoozekrans/roslyn-codegraph-mcp</RepositoryUrl>
+  <PackageProjectUrl>https://github.com/MarcelRoozekrans/roslyn-codelens-mcp</PackageProjectUrl>
+  <RepositoryUrl>https://github.com/MarcelRoozekrans/roslyn-codelens-mcp</RepositoryUrl>
   <PackageLicenseExpression>MIT</PackageLicenseExpression>
   <PackageTags>roslyn;mcp;code-analysis;dotnet-tool</PackageTags>
   <PackageReadmeFile>README.md</PackageReadmeFile>

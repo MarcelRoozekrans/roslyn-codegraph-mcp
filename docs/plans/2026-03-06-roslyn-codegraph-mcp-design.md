@@ -2,7 +2,7 @@
 
 **Date:** 2026-03-06
 **Status:** Approved
-**Repo:** `MarcelRoozekrans/roslyn-codegraph-mcp`
+**Repo:** `MarcelRoozekrans/roslyn-codelens-mcp`
 
 ## Problem Statement
 
@@ -15,21 +15,21 @@ A standalone Roslyn-based MCP server that loads the .NET solution, compiles it, 
 ## Repository Structure
 
 ```
-roslyn-codegraph-mcp/
+roslyn-codelens-mcp/
 ├── .claude-plugin/
 │   └── marketplace.json          # Plugin marketplace manifest
 ├── plugins/
-│   └── roslyn-codegraph/
+│   └── roslyn-codelens/
 │       ├── .claude-plugin/
 │       │   └── plugin.json       # Plugin manifest + MCP server config
 │       ├── bootstrap.sh          # Auto-installs dotnet tool on first run
 │       ├── bootstrap.ps1         # Windows equivalent
 │       └── skills/
-│           └── roslyn-codegraph/
+│           └── roslyn-codelens/
 │               └── SKILL.md      # Brainstorming + refactor-analysis enhancement
 ├── src/
-│   └── RoslynCodeGraph/
-│       ├── RoslynCodeGraph.csproj
+│   └── RoslynCodeLens/
+│       ├── RoslynCodeLens.csproj
 │       ├── Program.cs            # Entry point, stdio MCP transport
 │       ├── SolutionLoader.cs     # MSBuildWorkspace loading + progress
 │       ├── Tools/
@@ -42,7 +42,7 @@ roslyn-codegraph-mcp/
 │       │   └── FindReflectionUsage.cs
 │       └── Models/               # Shared response types
 ├── tests/
-│   └── RoslynCodeGraph.Tests/
+│   └── RoslynCodeLens.Tests/
 ├── README.md
 ├── LICENSE
 └── .gitignore
@@ -53,8 +53,8 @@ roslyn-codegraph-mcp/
 ### Installation
 
 ```bash
-claude install gh:MarcelRoozekrans/roslyn-codegraph-mcp
-claude plugin install roslyn-codegraph
+claude install gh:MarcelRoozekrans/roslyn-codelens-mcp
+claude plugin install roslyn-codelens
 ```
 
 The plugin includes a bootstrap script that auto-installs the .NET global tool on first run if not already present. No separate `dotnet tool install` step required.
@@ -63,13 +63,13 @@ The plugin includes a bootstrap script that auto-installs the .NET global tool o
 
 ```json
 {
-  "name": "roslyn-codegraph",
+  "name": "roslyn-codelens",
   "description": "Roslyn-based code graph intelligence for .NET codebases.",
   "author": {
     "name": "Marcel Roozekrans"
   },
   "mcp_servers": {
-    "roslyn-codegraph": {
+    "roslyn-codelens": {
       "command": "bootstrap",
       "args": [],
       "transport": "stdio"
@@ -79,9 +79,9 @@ The plugin includes a bootstrap script that auto-installs the .NET global tool o
 ```
 
 The bootstrap script:
-1. Checks if `roslyn-codegraph-mcp` is available on PATH
-2. If not, runs `dotnet tool install -g roslyn-codegraph-mcp`
-3. Launches `roslyn-codegraph-mcp` via stdio
+1. Checks if `roslyn-codelens-mcp` is available on PATH
+2. If not, runs `dotnet tool install -g roslyn-codelens-mcp`
+3. Launches `roslyn-codelens-mcp` via stdio
 
 ## MCP Server
 
@@ -97,14 +97,14 @@ The bootstrap script:
 ### Startup Progress (stderr)
 
 ```
-[roslyn-codegraph] Discovering solution files...
-[roslyn-codegraph] Found: MyApp.sln (12 projects)
-[roslyn-codegraph] Loading project  1/12: MyApp.Domain
-[roslyn-codegraph] Loading project  2/12: MyApp.Infrastructure
+[roslyn-codelens] Discovering solution files...
+[roslyn-codelens] Found: MyApp.sln (12 projects)
+[roslyn-codelens] Loading project  1/12: MyApp.Domain
+[roslyn-codelens] Loading project  2/12: MyApp.Infrastructure
 ...
-[roslyn-codegraph] Loading project 12/12: MyApp.Tests.Integration
-[roslyn-codegraph] Compiling solution...
-[roslyn-codegraph] Ready. 847 types indexed across 12 projects.
+[roslyn-codelens] Loading project 12/12: MyApp.Tests.Integration
+[roslyn-codelens] Compiling solution...
+[roslyn-codelens] Ready. 847 types indexed across 12 projects.
 ```
 
 ### Error Handling

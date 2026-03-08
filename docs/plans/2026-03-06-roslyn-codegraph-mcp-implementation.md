@@ -8,23 +8,23 @@
 
 **Tech Stack:** .NET 10, Roslyn (`Microsoft.CodeAnalysis.Workspaces.MSBuild`), `ModelContextProtocol` SDK, xUnit for tests.
 
-**Design Doc:** `docs/plans/2026-03-06-roslyn-codegraph-mcp-design.md`
+**Design Doc:** `docs/plans/2026-03-06-roslyn-codelens-mcp-design.md`
 
 ---
 
 ## Task 1: Project Scaffolding
 
 **Files:**
-- Create: `RoslynCodeGraph.sln`
-- Create: `src/RoslynCodeGraph/RoslynCodeGraph.csproj`
-- Create: `src/RoslynCodeGraph/Program.cs`
-- Create: `tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj`
+- Create: `RoslynCodeLens.sln`
+- Create: `src/RoslynCodeLens/RoslynCodeLens.csproj`
+- Create: `src/RoslynCodeLens/Program.cs`
+- Create: `tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj`
 - Create: `.gitignore`
 
 **Step 1: Create .gitignore**
 
 ```bash
-cd /c/Projects/Prive/roslyn-codegraph-mcp
+cd /c/Projects/Prive/roslyn-codelens-mcp
 cat > .gitignore << 'GITIGNORE'
 ## .NET
 bin/
@@ -50,18 +50,18 @@ GITIGNORE
 **Step 2: Create solution and projects**
 
 ```bash
-cd /c/Projects/Prive/roslyn-codegraph-mcp
-dotnet new sln -n RoslynCodeGraph
-dotnet new console -n RoslynCodeGraph -o src/RoslynCodeGraph
-dotnet new xunit -n RoslynCodeGraph.Tests -o tests/RoslynCodeGraph.Tests
-dotnet sln add src/RoslynCodeGraph/RoslynCodeGraph.csproj
-dotnet sln add tests/RoslynCodeGraph.Tests/RoslynCodeGraph.Tests.csproj
-dotnet add tests/RoslynCodeGraph.Tests reference src/RoslynCodeGraph
+cd /c/Projects/Prive/roslyn-codelens-mcp
+dotnet new sln -n RoslynCodeLens
+dotnet new console -n RoslynCodeLens -o src/RoslynCodeLens
+dotnet new xunit -n RoslynCodeLens.Tests -o tests/RoslynCodeLens.Tests
+dotnet sln add src/RoslynCodeLens/RoslynCodeLens.csproj
+dotnet sln add tests/RoslynCodeLens.Tests/RoslynCodeLens.Tests.csproj
+dotnet add tests/RoslynCodeLens.Tests reference src/RoslynCodeLens
 ```
 
 **Step 3: Add NuGet dependencies to main project**
 
-Edit `src/RoslynCodeGraph/RoslynCodeGraph.csproj`:
+Edit `src/RoslynCodeLens/RoslynCodeLens.csproj`:
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
@@ -71,7 +71,7 @@ Edit `src/RoslynCodeGraph/RoslynCodeGraph.csproj`:
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>roslyn-codegraph-mcp</ToolCommandName>
+    <ToolCommandName>roslyn-codelens-mcp</ToolCommandName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -107,7 +107,7 @@ await builder.Build().RunAsync();
 **Step 5: Verify it builds**
 
 ```bash
-cd /c/Projects/Prive/roslyn-codegraph-mcp
+cd /c/Projects/Prive/roslyn-codelens-mcp
 dotnet build
 ```
 
@@ -116,7 +116,7 @@ Expected: Build succeeds with 0 errors.
 **Step 6: Commit**
 
 ```bash
-git add .gitignore RoslynCodeGraph.sln src/ tests/
+git add .gitignore RoslynCodeLens.sln src/ tests/
 git commit -m "chore: scaffold solution with MCP server and test project"
 ```
 
@@ -125,19 +125,19 @@ git commit -m "chore: scaffold solution with MCP server and test project"
 ## Task 2: Shared Models
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Models/SymbolLocation.cs`
-- Create: `src/RoslynCodeGraph/Models/CallerInfo.cs`
-- Create: `src/RoslynCodeGraph/Models/DiRegistration.cs`
-- Create: `src/RoslynCodeGraph/Models/TypeHierarchy.cs`
-- Create: `src/RoslynCodeGraph/Models/ReflectionUsage.cs`
-- Create: `src/RoslynCodeGraph/Models/ProjectDependency.cs`
-- Create: `src/RoslynCodeGraph/Models/SymbolContext.cs`
+- Create: `src/RoslynCodeLens/Models/SymbolLocation.cs`
+- Create: `src/RoslynCodeLens/Models/CallerInfo.cs`
+- Create: `src/RoslynCodeLens/Models/DiRegistration.cs`
+- Create: `src/RoslynCodeLens/Models/TypeHierarchy.cs`
+- Create: `src/RoslynCodeLens/Models/ReflectionUsage.cs`
+- Create: `src/RoslynCodeLens/Models/ProjectDependency.cs`
+- Create: `src/RoslynCodeLens/Models/SymbolContext.cs`
 
 **Step 1: Create all model records**
 
-`src/RoslynCodeGraph/Models/SymbolLocation.cs`:
+`src/RoslynCodeLens/Models/SymbolLocation.cs`:
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record SymbolLocation(
     string Type,       // "class", "struct", "record"
@@ -147,9 +147,9 @@ public record SymbolLocation(
     string Project);
 ```
 
-`src/RoslynCodeGraph/Models/CallerInfo.cs`:
+`src/RoslynCodeLens/Models/CallerInfo.cs`:
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record CallerInfo(
     string Caller,
@@ -159,9 +159,9 @@ public record CallerInfo(
     string Project);
 ```
 
-`src/RoslynCodeGraph/Models/DiRegistration.cs`:
+`src/RoslynCodeLens/Models/DiRegistration.cs`:
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record DiRegistration(
     string Service,
@@ -171,9 +171,9 @@ public record DiRegistration(
     int Line);
 ```
 
-`src/RoslynCodeGraph/Models/TypeHierarchy.cs`:
+`src/RoslynCodeLens/Models/TypeHierarchy.cs`:
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record TypeHierarchy(
     List<SymbolLocation> Bases,
@@ -181,9 +181,9 @@ public record TypeHierarchy(
     List<SymbolLocation> Derived);
 ```
 
-`src/RoslynCodeGraph/Models/ReflectionUsage.cs`:
+`src/RoslynCodeLens/Models/ReflectionUsage.cs`:
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record ReflectionUsage(
     string Kind,     // "dynamic_instantiation", "method_invoke", "assembly_scan", "attribute_discovery"
@@ -193,9 +193,9 @@ public record ReflectionUsage(
     string Snippet);
 ```
 
-`src/RoslynCodeGraph/Models/ProjectDependency.cs`:
+`src/RoslynCodeLens/Models/ProjectDependency.cs`:
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record ProjectDependencyGraph(
     List<ProjectRef> Direct,
@@ -204,9 +204,9 @@ public record ProjectDependencyGraph(
 public record ProjectRef(string Name, string Path);
 ```
 
-`src/RoslynCodeGraph/Models/SymbolContext.cs`:
+`src/RoslynCodeLens/Models/SymbolContext.cs`:
 ```csharp
-namespace RoslynCodeGraph.Models;
+namespace RoslynCodeLens.Models;
 
 public record SymbolContext(
     string FullName,
@@ -231,7 +231,7 @@ Expected: Build succeeds.
 **Step 3: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Models/
+git add src/RoslynCodeLens/Models/
 git commit -m "feat: add shared response model records"
 ```
 
@@ -240,17 +240,17 @@ git commit -m "feat: add shared response model records"
 ## Task 3: SolutionLoader
 
 **Files:**
-- Create: `src/RoslynCodeGraph/SolutionLoader.cs`
-- Create: `tests/RoslynCodeGraph.Tests/SolutionLoaderTests.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Fixtures/` (test .sln + .csproj)
+- Create: `src/RoslynCodeLens/SolutionLoader.cs`
+- Create: `tests/RoslynCodeLens.Tests/SolutionLoaderTests.cs`
+- Create: `tests/RoslynCodeLens.Tests/Fixtures/` (test .sln + .csproj)
 
 **Step 1: Create a minimal test fixture solution**
 
 Create a tiny .NET solution inside the test project for integration tests.
 
 ```bash
-mkdir -p tests/RoslynCodeGraph.Tests/Fixtures/TestSolution
-cd tests/RoslynCodeGraph.Tests/Fixtures/TestSolution
+mkdir -p tests/RoslynCodeLens.Tests/Fixtures/TestSolution
+cd tests/RoslynCodeLens.Tests/Fixtures/TestSolution
 dotnet new sln -n TestSolution
 dotnet new classlib -n TestLib -o TestLib
 dotnet new classlib -n TestLib2 -o TestLib2
@@ -261,7 +261,7 @@ dotnet add TestLib2 reference TestLib
 
 Then add test source files to the fixture (these provide types/interfaces for all tool tests):
 
-`tests/RoslynCodeGraph.Tests/Fixtures/TestSolution/TestLib/IGreeter.cs`:
+`tests/RoslynCodeLens.Tests/Fixtures/TestSolution/TestLib/IGreeter.cs`:
 ```csharp
 namespace TestLib;
 
@@ -271,7 +271,7 @@ public interface IGreeter
 }
 ```
 
-`tests/RoslynCodeGraph.Tests/Fixtures/TestSolution/TestLib/Greeter.cs`:
+`tests/RoslynCodeLens.Tests/Fixtures/TestSolution/TestLib/Greeter.cs`:
 ```csharp
 namespace TestLib;
 
@@ -281,7 +281,7 @@ public class Greeter : IGreeter
 }
 ```
 
-`tests/RoslynCodeGraph.Tests/Fixtures/TestSolution/TestLib/FancyGreeter.cs`:
+`tests/RoslynCodeLens.Tests/Fixtures/TestSolution/TestLib/FancyGreeter.cs`:
 ```csharp
 namespace TestLib;
 
@@ -291,7 +291,7 @@ public class FancyGreeter : Greeter
 }
 ```
 
-`tests/RoslynCodeGraph.Tests/Fixtures/TestSolution/TestLib2/GreeterConsumer.cs`:
+`tests/RoslynCodeLens.Tests/Fixtures/TestSolution/TestLib2/GreeterConsumer.cs`:
 ```csharp
 namespace TestLib2;
 
@@ -310,7 +310,7 @@ public class GreeterConsumer
 }
 ```
 
-`tests/RoslynCodeGraph.Tests/Fixtures/TestSolution/TestLib2/DiSetup.cs`:
+`tests/RoslynCodeLens.Tests/Fixtures/TestSolution/TestLib2/DiSetup.cs`:
 ```csharp
 namespace TestLib2;
 
@@ -329,11 +329,11 @@ public static class DiSetup
 
 Add `Microsoft.Extensions.DependencyInjection.Abstractions` to TestLib2:
 ```bash
-cd tests/RoslynCodeGraph.Tests/Fixtures/TestSolution/TestLib2
+cd tests/RoslynCodeLens.Tests/Fixtures/TestSolution/TestLib2
 dotnet add package Microsoft.Extensions.DependencyInjection.Abstractions
 ```
 
-`tests/RoslynCodeGraph.Tests/Fixtures/TestSolution/TestLib2/ReflectionUser.cs`:
+`tests/RoslynCodeLens.Tests/Fixtures/TestSolution/TestLib2/ReflectionUser.cs`:
 ```csharp
 namespace TestLib2;
 
@@ -351,11 +351,11 @@ public class ReflectionUser
 
 **Step 2: Write the failing test for SolutionLoader**
 
-`tests/RoslynCodeGraph.Tests/SolutionLoaderTests.cs`:
+`tests/RoslynCodeLens.Tests/SolutionLoaderTests.cs`:
 ```csharp
-using RoslynCodeGraph;
+using RoslynCodeLens;
 
-namespace RoslynCodeGraph.Tests;
+namespace RoslynCodeLens.Tests;
 
 public class SolutionLoaderTests
 {
@@ -378,19 +378,19 @@ public class SolutionLoaderTests
 **Step 3: Run test to verify it fails**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter SolutionLoaderTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter SolutionLoaderTests -v n
 ```
 
 Expected: FAIL — `SolutionLoader` does not exist.
 
 **Step 4: Implement SolutionLoader**
 
-`src/RoslynCodeGraph/SolutionLoader.cs`:
+`src/RoslynCodeLens/SolutionLoader.cs`:
 ```csharp
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
-namespace RoslynCodeGraph;
+namespace RoslynCodeLens;
 
 public class LoadedSolution
 {
@@ -406,10 +406,10 @@ public class SolutionLoader
 
         workspace.WorkspaceFailed += (_, e) =>
         {
-            Console.Error.WriteLine($"[roslyn-codegraph] Warning: {e.Diagnostic.Message}");
+            Console.Error.WriteLine($"[roslyn-codelens] Warning: {e.Diagnostic.Message}");
         };
 
-        Console.Error.WriteLine($"[roslyn-codegraph] Loading solution: {Path.GetFileName(solutionPath)}");
+        Console.Error.WriteLine($"[roslyn-codelens] Loading solution: {Path.GetFileName(solutionPath)}");
         var solution = await workspace.OpenSolutionAsync(solutionPath);
 
         var compilations = new Dictionary<ProjectId, Compilation>();
@@ -419,7 +419,7 @@ public class SolutionLoader
         {
             var project = projects[i];
             Console.Error.WriteLine(
-                $"[roslyn-codegraph] Compiling project {i + 1}/{projects.Count}: {project.Name}");
+                $"[roslyn-codelens] Compiling project {i + 1}/{projects.Count}: {project.Name}");
 
             var compilation = await project.GetCompilationAsync();
             if (compilation != null)
@@ -429,7 +429,7 @@ public class SolutionLoader
         }
 
         Console.Error.WriteLine(
-            $"[roslyn-codegraph] Ready. {compilations.Count} projects compiled.");
+            $"[roslyn-codelens] Ready. {compilations.Count} projects compiled.");
 
         return new LoadedSolution
         {
@@ -461,7 +461,7 @@ public class SolutionLoader
 **Step 5: Run test to verify it passes**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter SolutionLoaderTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter SolutionLoaderTests -v n
 ```
 
 Expected: PASS
@@ -469,7 +469,7 @@ Expected: PASS
 **Step 6: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/SolutionLoader.cs tests/
+git add src/RoslynCodeLens/SolutionLoader.cs tests/
 git commit -m "feat: add SolutionLoader with MSBuildWorkspace integration"
 ```
 
@@ -478,7 +478,7 @@ git commit -m "feat: add SolutionLoader with MSBuildWorkspace integration"
 ## Task 4: Wire SolutionLoader into DI and Program.cs
 
 **Files:**
-- Modify: `src/RoslynCodeGraph/Program.cs`
+- Modify: `src/RoslynCodeLens/Program.cs`
 
 **Step 1: Update Program.cs to load solution on startup and register it in DI**
 
@@ -487,7 +487,7 @@ using Microsoft.Build.Locator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ModelContextProtocol;
-using RoslynCodeGraph;
+using RoslynCodeLens;
 
 MSBuildLocator.RegisterDefaults();
 
@@ -497,7 +497,7 @@ var solutionPath = args.Length > 0
 
 if (solutionPath == null)
 {
-    Console.Error.WriteLine("[roslyn-codegraph] No .sln file found. Tools will return errors.");
+    Console.Error.WriteLine("[roslyn-codelens] No .sln file found. Tools will return errors.");
 }
 
 var loader = new SolutionLoader();
@@ -534,7 +534,7 @@ Expected: Build succeeds.
 **Step 3: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Program.cs
+git add src/RoslynCodeLens/Program.cs
 git commit -m "feat: wire SolutionLoader into DI and startup"
 ```
 
@@ -545,16 +545,16 @@ git commit -m "feat: wire SolutionLoader into DI and startup"
 Before building individual tools, create a shared helper that resolves symbol names (simple or fully-qualified) against the loaded compilations.
 
 **Files:**
-- Create: `src/RoslynCodeGraph/SymbolResolver.cs`
-- Create: `tests/RoslynCodeGraph.Tests/SymbolResolverTests.cs`
+- Create: `src/RoslynCodeLens/SymbolResolver.cs`
+- Create: `tests/RoslynCodeLens.Tests/SymbolResolverTests.cs`
 
 **Step 1: Write the failing test**
 
-`tests/RoslynCodeGraph.Tests/SymbolResolverTests.cs`:
+`tests/RoslynCodeLens.Tests/SymbolResolverTests.cs`:
 ```csharp
-using RoslynCodeGraph;
+using RoslynCodeLens;
 
-namespace RoslynCodeGraph.Tests;
+namespace RoslynCodeLens.Tests;
 
 public class SymbolResolverTests : IAsyncLifetime
 {
@@ -603,18 +603,18 @@ public class SymbolResolverTests : IAsyncLifetime
 **Step 2: Run test to verify it fails**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter SymbolResolverTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter SymbolResolverTests -v n
 ```
 
 Expected: FAIL — `SymbolResolver` does not exist.
 
 **Step 3: Implement SymbolResolver**
 
-`src/RoslynCodeGraph/SymbolResolver.cs`:
+`src/RoslynCodeLens/SymbolResolver.cs`:
 ```csharp
 using Microsoft.CodeAnalysis;
 
-namespace RoslynCodeGraph;
+namespace RoslynCodeLens;
 
 public class SymbolResolver
 {
@@ -716,7 +716,7 @@ public class SymbolResolver
 **Step 4: Run test to verify it passes**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter SymbolResolverTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter SymbolResolverTests -v n
 ```
 
 Expected: PASS
@@ -731,7 +731,7 @@ builder.Services.AddSingleton<SymbolResolver>();
 **Step 6: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/SymbolResolver.cs tests/RoslynCodeGraph.Tests/SymbolResolverTests.cs src/RoslynCodeGraph/Program.cs
+git add src/RoslynCodeLens/SymbolResolver.cs tests/RoslynCodeLens.Tests/SymbolResolverTests.cs src/RoslynCodeLens/Program.cs
 git commit -m "feat: add SymbolResolver for type and method lookup"
 ```
 
@@ -740,17 +740,17 @@ git commit -m "feat: add SymbolResolver for type and method lookup"
 ## Task 6: find_implementations Tool
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Tools/FindImplementationsTool.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Tools/FindImplementationsToolTests.cs`
+- Create: `src/RoslynCodeLens/Tools/FindImplementationsTool.cs`
+- Create: `tests/RoslynCodeLens.Tests/Tools/FindImplementationsToolTests.cs`
 
 **Step 1: Write the failing test**
 
-`tests/RoslynCodeGraph.Tests/Tools/FindImplementationsToolTests.cs`:
+`tests/RoslynCodeLens.Tests/Tools/FindImplementationsToolTests.cs`:
 ```csharp
-using RoslynCodeGraph;
-using RoslynCodeGraph.Tools;
+using RoslynCodeLens;
+using RoslynCodeLens.Tools;
 
-namespace RoslynCodeGraph.Tests.Tools;
+namespace RoslynCodeLens.Tests.Tools;
 
 public class FindImplementationsToolTests : IAsyncLifetime
 {
@@ -789,21 +789,21 @@ public class FindImplementationsToolTests : IAsyncLifetime
 **Step 2: Run test to verify it fails**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter FindImplementationsToolTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter FindImplementationsToolTests -v n
 ```
 
 Expected: FAIL
 
 **Step 3: Implement the tool**
 
-`src/RoslynCodeGraph/Tools/FindImplementationsTool.cs`:
+`src/RoslynCodeLens/Tools/FindImplementationsTool.cs`:
 ```csharp
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class FindImplementationsLogic
 {
@@ -873,7 +873,7 @@ public static class FindImplementationsTool
 **Step 4: Run test to verify it passes**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter FindImplementationsToolTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter FindImplementationsToolTests -v n
 ```
 
 Expected: PASS
@@ -881,7 +881,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Tools/FindImplementationsTool.cs tests/RoslynCodeGraph.Tests/Tools/
+git add src/RoslynCodeLens/Tools/FindImplementationsTool.cs tests/RoslynCodeLens.Tests/Tools/
 git commit -m "feat: add find_implementations MCP tool"
 ```
 
@@ -890,17 +890,17 @@ git commit -m "feat: add find_implementations MCP tool"
 ## Task 7: find_callers Tool
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Tools/FindCallersTool.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Tools/FindCallersToolTests.cs`
+- Create: `src/RoslynCodeLens/Tools/FindCallersTool.cs`
+- Create: `tests/RoslynCodeLens.Tests/Tools/FindCallersToolTests.cs`
 
 **Step 1: Write the failing test**
 
-`tests/RoslynCodeGraph.Tests/Tools/FindCallersToolTests.cs`:
+`tests/RoslynCodeLens.Tests/Tools/FindCallersToolTests.cs`:
 ```csharp
-using RoslynCodeGraph;
-using RoslynCodeGraph.Tools;
+using RoslynCodeLens;
+using RoslynCodeLens.Tools;
 
-namespace RoslynCodeGraph.Tests.Tools;
+namespace RoslynCodeLens.Tests.Tools;
 
 public class FindCallersToolTests : IAsyncLifetime
 {
@@ -930,23 +930,23 @@ public class FindCallersToolTests : IAsyncLifetime
 **Step 2: Run test to verify it fails**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter FindCallersToolTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter FindCallersToolTests -v n
 ```
 
 Expected: FAIL
 
 **Step 3: Implement the tool**
 
-`src/RoslynCodeGraph/Tools/FindCallersTool.cs`:
+`src/RoslynCodeLens/Tools/FindCallersTool.cs`:
 ```csharp
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class FindCallersLogic
 {
@@ -1027,7 +1027,7 @@ public static class FindCallersTool
 **Step 4: Run test to verify it passes**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter FindCallersToolTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter FindCallersToolTests -v n
 ```
 
 Expected: PASS
@@ -1035,7 +1035,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Tools/FindCallersTool.cs tests/RoslynCodeGraph.Tests/Tools/FindCallersToolTests.cs
+git add src/RoslynCodeLens/Tools/FindCallersTool.cs tests/RoslynCodeLens.Tests/Tools/FindCallersToolTests.cs
 git commit -m "feat: add find_callers MCP tool"
 ```
 
@@ -1044,17 +1044,17 @@ git commit -m "feat: add find_callers MCP tool"
 ## Task 8: get_type_hierarchy Tool
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Tools/GetTypeHierarchyTool.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Tools/GetTypeHierarchyToolTests.cs`
+- Create: `src/RoslynCodeLens/Tools/GetTypeHierarchyTool.cs`
+- Create: `tests/RoslynCodeLens.Tests/Tools/GetTypeHierarchyToolTests.cs`
 
 **Step 1: Write the failing test**
 
-`tests/RoslynCodeGraph.Tests/Tools/GetTypeHierarchyToolTests.cs`:
+`tests/RoslynCodeLens.Tests/Tools/GetTypeHierarchyToolTests.cs`:
 ```csharp
-using RoslynCodeGraph;
-using RoslynCodeGraph.Tools;
+using RoslynCodeLens;
+using RoslynCodeLens.Tools;
 
-namespace RoslynCodeGraph.Tests.Tools;
+namespace RoslynCodeLens.Tests.Tools;
 
 public class GetTypeHierarchyToolTests : IAsyncLifetime
 {
@@ -1086,21 +1086,21 @@ public class GetTypeHierarchyToolTests : IAsyncLifetime
 **Step 2: Run test to verify it fails**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter GetTypeHierarchyToolTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter GetTypeHierarchyToolTests -v n
 ```
 
 Expected: FAIL
 
 **Step 3: Implement the tool**
 
-`src/RoslynCodeGraph/Tools/GetTypeHierarchyTool.cs`:
+`src/RoslynCodeLens/Tools/GetTypeHierarchyTool.cs`:
 ```csharp
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class GetTypeHierarchyLogic
 {
@@ -1181,7 +1181,7 @@ public static class GetTypeHierarchyTool
 **Step 4: Run test to verify it passes**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter GetTypeHierarchyToolTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter GetTypeHierarchyToolTests -v n
 ```
 
 Expected: PASS
@@ -1189,7 +1189,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Tools/GetTypeHierarchyTool.cs tests/RoslynCodeGraph.Tests/Tools/GetTypeHierarchyToolTests.cs
+git add src/RoslynCodeLens/Tools/GetTypeHierarchyTool.cs tests/RoslynCodeLens.Tests/Tools/GetTypeHierarchyToolTests.cs
 git commit -m "feat: add get_type_hierarchy MCP tool"
 ```
 
@@ -1198,17 +1198,17 @@ git commit -m "feat: add get_type_hierarchy MCP tool"
 ## Task 9: get_di_registrations Tool
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Tools/GetDiRegistrationsTool.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Tools/GetDiRegistrationsToolTests.cs`
+- Create: `src/RoslynCodeLens/Tools/GetDiRegistrationsTool.cs`
+- Create: `tests/RoslynCodeLens.Tests/Tools/GetDiRegistrationsToolTests.cs`
 
 **Step 1: Write the failing test**
 
-`tests/RoslynCodeGraph.Tests/Tools/GetDiRegistrationsToolTests.cs`:
+`tests/RoslynCodeLens.Tests/Tools/GetDiRegistrationsToolTests.cs`:
 ```csharp
-using RoslynCodeGraph;
-using RoslynCodeGraph.Tools;
+using RoslynCodeLens;
+using RoslynCodeLens.Tools;
 
-namespace RoslynCodeGraph.Tests.Tools;
+namespace RoslynCodeLens.Tests.Tools;
 
 public class GetDiRegistrationsToolTests : IAsyncLifetime
 {
@@ -1240,23 +1240,23 @@ public class GetDiRegistrationsToolTests : IAsyncLifetime
 **Step 2: Run test to verify it fails**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter GetDiRegistrationsToolTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter GetDiRegistrationsToolTests -v n
 ```
 
 Expected: FAIL
 
 **Step 3: Implement the tool**
 
-`src/RoslynCodeGraph/Tools/GetDiRegistrationsTool.cs`:
+`src/RoslynCodeLens/Tools/GetDiRegistrationsTool.cs`:
 ```csharp
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class GetDiRegistrationsLogic
 {
@@ -1356,7 +1356,7 @@ public static class GetDiRegistrationsTool
 **Step 4: Run test to verify it passes**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter GetDiRegistrationsToolTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter GetDiRegistrationsToolTests -v n
 ```
 
 Expected: PASS
@@ -1364,7 +1364,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Tools/GetDiRegistrationsTool.cs tests/RoslynCodeGraph.Tests/Tools/GetDiRegistrationsToolTests.cs
+git add src/RoslynCodeLens/Tools/GetDiRegistrationsTool.cs tests/RoslynCodeLens.Tests/Tools/GetDiRegistrationsToolTests.cs
 git commit -m "feat: add get_di_registrations MCP tool"
 ```
 
@@ -1373,17 +1373,17 @@ git commit -m "feat: add get_di_registrations MCP tool"
 ## Task 10: get_project_dependencies Tool
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Tools/GetProjectDependenciesTool.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Tools/GetProjectDependenciesToolTests.cs`
+- Create: `src/RoslynCodeLens/Tools/GetProjectDependenciesTool.cs`
+- Create: `tests/RoslynCodeLens.Tests/Tools/GetProjectDependenciesToolTests.cs`
 
 **Step 1: Write the failing test**
 
-`tests/RoslynCodeGraph.Tests/Tools/GetProjectDependenciesToolTests.cs`:
+`tests/RoslynCodeLens.Tests/Tools/GetProjectDependenciesToolTests.cs`:
 ```csharp
-using RoslynCodeGraph;
-using RoslynCodeGraph.Tools;
+using RoslynCodeLens;
+using RoslynCodeLens.Tools;
 
-namespace RoslynCodeGraph.Tests.Tools;
+namespace RoslynCodeLens.Tests.Tools;
 
 public class GetProjectDependenciesToolTests : IAsyncLifetime
 {
@@ -1412,21 +1412,21 @@ public class GetProjectDependenciesToolTests : IAsyncLifetime
 **Step 2: Run test to verify it fails**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter GetProjectDependenciesToolTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter GetProjectDependenciesToolTests -v n
 ```
 
 Expected: FAIL
 
 **Step 3: Implement the tool**
 
-`src/RoslynCodeGraph/Tools/GetProjectDependenciesTool.cs`:
+`src/RoslynCodeLens/Tools/GetProjectDependenciesTool.cs`:
 ```csharp
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class GetProjectDependenciesLogic
 {
@@ -1489,7 +1489,7 @@ public static class GetProjectDependenciesTool
 **Step 4: Run test to verify it passes**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter GetProjectDependenciesToolTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter GetProjectDependenciesToolTests -v n
 ```
 
 Expected: PASS
@@ -1497,7 +1497,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Tools/GetProjectDependenciesTool.cs tests/RoslynCodeGraph.Tests/Tools/GetProjectDependenciesToolTests.cs
+git add src/RoslynCodeLens/Tools/GetProjectDependenciesTool.cs tests/RoslynCodeLens.Tests/Tools/GetProjectDependenciesToolTests.cs
 git commit -m "feat: add get_project_dependencies MCP tool"
 ```
 
@@ -1506,17 +1506,17 @@ git commit -m "feat: add get_project_dependencies MCP tool"
 ## Task 11: get_symbol_context Tool
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Tools/GetSymbolContextTool.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Tools/GetSymbolContextToolTests.cs`
+- Create: `src/RoslynCodeLens/Tools/GetSymbolContextTool.cs`
+- Create: `tests/RoslynCodeLens.Tests/Tools/GetSymbolContextToolTests.cs`
 
 **Step 1: Write the failing test**
 
-`tests/RoslynCodeGraph.Tests/Tools/GetSymbolContextToolTests.cs`:
+`tests/RoslynCodeLens.Tests/Tools/GetSymbolContextToolTests.cs`:
 ```csharp
-using RoslynCodeGraph;
-using RoslynCodeGraph.Tools;
+using RoslynCodeLens;
+using RoslynCodeLens.Tools;
 
-namespace RoslynCodeGraph.Tests.Tools;
+namespace RoslynCodeLens.Tests.Tools;
 
 public class GetSymbolContextToolTests : IAsyncLifetime
 {
@@ -1549,21 +1549,21 @@ public class GetSymbolContextToolTests : IAsyncLifetime
 **Step 2: Run test to verify it fails**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter GetSymbolContextToolTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter GetSymbolContextToolTests -v n
 ```
 
 Expected: FAIL
 
 **Step 3: Implement the tool**
 
-`src/RoslynCodeGraph/Tools/GetSymbolContextTool.cs`:
+`src/RoslynCodeLens/Tools/GetSymbolContextTool.cs`:
 ```csharp
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class GetSymbolContextLogic
 {
@@ -1628,7 +1628,7 @@ public static class GetSymbolContextTool
 **Step 4: Run test to verify it passes**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter GetSymbolContextToolTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter GetSymbolContextToolTests -v n
 ```
 
 Expected: PASS
@@ -1636,7 +1636,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Tools/GetSymbolContextTool.cs tests/RoslynCodeGraph.Tests/Tools/GetSymbolContextToolTests.cs
+git add src/RoslynCodeLens/Tools/GetSymbolContextTool.cs tests/RoslynCodeLens.Tests/Tools/GetSymbolContextToolTests.cs
 git commit -m "feat: add get_symbol_context MCP tool"
 ```
 
@@ -1645,17 +1645,17 @@ git commit -m "feat: add get_symbol_context MCP tool"
 ## Task 12: find_reflection_usage Tool
 
 **Files:**
-- Create: `src/RoslynCodeGraph/Tools/FindReflectionUsageTool.cs`
-- Create: `tests/RoslynCodeGraph.Tests/Tools/FindReflectionUsageToolTests.cs`
+- Create: `src/RoslynCodeLens/Tools/FindReflectionUsageTool.cs`
+- Create: `tests/RoslynCodeLens.Tests/Tools/FindReflectionUsageToolTests.cs`
 
 **Step 1: Write the failing test**
 
-`tests/RoslynCodeGraph.Tests/Tools/FindReflectionUsageToolTests.cs`:
+`tests/RoslynCodeLens.Tests/Tools/FindReflectionUsageToolTests.cs`:
 ```csharp
-using RoslynCodeGraph;
-using RoslynCodeGraph.Tools;
+using RoslynCodeLens;
+using RoslynCodeLens.Tools;
 
-namespace RoslynCodeGraph.Tests.Tools;
+namespace RoslynCodeLens.Tests.Tools;
 
 public class FindReflectionUsageToolTests : IAsyncLifetime
 {
@@ -1694,22 +1694,22 @@ public class FindReflectionUsageToolTests : IAsyncLifetime
 **Step 2: Run test to verify it fails**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter FindReflectionUsageToolTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter FindReflectionUsageToolTests -v n
 ```
 
 Expected: FAIL
 
 **Step 3: Implement the tool**
 
-`src/RoslynCodeGraph/Tools/FindReflectionUsageTool.cs`:
+`src/RoslynCodeLens/Tools/FindReflectionUsageTool.cs`:
 ```csharp
 using System.ComponentModel;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using ModelContextProtocol.Server;
-using RoslynCodeGraph.Models;
+using RoslynCodeLens.Models;
 
-namespace RoslynCodeGraph.Tools;
+namespace RoslynCodeLens.Tools;
 
 public static class FindReflectionUsageLogic
 {
@@ -1818,7 +1818,7 @@ public static class FindReflectionUsageTool
 **Step 4: Run test to verify it passes**
 
 ```bash
-dotnet test tests/RoslynCodeGraph.Tests --filter FindReflectionUsageToolTests -v n
+dotnet test tests/RoslynCodeLens.Tests --filter FindReflectionUsageToolTests -v n
 ```
 
 Expected: PASS
@@ -1826,7 +1826,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add src/RoslynCodeGraph/Tools/FindReflectionUsageTool.cs tests/RoslynCodeGraph.Tests/Tools/FindReflectionUsageToolTests.cs
+git add src/RoslynCodeLens/Tools/FindReflectionUsageTool.cs tests/RoslynCodeLens.Tests/Tools/FindReflectionUsageToolTests.cs
 git commit -m "feat: add find_reflection_usage MCP tool"
 ```
 
@@ -1837,7 +1837,7 @@ git commit -m "feat: add find_reflection_usage MCP tool"
 **Step 1: Run all tests**
 
 ```bash
-cd /c/Projects/Prive/roslyn-codegraph-mcp
+cd /c/Projects/Prive/roslyn-codelens-mcp
 dotnet test --verbosity normal
 ```
 
@@ -1846,8 +1846,8 @@ Expected: All tests pass.
 **Step 2: Run the server manually to verify it starts**
 
 ```bash
-cd tests/RoslynCodeGraph.Tests/Fixtures/TestSolution
-dotnet run --project ../../../../src/RoslynCodeGraph/RoslynCodeGraph.csproj
+cd tests/RoslynCodeLens.Tests/Fixtures/TestSolution
+dotnet run --project ../../../../src/RoslynCodeLens/RoslynCodeLens.csproj
 ```
 
 Expected: stderr shows solution loading progress, server waits for stdin.
@@ -1865,16 +1865,16 @@ git commit -m "fix: ensure full test suite passes"
 
 **Files:**
 - Create: `.claude-plugin/marketplace.json`
-- Create: `plugins/roslyn-codegraph/.claude-plugin/plugin.json`
-- Create: `plugins/roslyn-codegraph/bootstrap.sh`
-- Create: `plugins/roslyn-codegraph/bootstrap.ps1`
+- Create: `plugins/roslyn-codelens/.claude-plugin/plugin.json`
+- Create: `plugins/roslyn-codelens/bootstrap.sh`
+- Create: `plugins/roslyn-codelens/bootstrap.ps1`
 
 **Step 1: Create marketplace manifest**
 
 `.claude-plugin/marketplace.json`:
 ```json
 {
-  "name": "roslyn-codegraph-mcp",
+  "name": "roslyn-codelens-mcp",
   "description": "Roslyn-based .NET code graph intelligence for Claude Code",
   "version": "1.0.0",
   "owner": {
@@ -1882,13 +1882,13 @@ git commit -m "fix: ensure full test suite passes"
   },
   "plugins": [
     {
-      "name": "roslyn-codegraph",
+      "name": "roslyn-codelens",
       "description": "Roslyn-based code graph intelligence for .NET codebases. Provides semantic understanding of type hierarchies, call sites, DI registrations, and reflection usage.",
       "version": "1.0.0",
       "author": {
         "name": "Marcel Roozekrans"
       },
-      "source": "./plugins/roslyn-codegraph",
+      "source": "./plugins/roslyn-codelens",
       "category": "code-intelligence"
     }
   ]
@@ -1897,16 +1897,16 @@ git commit -m "fix: ensure full test suite passes"
 
 **Step 2: Create plugin manifest**
 
-`plugins/roslyn-codegraph/.claude-plugin/plugin.json`:
+`plugins/roslyn-codelens/.claude-plugin/plugin.json`:
 ```json
 {
-  "name": "roslyn-codegraph",
+  "name": "roslyn-codelens",
   "description": "Roslyn-based code graph intelligence for .NET codebases.",
   "author": {
     "name": "Marcel Roozekrans"
   },
   "mcp_servers": {
-    "roslyn-codegraph": {
+    "roslyn-codelens": {
       "command": "bootstrap",
       "args": [],
       "transport": "stdio"
@@ -1917,15 +1917,15 @@ git commit -m "fix: ensure full test suite passes"
 
 **Step 3: Create bootstrap.sh**
 
-`plugins/roslyn-codegraph/bootstrap.sh`:
+`plugins/roslyn-codelens/bootstrap.sh`:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
 
-TOOL_NAME="roslyn-codegraph-mcp"
+TOOL_NAME="roslyn-codelens-mcp"
 
 if ! command -v "$TOOL_NAME" &>/dev/null; then
-    echo "[roslyn-codegraph] Installing $TOOL_NAME dotnet global tool..." >&2
+    echo "[roslyn-codelens] Installing $TOOL_NAME dotnet global tool..." >&2
     dotnet tool install -g "$TOOL_NAME" >&2
 fi
 
@@ -1934,14 +1934,14 @@ exec "$TOOL_NAME" "$@"
 
 **Step 4: Create bootstrap.ps1**
 
-`plugins/roslyn-codegraph/bootstrap.ps1`:
+`plugins/roslyn-codelens/bootstrap.ps1`:
 ```powershell
 $ErrorActionPreference = "Stop"
-$ToolName = "roslyn-codegraph-mcp"
+$ToolName = "roslyn-codelens-mcp"
 
 $installed = dotnet tool list -g | Select-String $ToolName
 if (-not $installed) {
-    Write-Host "[roslyn-codegraph] Installing $ToolName dotnet global tool..." -ForegroundColor Yellow
+    Write-Host "[roslyn-codelens] Installing $ToolName dotnet global tool..." -ForegroundColor Yellow
     dotnet tool install -g $ToolName
 }
 
@@ -1951,7 +1951,7 @@ if (-not $installed) {
 **Step 5: Make bootstrap.sh executable**
 
 ```bash
-chmod +x plugins/roslyn-codegraph/bootstrap.sh
+chmod +x plugins/roslyn-codelens/bootstrap.sh
 ```
 
 **Step 6: Commit**
@@ -1966,15 +1966,15 @@ git commit -m "feat: add plugin manifests and bootstrap scripts"
 ## Task 15: Skill File
 
 **Files:**
-- Create: `plugins/roslyn-codegraph/skills/roslyn-codegraph/SKILL.md`
+- Create: `plugins/roslyn-codelens/skills/roslyn-codelens/SKILL.md`
 
 **Step 1: Create the skill**
 
-`plugins/roslyn-codegraph/skills/roslyn-codegraph/SKILL.md`:
+`plugins/roslyn-codelens/skills/roslyn-codelens/SKILL.md`:
 ```markdown
 ---
-name: roslyn-codegraph
-description: Enhances brainstorming and refactor-analysis with Roslyn-powered semantic code intelligence for .NET codebases. Activates automatically when roslyn-codegraph MCP tools are available.
+name: roslyn-codelens
+description: Enhances brainstorming and refactor-analysis with Roslyn-powered semantic code intelligence for .NET codebases. Activates automatically when roslyn-codelens MCP tools are available.
 ---
 
 # Roslyn Code Graph Intelligence
@@ -2019,8 +2019,8 @@ When analyzing refactors in a .NET codebase:
 **Step 2: Commit**
 
 ```bash
-git add plugins/roslyn-codegraph/skills/
-git commit -m "feat: add roslyn-codegraph skill for brainstorming and refactor enhancement"
+git add plugins/roslyn-codelens/skills/
+git commit -m "feat: add roslyn-codelens skill for brainstorming and refactor enhancement"
 ```
 
 ---
@@ -2052,13 +2052,13 @@ A Roslyn-based MCP server that provides semantic code intelligence for .NET code
 ### As a Claude Code Plugin
 
 ```bash
-claude install gh:MarcelRoozekrans/roslyn-codegraph-mcp
+claude install gh:MarcelRoozekrans/roslyn-codelens-mcp
 ```
 
 ### As a .NET Global Tool
 
 ```bash
-dotnet tool install -g roslyn-codegraph-mcp
+dotnet tool install -g roslyn-codelens-mcp
 ```
 
 ### Manual MCP Configuration
@@ -2068,8 +2068,8 @@ Add to your Claude Code MCP settings:
 ```json
 {
   "mcpServers": {
-    "roslyn-codegraph": {
-      "command": "roslyn-codegraph-mcp",
+    "roslyn-codelens": {
+      "command": "roslyn-codelens-mcp",
       "args": [],
       "transport": "stdio"
     }
@@ -2082,7 +2082,7 @@ Add to your Claude Code MCP settings:
 The server automatically discovers `.sln` files by walking up from the current directory. You can also pass a solution path directly:
 
 ```bash
-roslyn-codegraph-mcp /path/to/MySolution.sln
+roslyn-codelens-mcp /path/to/MySolution.sln
 ```
 
 ## Requirements

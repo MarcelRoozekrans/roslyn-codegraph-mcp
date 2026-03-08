@@ -1,0 +1,86 @@
+name: Bug Report
+description: Report a bug in an MCP tool or the server itself
+labels: [bug]
+
+body:
+  - type: dropdown
+    id: tool
+    attributes:
+      label: MCP Tool
+      description: Which tool is affected?
+      options:
+        - search_symbols
+        - find_callers
+        - find_references
+        - find_implementations
+        - go_to_definition
+        - get_symbol_context
+        - get_type_hierarchy
+        - get_diagnostics
+        - get_code_fixes
+        - get_complexity_metrics
+        - find_unused_symbols
+        - find_naming_violations
+        - find_large_classes
+        - find_circular_dependencies
+        - find_attribute_usages
+        - find_reflection_usage
+        - get_di_registrations
+        - get_project_dependencies
+        - get_nuget_dependencies
+        - get_source_generators
+        - get_generated_code
+        - rebuild_solution
+        - Server startup / general
+    validations:
+      required: true
+
+  - type: dropdown
+    id: bug-type
+    attributes:
+      label: Bug type
+      options:
+        - Incorrect results
+        - Crash / exception
+        - Performance issue
+        - Server fails to start
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened and what did you expect?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce the issue?
+    validations:
+      required: true
+
+  - type: input
+    id: dotnet-version
+    attributes:
+      label: .NET version
+      placeholder: e.g., 10.0.100
+    validations:
+      required: true
+
+  - type: input
+    id: package-version
+    attributes:
+      label: Package version
+      placeholder: e.g., 0.1.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error output / logs
+      render: text

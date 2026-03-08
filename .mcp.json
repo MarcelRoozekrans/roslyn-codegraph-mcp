@@ -1,14 +1,14 @@
 {
   "mcpServers": {
-    "roslyn-codegraph": {
+    "roslyn-codelens": {
       "type": "stdio",
       "command": "dotnet",
       "args": [
         "run",
         "--project",
-        "src/RoslynCodeGraph/RoslynCodeGraph.csproj",
+        "src/RoslynCodeLens/RoslynCodeLens.csproj",
         "--",
-        "RoslynCodeGraph.slnx"
+        "RoslynCodeLens.slnx"
       ]
     }
   }

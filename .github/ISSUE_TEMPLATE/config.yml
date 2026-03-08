@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/blob/main/README.md
+    about: Read the project documentation
