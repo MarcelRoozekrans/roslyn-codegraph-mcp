@@ -42,4 +42,28 @@ public class SolutionManagerTests : IAsyncLifetime
         Assert.Throws<InvalidOperationException>(() => manager.EnsureLoaded());
         manager.Dispose();
     }
+
+    [Fact]
+    public async Task CreateAsync_ReturnsBeforeCompilationCompletes()
+    {
+        var manager = await SolutionManager.CreateAsync(_solutionPath);
+
+        // After warmup, resolver should have data
+        await manager.WaitForWarmupAsync();
+        var resolver = manager.GetResolver();
+
+        Assert.True(resolver.AllTypes.Count > 0);
+        manager.Dispose();
+    }
+
+    [Fact]
+    public async Task GetResolver_AwaitsWarmupIfNotReady()
+    {
+        var manager = await SolutionManager.CreateAsync(_solutionPath);
+
+        // GetResolver should block until warmup is done and return valid resolver
+        var resolver = manager.GetResolver();
+        Assert.True(resolver.AllTypes.Count > 0);
+        manager.Dispose();
+    }
 }
