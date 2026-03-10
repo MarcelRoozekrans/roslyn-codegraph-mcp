@@ -1,0 +1,5 @@
+{
+  "type": "stdio",
+  "command": "dnx",
+  "args": ["RoslynCodeLens.Mcp", "--yes"]
+}

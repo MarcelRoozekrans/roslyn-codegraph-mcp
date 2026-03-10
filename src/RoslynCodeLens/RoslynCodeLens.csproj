@@ -15,11 +15,13 @@
     <PackageTags>roslyn;mcp;code-analysis;dotnet-tool</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
+    <PackageType>DotnetTool;McpServer</PackageType>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="../../README.md" Pack="true" PackagePath="/" />
     <None Include="../../icon.png" Pack="true" PackagePath="/" />
+    <None Include=".mcp/server.json" Pack="true" PackagePath=".mcp/" />
   </ItemGroup>
 
   <ItemGroup>
