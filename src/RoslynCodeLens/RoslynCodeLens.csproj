@@ -14,10 +14,12 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>roslyn;mcp;code-analysis;dotnet-tool</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <None Include="../../icon.png" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <ItemGroup>
