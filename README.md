@@ -1,19 +1,11 @@
-<p align="center">
-  <img src="icon.svg" width="128" height="128" alt="Roslyn CodeLens MCP">
-</p>
+# Roslyn CodeLens MCP Server
 
-<h1 align="center">Roslyn CodeLens MCP Server</h1>
+[![NuGet](https://img.shields.io/nuget/v/RoslynCodeLens.Mcp?style=flat-square&logo=nuget&color=blue)](https://www.nuget.org/packages/RoslynCodeLens.Mcp)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/RoslynCodeLens.Mcp?style=flat-square&color=green)](https://www.nuget.org/packages/RoslynCodeLens.Mcp)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/MarcelRoozekrans/roslyn-codelens-mcp/ci.yml?branch=main&style=flat-square&logo=github)](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/actions)
+[![License](https://img.shields.io/github/license/MarcelRoozekrans/roslyn-codelens-mcp?style=flat-square)](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/blob/main/LICENSE)
 
-<p align="center">
-  <a href="https://www.nuget.org/packages/RoslynCodeLens.Mcp"><img src="https://img.shields.io/nuget/v/RoslynCodeLens.Mcp?style=flat-square&logo=nuget&color=blue" alt="NuGet"></a>
-  <a href="https://www.nuget.org/packages/RoslynCodeLens.Mcp"><img src="https://img.shields.io/nuget/dt/RoslynCodeLens.Mcp?style=flat-square&color=green" alt="NuGet Downloads"></a>
-  <a href="https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/actions"><img src="https://img.shields.io/github/actions/workflow/status/MarcelRoozekrans/roslyn-codelens-mcp/ci.yml?branch=main&style=flat-square&logo=github" alt="Build Status"></a>
-  <a href="https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/blob/main/LICENSE"><img src="https://img.shields.io/github/license/MarcelRoozekrans/roslyn-codelens-mcp?style=flat-square" alt="License"></a>
-</p>
-
-<p align="center">
-  A Roslyn-based MCP server that gives AI agents deep semantic understanding of .NET codebases — type hierarchies, call graphs, DI registrations, diagnostics, and more.
-</p>
+A Roslyn-based MCP server that gives AI agents deep semantic understanding of .NET codebases — type hierarchies, call graphs, DI registrations, diagnostics, and more.
 
 <a href="https://glama.ai/mcp/servers/MarcelRoozekrans/roslyn-codelens-mcp">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/MarcelRoozekrans/roslyn-codelens-mcp/badge" alt="roslyn-codelens-mcp MCP server" />
