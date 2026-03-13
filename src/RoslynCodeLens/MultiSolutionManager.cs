@@ -1,3 +1,5 @@
+using RoslynCodeLens.Models;
+
 namespace RoslynCodeLens;
 
 public sealed class MultiSolutionManager : IDisposable
@@ -41,6 +43,47 @@ public sealed class MultiSolutionManager : IDisposable
     public SymbolResolver GetResolver() => Active.GetResolver();
     public Task WaitForWarmupAsync() => Active.WaitForWarmupAsync();
     public Task<(int ProjectCount, TimeSpan Elapsed)> ForceReloadAsync() => Active.ForceReloadAsync();
+
+    public IReadOnlyList<SolutionInfo> ListSolutions()
+    {
+        return _managers
+            .Select(kvp =>
+            {
+                var m = kvp.Value;
+                int projectCount = 0;
+                string status;
+                try
+                {
+                    var loaded = m.GetLoadedSolution();
+                    projectCount = loaded.Compilations.Count;
+                    status = loaded.IsEmpty ? "empty" : "ready";
+                }
+                catch
+                {
+                    status = "loading";
+                }
+                return new SolutionInfo(kvp.Key, kvp.Key == _activeKey, projectCount, status);
+            })
+            .ToList();
+    }
+
+    public string SetActiveSolution(string name)
+    {
+        var matches = _managers.Keys
+            .Where(k => k.Contains(name, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (matches.Count == 0)
+            throw new InvalidOperationException(
+                $"No solution matching '{name}'. Available: {string.Join(", ", _managers.Keys.Select(Path.GetFileName))}");
+
+        if (matches.Count > 1)
+            throw new InvalidOperationException(
+                $"Ambiguous match for '{name}'. Matches: {string.Join(", ", matches)}");
+
+        _activeKey = matches[0];
+        return _activeKey;
+    }
 
     public void Dispose()
     {

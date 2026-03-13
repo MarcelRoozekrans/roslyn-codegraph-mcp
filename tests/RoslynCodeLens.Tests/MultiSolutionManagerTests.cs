@@ -56,4 +56,32 @@ public class MultiSolutionManagerTests : IAsyncLifetime
         multi.EnsureLoaded();
         multi.Dispose();
     }
+
+    [Fact]
+    public async Task ListSolutions_SinglePath_ReturnsSingleActiveEntry()
+    {
+        var multi = await MultiSolutionManager.CreateAsync([_solutionPath]);
+        var list = multi.ListSolutions();
+        Assert.Single(list);
+        Assert.True(list[0].IsActive);
+        Assert.Equal(Path.GetFullPath(_solutionPath), list[0].Path, StringComparer.OrdinalIgnoreCase);
+        multi.Dispose();
+    }
+
+    [Fact]
+    public async Task SetActiveSolution_ByPartialName_SwitchesActive()
+    {
+        var multi = await MultiSolutionManager.CreateAsync([_solutionPath]);
+        var switched = multi.SetActiveSolution("TestSolution");
+        Assert.Contains("TestSolution", switched, StringComparison.OrdinalIgnoreCase);
+        multi.Dispose();
+    }
+
+    [Fact]
+    public async Task SetActiveSolution_UnknownName_Throws()
+    {
+        var multi = await MultiSolutionManager.CreateAsync([_solutionPath]);
+        Assert.Throws<InvalidOperationException>(() => multi.SetActiveSolution("DoesNotExist"));
+        multi.Dispose();
+    }
 }
