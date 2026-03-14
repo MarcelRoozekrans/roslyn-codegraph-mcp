@@ -5,7 +5,7 @@
 [![Build Status](https://img.shields.io/github/actions/workflow/status/MarcelRoozekrans/roslyn-codelens-mcp/ci.yml?branch=main&style=flat-square&logo=github)](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/actions)
 [![License](https://img.shields.io/github/license/MarcelRoozekrans/roslyn-codelens-mcp?style=flat-square)](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/blob/main/LICENSE)
 
-A Roslyn-based MCP server that gives AI agents deep semantic understanding of .NET codebases — type hierarchies, call graphs, DI registrations, diagnostics, and more.
+A Roslyn-based MCP server that gives AI agents deep semantic understanding of .NET codebases — type hierarchies, call graphs, DI registrations, diagnostics, refactoring, and more.
 
 <a href="https://glama.ai/mcp/servers/MarcelRoozekrans/roslyn-codelens-mcp">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/MarcelRoozekrans/roslyn-codelens-mcp/badge" alt="roslyn-codelens-mcp MCP server" />
@@ -38,6 +38,8 @@ A Roslyn-based MCP server that gives AI agents deep semantic understanding of .N
 - **find_unused_symbols** — Dead code detection via reference analysis
 - **get_source_generators** — List source generators and their output per project
 - **get_generated_code** — Inspect generated source code from source generators
+- **get_code_actions** — Discover available refactorings and fixes at any position (extract method, rename, inline variable, and more)
+- **apply_code_action** — Execute any Roslyn refactoring by title, with preview mode (returns a diff before writing to disk)
 - **rebuild_solution** — Force a full reload of the analyzed solution
 
 ## Quick Start

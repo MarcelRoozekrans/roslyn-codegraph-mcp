@@ -48,6 +48,8 @@ Use these tools **instead of Grep/Glob and instead of MSBuild** whenever you nee
 
 - Use `get_diagnostics` to list compiler errors, warnings, and Roslyn analyzer diagnostics across the solution — this replaces `dotnet build` output entirely
 - Use `get_code_fixes` to get structured text edits for fixing a specific diagnostic — review and apply via Edit tool (replaces manually interpreting build warnings)
+- Use `get_code_actions` to discover all available refactorings and fixes at a specific position (e.g., extract method, rename, inline variable). Optionally select a range with endLine/endColumn for extract-style operations
+- Use `apply_code_action` to execute a refactoring by its title (from `get_code_actions`). Defaults to preview mode — returns a diff without writing. Set preview=false to apply to disk
 
 ### Code Quality Analysis
 
@@ -82,6 +84,7 @@ Before modifying code, use these tools to understand the impact:
 6. `find_attribute_usages` — are there attribute-driven behaviors (authorization, serialization, etc.)?
 7. `get_diagnostics` — are there existing compiler/analyzer warnings to address?
 8. `get_code_fixes` — can any warnings be auto-fixed?
+8b. `get_code_actions` → `apply_code_action` — discover and apply refactorings (extract method, rename, inline, etc.)
 9. `find_unused_symbols` — is there dead code to clean up?
 10. `get_complexity_metrics` — are there overly complex methods?
 
@@ -105,6 +108,8 @@ Reference concrete types, interfaces, and call sites in your analysis. Example: 
 | `find_attribute_usages` | "What's marked [Obsolete]?" / "Find all [Authorize] controllers" |
 | `get_diagnostics` | "Any compiler errors?" / "Show warnings for this project" |
 | `get_code_fixes` | "How do I fix this warning?" / "Get auto-fix suggestions" |
+| `get_code_actions` | "What refactorings are available here?" / "Can I extract this method?" |
+| `apply_code_action` | "Apply this refactoring" / "Extract method" / "Inline variable" |
 | `find_unused_symbols` | "Any dead code?" / "What's not being used?" |
 | `get_complexity_metrics` | "Which methods are too complex?" |
 | `find_naming_violations` | "Check naming conventions" |
