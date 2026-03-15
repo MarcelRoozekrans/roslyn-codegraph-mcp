@@ -84,4 +84,15 @@ public class MultiSolutionManagerTests : IAsyncLifetime
         Assert.Throws<InvalidOperationException>(() => multi.SetActiveSolution("DoesNotExist"));
         multi.Dispose();
     }
+
+    [Fact]
+    public async Task ForceReloadAsync_ReturnsPositiveProjectCount()
+    {
+        var multi = await MultiSolutionManager.CreateAsync([_solutionPath]);
+        await multi.WaitForWarmupAsync();
+        var (projectCount, elapsed) = await multi.ForceReloadAsync();
+        Assert.True(projectCount > 0);
+        Assert.True(elapsed > TimeSpan.Zero);
+        multi.Dispose();
+    }
 }

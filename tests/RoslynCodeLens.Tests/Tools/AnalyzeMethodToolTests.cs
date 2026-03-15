@@ -36,7 +36,7 @@ public class AnalyzeMethodToolTests : IAsyncLifetime
 
         Assert.NotNull(result);
         // Greet is called from GreeterConsumer.SayHello
-        Assert.True(result.Callers.Count > 0 || result.OutgoingCalls.Count >= 0);
+        Assert.True(result.Callers.Count > 0 || result.OutgoingCalls.Count > 0);
     }
 
     [Fact]

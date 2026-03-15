@@ -47,8 +47,8 @@ public class TopologicalSortTests
         // Level 0: B and C (both leaves), Level 1: A
         Assert.Equal(2, levels.Count);
         Assert.Equal(2, levels[0].Count);
-        Assert.Contains(levels[0], p => p.Name == "B");
-        Assert.Contains(levels[0], p => p.Name == "C");
+        Assert.Contains(levels[0], p => string.Equals(p.Name, "B", StringComparison.Ordinal));
+        Assert.Contains(levels[0], p => string.Equals(p.Name, "C", StringComparison.Ordinal));
         Assert.Single(levels[1]);
         Assert.Equal("A", levels[1][0].Name);
     }

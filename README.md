@@ -40,6 +40,8 @@ A Roslyn-based MCP server that gives AI agents deep semantic understanding of .N
 - **get_generated_code** — Inspect generated source code from source generators
 - **get_code_actions** — Discover available refactorings and fixes at any position (extract method, rename, inline variable, and more)
 - **apply_code_action** — Execute any Roslyn refactoring by title, with preview mode (returns a diff before writing to disk)
+- **list_solutions** — List all loaded solutions and which one is currently active
+- **set_active_solution** — Switch the active solution by partial name (all subsequent tools operate on it)
 - **rebuild_solution** — Force a full reload of the analyzed solution
 - **analyze_data_flow** — Variable read/write/capture analysis within a statement range (declared, read, written, always assigned, captured, flows in/out)
 - **analyze_control_flow** — Branch/loop reachability analysis within a statement range (start/end reachability, return statements, exit points)
@@ -108,38 +110,38 @@ When multiple solutions are loaded, use `list_solutions` to see what's available
 
 ## Performance
 
-All type lookups use pre-built reverse inheritance maps, member indexes, and attribute indexes for O(1) access. Benchmarked on an i9-12900HK with .NET 10.0.3:
+All type lookups use pre-built reverse inheritance maps, member indexes, and attribute indexes for O(1) access. Benchmarked on an i9-12900HK with .NET 10.0.4:
 
 | Tool | Latency | Memory |
 |------|--------:|-------:|
-| `find_circular_dependencies` | 648 ns | 1.2 KB |
-| `go_to_definition` | 757 ns | 568 B |
-| `get_project_dependencies` | 839 ns | 1.3 KB |
-| `get_type_hierarchy` | 1.4 µs | 856 B |
-| `find_implementations` | 1.7 µs | 704 B |
-| `get_symbol_context` | 2.3 µs | 960 B |
-| `get_source_generators` | 4.0 µs | 7.1 KB |
-| `analyze_data_flow` | 4.4 µs | 880 B |
-| `find_attribute_usages` | 13 µs | 312 B |
-| `get_generated_code` | 19 µs | 7.8 KB |
-| `analyze_control_flow` | 53 µs | 13 KB |
-| `get_diagnostics` | 87 µs | 22 KB |
-| `get_complexity_metrics` | 90 µs | 5.6 KB |
-| `get_nuget_dependencies` | 114 µs | 15 KB |
-| `find_large_classes` | 116 µs | 888 B |
-| `get_di_registrations` | 140 µs | 13 KB |
-| `get_type_overview` | 151 µs | 24 KB |
-| `get_file_overview` | 153 µs | 24 KB |
-| `find_reflection_usage` | 182 µs | 15 KB |
-| `find_callers` | 468 µs | 37 KB |
-| `analyze_method` | 504 µs | 38 KB |
-| `get_code_actions` | 853 µs | 49 KB |
-| `search_symbols` | 883 µs | 2.4 KB |
-| `find_unused_symbols` | 2.0 ms | 206 KB |
-| `find_references` | 2.3 ms | 203 KB |
-| `analyze_change_impact` | 3.0 ms | 243 KB |
-| `find_naming_violations` | 8.1 ms | 654 KB |
-| Solution loading (one-time) | ~2.7 s | 8.1 MB |
+| `find_circular_dependencies` | 892 ns | 1.2 KB |
+| `get_project_dependencies` | 987 ns | 1.3 KB |
+| `go_to_definition` | 1.3 µs | 608 B |
+| `get_type_hierarchy` | 1.8 µs | 856 B |
+| `find_implementations` | 2.0 µs | 704 B |
+| `get_symbol_context` | 3.0 µs | 960 B |
+| `get_source_generators` | 4.9 µs | 7.1 KB |
+| `analyze_data_flow` | 7.4 µs | 880 B |
+| `find_attribute_usages` | 20 µs | 312 B |
+| `get_generated_code` | 30 µs | 7.8 KB |
+| `analyze_control_flow` | 96 µs | 13 KB |
+| `get_diagnostics` | 98 µs | 22 KB |
+| `get_complexity_metrics` | 127 µs | 5.6 KB |
+| `get_type_overview` | 138 µs | 24 KB |
+| `find_large_classes` | 148 µs | 888 B |
+| `get_file_overview` | 162 µs | 24 KB |
+| `get_di_registrations` | 172 µs | 13 KB |
+| `get_nuget_dependencies` | 202 µs | 15 KB |
+| `find_reflection_usage` | 235 µs | 15 KB |
+| `find_callers` | 406 µs | 37 KB |
+| `analyze_method` | 619 µs | 38 KB |
+| `get_code_actions` | 765 µs | 49 KB |
+| `search_symbols` | 1.3 ms | 2.5 KB |
+| `find_unused_symbols` | 3.8 ms | 207 KB |
+| `find_references` | 3.9 ms | 204 KB |
+| `analyze_change_impact` | 4.2 ms | 243 KB |
+| `find_naming_violations` | 10.7 ms | 654 KB |
+| Solution loading (one-time) | ~3.0 s | 8.2 MB |
 
 ## Hot Reload
 

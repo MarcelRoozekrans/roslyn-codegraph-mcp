@@ -9,24 +9,7 @@ public static class AnalyzeControlFlowLogic
     public static async Task<ControlFlowInfo?> ExecuteAsync(
         LoadedSolution loaded, string filePath, int startLine, int endLine, CancellationToken ct)
     {
-        var normalizedPath = Path.GetFullPath(filePath);
-        Document? targetDocument = null;
-        Compilation? compilation = null;
-
-        foreach (var project in loaded.Solution.Projects)
-        {
-            foreach (var doc in project.Documents)
-            {
-                if (doc.FilePath != null &&
-                    doc.FilePath.Equals(normalizedPath, StringComparison.OrdinalIgnoreCase))
-                {
-                    targetDocument = doc;
-                    loaded.Compilations.TryGetValue(project.Id, out compilation);
-                    break;
-                }
-            }
-            if (targetDocument != null) break;
-        }
+        var (targetDocument, compilation) = FlowAnalysisHelpers.FindDocument(loaded, filePath);
 
         if (targetDocument == null || compilation == null)
             return null;
