@@ -40,6 +40,8 @@ A Roslyn-based MCP server that gives AI agents deep semantic understanding of .N
 - **get_generated_code** — Inspect generated source code from source generators
 - **get_code_actions** — Discover available refactorings and fixes at any position (extract method, rename, inline variable, and more)
 - **apply_code_action** — Execute any Roslyn refactoring by title, with preview mode (returns a diff before writing to disk)
+- **list_solutions** — List all loaded solutions and which one is currently active
+- **set_active_solution** — Switch the active solution by partial name (all subsequent tools operate on it)
 - **rebuild_solution** — Force a full reload of the analyzed solution
 - **analyze_data_flow** — Variable read/write/capture analysis within a statement range (declared, read, written, always assigned, captured, flows in/out)
 - **analyze_control_flow** — Branch/loop reachability analysis within a statement range (start/end reachability, return statements, exit points)
