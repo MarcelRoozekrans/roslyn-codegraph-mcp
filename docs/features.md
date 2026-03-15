@@ -8,11 +8,11 @@
 
 | Dimension | Reference | This project |
 |-----------|-----------|--------------|
-| Tools | ~58 | ~24 (+ 2 new) |
+| Tools | ~58 | 32 |
 | Architecture | Monolithic single file | Modular Tool + Logic split per feature |
 | Refactoring | 13 write/mutate tools | `get_code_actions` + `apply_code_action` (generic engine) |
 | Code generation | Null checks, equality members | Via code actions |
-| Compound/batch | 6 tools | None yet |
+| Compound/batch | 6 tools | 3 (`get_type_overview`, `analyze_method`, `get_file_overview`) |
 | Multi-solution | Env var only | Built-in manager with list/set |
 | Roslyn version | 5.0.0 | 4.14.0 |
 | .NET target | net8.0 | net10.0 |
@@ -122,10 +122,10 @@ Transitive `find_references` + `find_callers` — direct references, affected ca
 | Phase | What | Status |
 |-------|------|--------|
 | 1 | Generic refactoring engine (`get_code_actions` + `apply_code_action`) | ✅ Complete |
-| 2 | Flow analysis (`analyze_data_flow`, `analyze_control_flow`) | Pending |
-| 3 | Impact analysis (`analyze_change_impact`) | Pending |
-| 4 | Compound tools (`get_type_overview`, `analyze_method`, `get_file_overview`) | Pending |
-| 5 | Code generation (`implement_missing_members`, `generate_constructor`) | Pending |
+| 2 | Flow analysis (`analyze_data_flow`, `analyze_control_flow`) | ✅ Complete |
+| 3 | Impact analysis (`analyze_change_impact`) | ✅ Complete |
+| 4 | Compound tools (`get_type_overview`, `analyze_method`, `get_file_overview`) | ✅ Complete |
+| 5 | Code generation (`implement_missing_members`, `generate_constructor`) | N/A — covered by `apply_code_action` (see SKILL.md) |
 
 ---
 

@@ -41,6 +41,12 @@ A Roslyn-based MCP server that gives AI agents deep semantic understanding of .N
 - **get_code_actions** — Discover available refactorings and fixes at any position (extract method, rename, inline variable, and more)
 - **apply_code_action** — Execute any Roslyn refactoring by title, with preview mode (returns a diff before writing to disk)
 - **rebuild_solution** — Force a full reload of the analyzed solution
+- **analyze_data_flow** — Variable read/write/capture analysis within a statement range (declared, read, written, always assigned, captured, flows in/out)
+- **analyze_control_flow** — Branch/loop reachability analysis within a statement range (start/end reachability, return statements, exit points)
+- **analyze_change_impact** — Show all files, projects, and call sites affected by changing a symbol — combines find_references and find_callers
+- **get_type_overview** — Compound tool: type context + hierarchy + file diagnostics in one call
+- **analyze_method** — Compound tool: method signature + callers + outgoing calls in one call
+- **get_file_overview** — Compound tool: types defined in a file + file-scoped diagnostics in one call
 
 ## Quick Start
 
