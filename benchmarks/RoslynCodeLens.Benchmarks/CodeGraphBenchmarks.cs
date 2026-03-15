@@ -41,12 +41,12 @@ public class CodeGraphBenchmarks
         _loaded = await new SolutionLoader().LoadAsync(FixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
         _greeterPath = _loaded.Solution.Projects
-            .First(p => p.Name == "TestLib")
-            .Documents.First(d => d.Name == "Greeter.cs")
+            .First(p => string.Equals(p.Name, "TestLib", StringComparison.Ordinal))
+            .Documents.First(d => string.Equals(d.Name, "Greeter.cs", StringComparison.Ordinal))
             .FilePath!;
         _diSetupPath = _loaded.Solution.Projects
-            .First(p => p.Name == "TestLib2")
-            .Documents.First(d => d.Name == "DiSetup.cs")
+            .First(p => string.Equals(p.Name, "TestLib2", StringComparison.Ordinal))
+            .Documents.First(d => string.Equals(d.Name, "DiSetup.cs", StringComparison.Ordinal))
             .FilePath!;
     }
 

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
@@ -28,6 +29,7 @@ public class SolutionLoader
         var totalProjects = levels.Sum(l => l.Count);
         var compiled = 0;
 
+#pragma warning disable HLQ012, ZA0601 // async method — cannot use CollectionsMarshal.AsSpan across await; Select in loop is required for parallel task projection
         foreach (var level in levels)
         {
             var tasks = level.Select(async project =>
@@ -45,6 +47,7 @@ public class SolutionLoader
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
         }
+#pragma warning restore HLQ012, ZA0601
 
         return compilations;
     }
@@ -91,7 +94,7 @@ public class SolutionLoader
     /// Returns projects grouped by dependency level (leaves first).
     /// Level 0 = no project dependencies, Level 1 = depends only on level 0, etc.
     /// </summary>
-    public static List<List<Project>> GetCompilationLevels(Solution solution)
+    public static IReadOnlyList<IReadOnlyList<Project>> GetCompilationLevels(Solution solution)
     {
         var projects = solution.Projects.ToList();
         var projectIds = new HashSet<ProjectId>(projects.Select(p => p.Id));
@@ -122,7 +125,7 @@ public class SolutionLoader
             return level;
         }
 
-        foreach (var project in projects)
+        foreach (ref readonly var project in CollectionsMarshal.AsSpan(projects))
             GetLevel(project);
 
         if (assigned.Count == 0)
@@ -133,7 +136,7 @@ public class SolutionLoader
         for (var i = 0; i <= maxLevel; i++)
             levels.Add(new List<Project>());
 
-        foreach (var project in projects)
+        foreach (ref readonly var project in CollectionsMarshal.AsSpan(projects))
             levels[assigned[project.Id]].Add(project);
 
         return levels;

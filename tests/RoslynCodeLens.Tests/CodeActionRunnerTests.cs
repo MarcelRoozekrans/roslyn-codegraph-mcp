@@ -22,7 +22,7 @@ public class CodeActionRunnerTests : IAsyncLifetime
     {
         // Greeter.cs line 8: public virtual string Greet(string name) => ...
         var project = _loaded.Solution.Projects.First(p => string.Equals(p.Name, "TestLib", StringComparison.Ordinal));
-        var doc = project.Documents.First(d => d.Name == "Greeter.cs");
+        var doc = project.Documents.First(d => string.Equals(d.Name, "Greeter.cs", StringComparison.Ordinal));
         var compilation = _loaded.Compilations[project.Id];
 
         var actions = await CodeActionRunner.GetActionsAsync(
@@ -39,7 +39,7 @@ public class CodeActionRunnerTests : IAsyncLifetime
         // Greeter.cs line 8: select the expression body "=> $"Hello, {name}!";"
         // This should trigger refactorings like "Use block body" that don't need workspace services
         var project = _loaded.Solution.Projects.First(p => string.Equals(p.Name, "TestLib", StringComparison.Ordinal));
-        var doc = project.Documents.First(d => d.Name == "Greeter.cs");
+        var doc = project.Documents.First(d => string.Equals(d.Name, "Greeter.cs", StringComparison.Ordinal));
         var compilation = _loaded.Compilations[project.Id];
 
         // Select the range covering the expression body on line 8

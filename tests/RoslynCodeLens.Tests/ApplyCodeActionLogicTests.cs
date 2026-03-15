@@ -44,7 +44,7 @@ public class ApplyCodeActionLogicTests : IAsyncLifetime
         }
 
         Assert.NotNull(result);
-        Assert.True(result.Success, $"No action succeeded. Last error: {result?.ErrorMessage}");
+        Assert.True(result.Success, $"No action succeeded. Last error: {result.ErrorMessage}");
         Assert.NotEmpty(result.Title);
     }
 

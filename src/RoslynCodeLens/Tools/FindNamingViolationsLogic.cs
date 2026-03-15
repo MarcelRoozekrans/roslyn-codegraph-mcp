@@ -43,7 +43,7 @@ public static class FindNamingViolationsLogic
                     var (file, line) = resolver.GetFileAndLine(type);
                     if (!string.IsNullOrEmpty(file))
                     {
-                        var suggestion = char.ToUpper(type.Name[0], CultureInfo.InvariantCulture) + type.Name.Substring(1);
+                        var suggestion = char.ToUpper(type.Name[0], CultureInfo.InvariantCulture).ToString() + type.Name[1..];
                         results.Add(new NamingViolation(
                             type.Name, "Type", "Types must be PascalCase",
                             suggestion, file, line, projectName));
@@ -80,7 +80,7 @@ public static class FindNamingViolationsLogic
                         var (pf, pl) = resolver.GetFileAndLine(property);
                         if (!string.IsNullOrEmpty(pf))
                         {
-                            var suggestion = char.ToUpper(property.Name[0], CultureInfo.InvariantCulture) + property.Name.Substring(1);
+                            var suggestion = char.ToUpper(property.Name[0], CultureInfo.InvariantCulture).ToString() + property.Name[1..];
                             results.Add(new NamingViolation(
                                 property.Name, "Property", "Properties must be PascalCase",
                                 suggestion, pf, pl, projectName));
@@ -111,7 +111,7 @@ public static class FindNamingViolationsLogic
             var (mf, ml) = resolver.GetFileAndLine(method);
             if (!string.IsNullOrEmpty(mf))
             {
-                var suggestion = char.ToUpper(method.Name[0], CultureInfo.InvariantCulture) + method.Name.Substring(1);
+                var suggestion = char.ToUpper(method.Name[0], CultureInfo.InvariantCulture).ToString() + method.Name[1..];
                 results.Add(new NamingViolation(
                     method.Name, "Method", "Methods must be PascalCase",
                     suggestion, mf, ml, projectName));
@@ -132,7 +132,7 @@ public static class FindNamingViolationsLogic
                 var (pf, pl) = resolver.GetFileAndLine(method);
                 if (!string.IsNullOrEmpty(pf))
                 {
-                    var paramSuggestion = char.ToLower(param.Name[0], CultureInfo.InvariantCulture) + param.Name.Substring(1);
+                    var paramSuggestion = char.ToLower(param.Name[0], CultureInfo.InvariantCulture).ToString() + param.Name[1..];
                     results.Add(new NamingViolation(
                         param.Name, "Parameter", "Parameters should be camelCase",
                         paramSuggestion, pf, pl, projectName));

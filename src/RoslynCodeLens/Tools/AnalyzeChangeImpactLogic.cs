@@ -21,14 +21,14 @@ public static class AnalyzeChangeImpactLogic
             .Concat(callers.Select(c => c.File))
             .Where(f => !string.IsNullOrEmpty(f))
             .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Order()
+            .Order(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
         var affectedProjects = references.Select(r => r.Project)
             .Concat(callers.Select(c => c.Project))
             .Where(p => !string.IsNullOrEmpty(p))
             .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Order()
+            .Order(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
         return new ChangeImpact(

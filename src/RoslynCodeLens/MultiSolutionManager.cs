@@ -76,11 +76,12 @@ public sealed class MultiSolutionManager : IDisposable
                 {
                     status = "error";
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Console.Error.WriteLine($"[roslyn-codelens] Error reading solution status ({kvp.Key}): {ex}");
                     status = "unknown";
                 }
-                return new SolutionInfo(kvp.Key, kvp.Key == activeKey, projectCount, status);
+                return new SolutionInfo(kvp.Key, string.Equals(kvp.Key, activeKey, StringComparison.Ordinal), projectCount, status);
             })
             .ToList();
     }
