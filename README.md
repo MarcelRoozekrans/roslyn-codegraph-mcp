@@ -5,7 +5,7 @@
 [![Build Status](https://img.shields.io/github/actions/workflow/status/MarcelRoozekrans/roslyn-codelens-mcp/ci.yml?branch=main&style=flat-square&logo=github)](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/actions)
 [![License](https://img.shields.io/github/license/MarcelRoozekrans/roslyn-codelens-mcp?style=flat-square)](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/blob/main/LICENSE)
 
-A Roslyn-based MCP server that gives AI agents deep semantic understanding of .NET codebases — type hierarchies, call graphs, DI registrations, diagnostics, and more.
+A Roslyn-based MCP server that gives AI agents deep semantic understanding of .NET codebases — type hierarchies, call graphs, DI registrations, diagnostics, refactoring, and more.
 
 <a href="https://glama.ai/mcp/servers/MarcelRoozekrans/roslyn-codelens-mcp">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/MarcelRoozekrans/roslyn-codelens-mcp/badge" alt="roslyn-codelens-mcp MCP server" />
@@ -38,7 +38,15 @@ A Roslyn-based MCP server that gives AI agents deep semantic understanding of .N
 - **find_unused_symbols** — Dead code detection via reference analysis
 - **get_source_generators** — List source generators and their output per project
 - **get_generated_code** — Inspect generated source code from source generators
+- **get_code_actions** — Discover available refactorings and fixes at any position (extract method, rename, inline variable, and more)
+- **apply_code_action** — Execute any Roslyn refactoring by title, with preview mode (returns a diff before writing to disk)
 - **rebuild_solution** — Force a full reload of the analyzed solution
+- **analyze_data_flow** — Variable read/write/capture analysis within a statement range (declared, read, written, always assigned, captured, flows in/out)
+- **analyze_control_flow** — Branch/loop reachability analysis within a statement range (start/end reachability, return statements, exit points)
+- **analyze_change_impact** — Show all files, projects, and call sites affected by changing a symbol — combines find_references and find_callers
+- **get_type_overview** — Compound tool: type context + hierarchy + file diagnostics in one call
+- **analyze_method** — Compound tool: method signature + callers + outgoing calls in one call
+- **get_file_overview** — Compound tool: types defined in a file + file-scoped diagnostics in one call
 
 ## Quick Start
 
@@ -104,27 +112,34 @@ All type lookups use pre-built reverse inheritance maps, member indexes, and att
 
 | Tool | Latency | Memory |
 |------|--------:|-------:|
-| `find_circular_dependencies` | 288 ns | 1.3 KB |
-| `get_project_dependencies` | 299 ns | 1.2 KB |
-| `go_to_definition` | 442 ns | 568 B |
-| `get_type_hierarchy` | 720 ns | 856 B |
-| `find_implementations` | 804 ns | 704 B |
-| `get_symbol_context` | 1.1 µs | 1.0 KB |
-| `get_source_generators` | 2.6 µs | 8.3 KB |
-| `find_attribute_usages` | 6.8 µs | 312 B |
-| `get_generated_code` | 13 µs | 9.8 KB |
-| `get_diagnostics` | 27 µs | 23 KB |
-| `get_complexity_metrics` | 50 µs | 5.8 KB |
-| `find_large_classes` | 60 µs | 1.2 KB |
-| `get_di_registrations` | 60 µs | 13 KB |
-| `get_nuget_dependencies` | 62 µs | 16 KB |
-| `find_reflection_usage` | 82 µs | 15 KB |
-| `find_callers` | 182 µs | 38 KB |
-| `search_symbols` | 517 µs | 2.4 KB |
-| `find_references` | 927 µs | 208 KB |
-| `find_unused_symbols` | 1.1 ms | 212 KB |
-| `find_naming_violations` | 5.0 ms | 670 KB |
-| Solution loading (one-time) | ~928 ms | 8 MB |
+| `find_circular_dependencies` | 648 ns | 1.2 KB |
+| `go_to_definition` | 757 ns | 568 B |
+| `get_project_dependencies` | 839 ns | 1.3 KB |
+| `get_type_hierarchy` | 1.4 µs | 856 B |
+| `find_implementations` | 1.7 µs | 704 B |
+| `get_symbol_context` | 2.3 µs | 960 B |
+| `get_source_generators` | 4.0 µs | 7.1 KB |
+| `analyze_data_flow` | 4.4 µs | 880 B |
+| `find_attribute_usages` | 13 µs | 312 B |
+| `get_generated_code` | 19 µs | 7.8 KB |
+| `analyze_control_flow` | 53 µs | 13 KB |
+| `get_diagnostics` | 87 µs | 22 KB |
+| `get_complexity_metrics` | 90 µs | 5.6 KB |
+| `get_nuget_dependencies` | 114 µs | 15 KB |
+| `find_large_classes` | 116 µs | 888 B |
+| `get_di_registrations` | 140 µs | 13 KB |
+| `get_type_overview` | 151 µs | 24 KB |
+| `get_file_overview` | 153 µs | 24 KB |
+| `find_reflection_usage` | 182 µs | 15 KB |
+| `find_callers` | 468 µs | 37 KB |
+| `analyze_method` | 504 µs | 38 KB |
+| `get_code_actions` | 853 µs | 49 KB |
+| `search_symbols` | 883 µs | 2.4 KB |
+| `find_unused_symbols` | 2.0 ms | 206 KB |
+| `find_references` | 2.3 ms | 203 KB |
+| `analyze_change_impact` | 3.0 ms | 243 KB |
+| `find_naming_violations` | 8.1 ms | 654 KB |
+| Solution loading (one-time) | ~2.7 s | 8.1 MB |
 
 ## Hot Reload
 

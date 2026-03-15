@@ -24,6 +24,9 @@ Use these tools **instead of Grep/Glob and instead of MSBuild** whenever you nee
 - Call `get_project_dependencies` to understand solution architecture and how projects relate
 - Call `get_symbol_context` on types mentioned in the user's request for a full context dump (namespace, base class, interfaces, DI dependencies, public members)
 - Call `get_type_hierarchy` to understand inheritance chains and extension points
+- Call `get_type_overview` for a one-shot view of a type: context + hierarchy + file diagnostics (replaces 3 separate calls)
+- Call `get_file_overview` to see which types are defined in a file and any diagnostics — without reading the file
+- Call `analyze_method` to get signature, callers, and outgoing calls for a method in one call
 
 ### Navigating Code
 
@@ -48,6 +51,19 @@ Use these tools **instead of Grep/Glob and instead of MSBuild** whenever you nee
 
 - Use `get_diagnostics` to list compiler errors, warnings, and Roslyn analyzer diagnostics across the solution — this replaces `dotnet build` output entirely
 - Use `get_code_fixes` to get structured text edits for fixing a specific diagnostic — review and apply via Edit tool (replaces manually interpreting build warnings)
+- Use `get_code_actions` to discover all available refactorings and fixes at a specific position (e.g., extract method, rename, inline variable). Optionally select a range with endLine/endColumn for extract-style operations
+- Use `apply_code_action` to execute a refactoring by its title (from `get_code_actions`). Defaults to preview mode — returns a diff without writing. Set preview=false to apply to disk
+- Use `analyze_data_flow` on a statement range to understand variable lifecycle (declared, read, written, captured, flows in/out) — useful before extracting code
+- Use `analyze_control_flow` on a statement range to check reachability, return statements, and unreachable code paths
+
+**Code generation via `apply_code_action`** — do NOT look for dedicated generation tools. These common tasks are all built-in Roslyn code actions; use `get_code_actions` to find the title, then `apply_code_action`:
+- Implement missing interface/abstract members → position on the class, look for "Implement abstract members" or "Implement interface"
+- Generate constructor from fields → position on the class, look for "Generate constructor"
+- Add null checks → position on a method, look for "Add null checks for all parameters"
+- Generate `Equals`/`GetHashCode` → position on the class, look for "Generate Equals and GetHashCode"
+- Encapsulate field → position on a field, look for "Encapsulate field"
+- Extract method → select statements, look for "Extract method"
+- Inline variable → position on variable, look for "Inline variable"
 
 ### Code Quality Analysis
 
@@ -74,16 +90,18 @@ Use these tools **instead of Grep/Glob and instead of MSBuild** whenever you nee
 
 Before modifying code, use these tools to understand the impact:
 
-1. `get_symbol_context` — what does this type look like?
-2. `find_references` + `find_callers` + `find_implementations` — what depends on it?
-3. `get_type_hierarchy` + `get_project_dependencies` — where does it sit in the architecture?
-4. `get_di_registrations` — how is it wired up?
-5. `find_reflection_usage` — is it used dynamically?
-6. `find_attribute_usages` — are there attribute-driven behaviors (authorization, serialization, etc.)?
-7. `get_diagnostics` — are there existing compiler/analyzer warnings to address?
-8. `get_code_fixes` — can any warnings be auto-fixed?
-9. `find_unused_symbols` — is there dead code to clean up?
-10. `get_complexity_metrics` — are there overly complex methods?
+1. `get_type_overview` — one-shot: context + hierarchy + diagnostics for the type
+2. `analyze_change_impact` — blast radius: all files, projects, and call sites affected by changing a symbol
+3. `find_references` + `find_callers` + `find_implementations` — detailed dependency breakdown if needed
+4. `get_project_dependencies` — where does it sit in the architecture?
+5. `get_di_registrations` — how is it wired up?
+6. `find_reflection_usage` — is it used dynamically?
+7. `find_attribute_usages` — are there attribute-driven behaviors (authorization, serialization, etc.)?
+8. `get_diagnostics` — are there existing compiler/analyzer warnings to address?
+9. `get_code_fixes` — can any warnings be auto-fixed?
+9b. `get_code_actions` → `apply_code_action` — discover and apply refactorings (extract method, rename, inline, etc.)
+10. `find_unused_symbols` — is there dead code to clean up?
+11. `get_complexity_metrics` — are there overly complex methods?
 
 Reference concrete types, interfaces, and call sites in your analysis. Example: "These 3 classes implement IUserService: UserService, CachedUserService, AdminUserService."
 
@@ -105,6 +123,8 @@ Reference concrete types, interfaces, and call sites in your analysis. Example: 
 | `find_attribute_usages` | "What's marked [Obsolete]?" / "Find all [Authorize] controllers" |
 | `get_diagnostics` | "Any compiler errors?" / "Show warnings for this project" |
 | `get_code_fixes` | "How do I fix this warning?" / "Get auto-fix suggestions" |
+| `get_code_actions` | "What refactorings are available here?" / "Can I extract this method?" |
+| `apply_code_action` | "Apply this refactoring" / "Extract method" / "Inline variable" |
 | `find_unused_symbols` | "Any dead code?" / "What's not being used?" |
 | `get_complexity_metrics` | "Which methods are too complex?" |
 | `find_naming_violations` | "Check naming conventions" |
@@ -115,3 +135,9 @@ Reference concrete types, interfaces, and call sites in your analysis. Example: 
 | `list_solutions` | "What solutions are loaded?" / "Which solution is active?" |
 | `set_active_solution` | "Switch to project B" / "Use the other solution" |
 | `rebuild_solution` | "Reload the solution" / "Pick up new analyzers" / "Diagnostics are stale" |
+| `analyze_data_flow` | "What variables are read/written here?" / "What flows out of this block?" |
+| `analyze_control_flow` | "Is this code reachable?" / "Any unreachable statements?" |
+| `analyze_change_impact` | "What breaks if I change this?" / "Show blast radius" |
+| `get_type_overview` | "Give me everything about this type in one call" |
+| `analyze_method` | "Show signature, callers, and outgoing calls for this method" |
+| `get_file_overview` | "What types are in this file?" / "Any diagnostics in this file?" |

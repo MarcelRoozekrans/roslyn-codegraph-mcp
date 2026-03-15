@@ -12,6 +12,8 @@ public class CodeGraphBenchmarks
     private static readonly string FixturePath;
     private LoadedSolution _loaded = null!;
     private SymbolResolver _resolver = null!;
+    private string _greeterPath = null!;
+    private string _diSetupPath = null!;
 
     static CodeGraphBenchmarks()
     {
@@ -38,6 +40,14 @@ public class CodeGraphBenchmarks
     {
         _loaded = await new SolutionLoader().LoadAsync(FixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
+        _greeterPath = _loaded.Solution.Projects
+            .First(p => p.Name == "TestLib")
+            .Documents.First(d => d.Name == "Greeter.cs")
+            .FilePath!;
+        _diSetupPath = _loaded.Solution.Projects
+            .First(p => p.Name == "TestLib2")
+            .Documents.First(d => d.Name == "DiSetup.cs")
+            .FilePath!;
     }
 
     [Benchmark(Description = "Load and compile solution")]
@@ -164,5 +174,47 @@ public class CodeGraphBenchmarks
     public object GetGeneratedCode()
     {
         return GetGeneratedCodeLogic.Execute(_loaded, _resolver, null, null);
+    }
+
+    [Benchmark(Description = "analyze_data_flow: Greeter.cs line 8")]
+    public async Task<object?> AnalyzeDataFlow()
+    {
+        return await AnalyzeDataFlowLogic.ExecuteAsync(_loaded, _greeterPath, 8, 8, default).ConfigureAwait(false);
+    }
+
+    [Benchmark(Description = "analyze_control_flow: DiSetup.cs lines 10-11")]
+    public async Task<object?> AnalyzeControlFlow()
+    {
+        return await AnalyzeControlFlowLogic.ExecuteAsync(_loaded, _diSetupPath, 10, 11, default).ConfigureAwait(false);
+    }
+
+    [Benchmark(Description = "analyze_change_impact: IGreeter.Greet")]
+    public object? AnalyzeChangeImpact()
+    {
+        return AnalyzeChangeImpactLogic.Execute(_loaded, _resolver, "IGreeter.Greet");
+    }
+
+    [Benchmark(Description = "get_type_overview: Greeter")]
+    public object? GetTypeOverview()
+    {
+        return GetTypeOverviewLogic.Execute(_loaded, _resolver, "Greeter");
+    }
+
+    [Benchmark(Description = "analyze_method: Greeter.Greet")]
+    public object? AnalyzeMethod()
+    {
+        return AnalyzeMethodLogic.Execute(_loaded, _resolver, "Greeter.Greet");
+    }
+
+    [Benchmark(Description = "get_file_overview: Greeter.cs")]
+    public async Task<object?> GetFileOverview()
+    {
+        return await GetFileOverviewLogic.ExecuteAsync(_loaded, _resolver, _greeterPath, default).ConfigureAwait(false);
+    }
+
+    [Benchmark(Description = "get_code_actions: Greeter.cs line 8")]
+    public async Task<object> GetCodeActions()
+    {
+        return await GetCodeActionsLogic.ExecuteAsync(_loaded, _greeterPath, 8, 5, null, null, default).ConfigureAwait(false);
     }
 }
