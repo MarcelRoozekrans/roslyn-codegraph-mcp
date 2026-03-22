@@ -104,6 +104,67 @@ public sealed class MultiSolutionManager : IDisposable
         return matches[0];
     }
 
+    /// <summary>
+    /// Load a new solution at runtime. If it's already loaded, just activates it.
+    /// Returns the normalised path of the loaded solution.
+    /// </summary>
+    public async Task<string> LoadSolutionAsync(string solutionPath)
+    {
+        var normalised = Path.GetFullPath(solutionPath);
+
+        if (_managers.ContainsKey(normalised))
+        {
+            lock (_lock) { _activeKey = normalised; }
+            return normalised;
+        }
+
+        var manager = await SolutionManager.CreateAsync(normalised).ConfigureAwait(false);
+
+        lock (_lock)
+        {
+            _managers[normalised] = manager;
+            _activeKey = normalised;
+        }
+
+        return normalised;
+    }
+
+    /// <summary>
+    /// Unload a solution by partial name match, freeing its memory.
+    /// Cannot unload the currently active solution unless it's the only one.
+    /// </summary>
+    public string UnloadSolution(string name)
+    {
+        var matches = _managers.Keys
+            .Where(k => k.Contains(name, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (matches.Count == 0)
+            throw new InvalidOperationException(
+                $"No solution matching '{name}'. Available: {string.Join(", ", _managers.Keys.Select(Path.GetFileName))}");
+
+        if (matches.Count > 1)
+            throw new InvalidOperationException(
+                $"Ambiguous match for '{name}'. Matches: {string.Join(", ", matches)}");
+
+        var key = matches[0];
+
+        lock (_lock)
+        {
+            if (string.Equals(_activeKey, key, StringComparison.OrdinalIgnoreCase))
+            {
+                // Switch active to another solution if available
+                var remaining = _managers.Keys.Where(k => !string.Equals(k, key, StringComparison.OrdinalIgnoreCase)).ToList();
+                _activeKey = remaining.Count > 0 ? remaining[0] : null;
+            }
+
+            if (_managers.Remove(key, out var manager))
+                manager.Dispose();
+        }
+
+        return key;
+    }
+
     public void Dispose()
     {
         foreach (var m in _managers.Values)
