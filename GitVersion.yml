@@ -1,11 +1,12 @@
-next-version: 1.0.6
 mode: ContinuousDeployment
+tag-prefix: v
+major-version-bump-message: "^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\\(.*\\))?!:"
+minor-version-bump-message: "^feat(\\(.*\\))?:"
+patch-version-bump-message: "^fix(\\(.*\\))?:"
 branches:
   main:
     regex: ^main$
-    label: ''
-    increment: Patch
-  pull-request:
-    regex: ^(pull|pull\-requests|pr)[/-]
-    label: preview
-    increment: Inherit
+    label: alpha
+  release:
+    regex: ^release/.*$
+    label: rc
