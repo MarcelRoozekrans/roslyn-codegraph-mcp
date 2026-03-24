@@ -84,6 +84,8 @@ Use these tools **instead of Grep/Glob and instead of MSBuild** whenever you nee
 
 - Use `list_solutions` to see all loaded solutions, which one is active, how many projects each has, and their status.
 - Use `set_active_solution` to switch the active solution by partial name (e.g. `set_active_solution("ProjectB")`). Call this at the start of a session when multiple solutions are loaded.
+- Use `load_solution` to load a `.sln`/`.slnx` file at runtime and make it active (~3s for a new solution, instant if already loaded). Use this when the server was started empty or you need to switch to a codebase that isn't loaded yet.
+- Use `unload_solution` to remove a solution by partial name and free its memory. The next loaded solution becomes active, or none if it was the last. Use this when done with a codebase in a long-running session.
 - Use `rebuild_solution` to force a full reload of the analyzed solution — re-opens the `.sln`, recompiles all projects, and rebuilds all indexes. Use after changing `Directory.Build.props`, adding/removing NuGet packages or analyzers, or when diagnostics seem stale.
 
 ### Planning Changes
@@ -133,6 +135,8 @@ Reference concrete types, interfaces, and call sites in your analysis. Example: 
 | `get_source_generators` | "What source generators are active?" / "List generators for this project" |
 | `get_generated_code` | "Show generated code" / "What did this generator produce?" |
 | `list_solutions` | "What solutions are loaded?" / "Which solution is active?" |
+| `load_solution` | "Load this .sln at runtime" / "Switch to a codebase not yet loaded" |
+| `unload_solution` | "Free memory for this solution" / "Remove a loaded codebase" |
 | `set_active_solution` | "Switch to project B" / "Use the other solution" |
 | `rebuild_solution` | "Reload the solution" / "Pick up new analyzers" / "Diagnostics are stale" |
 | `analyze_data_flow` | "What variables are read/written here?" / "What flows out of this block?" |
