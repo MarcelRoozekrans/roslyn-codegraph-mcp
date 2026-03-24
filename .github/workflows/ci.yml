@@ -34,6 +34,9 @@ jobs:
       - name: Restore
         run: dotnet restore
 
+      - name: Restore test fixtures
+        run: dotnet restore tests/RoslynCodeLens.Tests/Fixtures/TestSolution/TestSolution.slnx
+
       - name: Build
         run: dotnet build --no-restore -c Release -p:Version=${{ steps.gitversion.outputs.version }}
 
