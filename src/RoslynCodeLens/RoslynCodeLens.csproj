@@ -12,8 +12,7 @@
     <PackageProjectUrl>https://github.com/MarcelRoozekrans/roslyn-codelens-mcp</PackageProjectUrl>
     <RepositoryUrl>https://github.com/MarcelRoozekrans/roslyn-codelens-mcp</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>1.0.16</Version>
-    <PackageTags>roslyn;mcp;code-analysis;dotnet-tool</PackageTags>
+<PackageTags>roslyn;mcp;code-analysis;dotnet-tool</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
     <PackageType>DotnetTool;McpServer</PackageType>

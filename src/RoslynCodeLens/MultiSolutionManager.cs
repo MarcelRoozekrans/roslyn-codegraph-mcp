@@ -1,14 +1,15 @@
+using System.Collections.Concurrent;
 using RoslynCodeLens.Models;
 
 namespace RoslynCodeLens;
 
 public sealed class MultiSolutionManager : IDisposable
 {
-    private readonly Dictionary<string, SolutionManager> _managers;
+    private readonly ConcurrentDictionary<string, SolutionManager> _managers;
     private string? _activeKey;
     private readonly Lock _lock = new();
 
-    private MultiSolutionManager(Dictionary<string, SolutionManager> managers, string? activeKey)
+    private MultiSolutionManager(ConcurrentDictionary<string, SolutionManager> managers, string? activeKey)
     {
         _managers = managers;
         _activeKey = activeKey;
@@ -19,7 +20,7 @@ public sealed class MultiSolutionManager : IDisposable
         if (solutionPaths.Count == 0)
             return CreateEmpty();
 
-        var managers = new Dictionary<string, SolutionManager>(StringComparer.OrdinalIgnoreCase);
+        var managers = new ConcurrentDictionary<string, SolutionManager>(StringComparer.OrdinalIgnoreCase);
         foreach (var path in solutionPaths)
         {
             var normalised = Path.GetFullPath(path);
@@ -32,7 +33,7 @@ public sealed class MultiSolutionManager : IDisposable
     }
 
     public static MultiSolutionManager CreateEmpty() =>
-        new([], null);
+        new(new ConcurrentDictionary<string, SolutionManager>(StringComparer.OrdinalIgnoreCase), null);
 
     private SolutionManager Active
     {
@@ -112,17 +113,28 @@ public sealed class MultiSolutionManager : IDisposable
     {
         var normalised = Path.GetFullPath(solutionPath);
 
-        if (_managers.ContainsKey(normalised))
+        lock (_lock)
         {
-            lock (_lock) { _activeKey = normalised; }
-            return normalised;
+            if (_managers.ContainsKey(normalised))
+            {
+                _activeKey = normalised;
+                return normalised;
+            }
         }
 
         var manager = await SolutionManager.CreateAsync(normalised).ConfigureAwait(false);
 
         lock (_lock)
         {
-            _managers[normalised] = manager;
+            // Double-check: another concurrent call may have loaded this solution while we were creating the manager.
+            if (_managers.ContainsKey(normalised))
+            {
+                manager.Dispose();
+            }
+            else
+            {
+                _managers[normalised] = manager;
+            }
             _activeKey = normalised;
         }
 
@@ -131,37 +143,45 @@ public sealed class MultiSolutionManager : IDisposable
 
     /// <summary>
     /// Unload a solution by partial name match, freeing its memory.
-    /// Cannot unload the currently active solution unless it's the only one.
+    /// If the unloaded solution is currently active, another loaded solution (if any)
+    /// will become active; otherwise there will be no active solution.
     /// </summary>
     public string UnloadSolution(string name)
     {
-        var matches = _managers.Keys
-            .Where(k => k.Contains(name, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-
-        if (matches.Count == 0)
-            throw new InvalidOperationException(
-                $"No solution matching '{name}'. Available: {string.Join(", ", _managers.Keys.Select(Path.GetFileName))}");
-
-        if (matches.Count > 1)
-            throw new InvalidOperationException(
-                $"Ambiguous match for '{name}'. Matches: {string.Join(", ", matches)}");
-
-        var key = matches[0];
+        SolutionManager? managerToDispose = null;
+        string key;
 
         lock (_lock)
         {
+            var keysSnapshot = _managers.Keys.ToList();
+
+            var matches = keysSnapshot
+                .Where(k => k.Contains(name, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (matches.Count == 0)
+                throw new InvalidOperationException(
+                    $"No solution matching '{name}'. Available: {string.Join(", ", keysSnapshot.Select(Path.GetFileName))}");
+
+            if (matches.Count > 1)
+                throw new InvalidOperationException(
+                    $"Ambiguous match for '{name}'. Matches: {string.Join(", ", matches)}");
+
+            key = matches[0];
+
             if (string.Equals(_activeKey, key, StringComparison.OrdinalIgnoreCase))
             {
-                // Switch active to another solution if available
-                var remaining = _managers.Keys.Where(k => !string.Equals(k, key, StringComparison.OrdinalIgnoreCase)).ToList();
+                var remaining = keysSnapshot
+                    .Where(k => !string.Equals(k, key, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
                 _activeKey = remaining.Count > 0 ? remaining[0] : null;
             }
 
-            if (_managers.Remove(key, out var manager))
-                manager.Dispose();
+            if (_managers.TryRemove(key, out var manager))
+                managerToDispose = manager;
         }
 
+        managerToDispose?.Dispose();
         return key;
     }
 

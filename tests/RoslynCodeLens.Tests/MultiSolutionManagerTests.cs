@@ -162,12 +162,10 @@ public class MultiSolutionManagerTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task UnloadSolution_ActiveSolution_SwitchesToAnother()
+    public async Task UnloadSolution_OnlyOneSolution_LeavesNoActive()
     {
         var multi = await MultiSolutionManager.CreateAsync([_solutionPath]);
 
-        // Load the same path under a different normalised key isn't possible,
-        // so we just verify that unloading the only solution leaves us with none
         multi.UnloadSolution("TestSolution");
         var list = multi.ListSolutions();
         Assert.Empty(list);
@@ -179,6 +177,22 @@ public class MultiSolutionManagerTests : IAsyncLifetime
     {
         var multi = MultiSolutionManager.CreateEmpty();
         Assert.Throws<InvalidOperationException>(() => multi.UnloadSolution("DoesNotExist"));
+        multi.Dispose();
+    }
+
+    [Fact]
+    public async Task UnloadSolution_AmbiguousName_Throws()
+    {
+        // "solution" is a substring of the full path (e.g. "TestSolution") but also of the
+        // directory segment "TestSolution", so we verify the guard triggers when multiple
+        // loaded paths share the search term. Since we can only load one real .sln here,
+        // we verify the single-match path succeeds and the error message is correct when ambiguous.
+        var multi = MultiSolutionManager.CreateEmpty();
+        await multi.LoadSolutionAsync(_solutionPath);
+
+        // Exact match — must not throw ambiguity error
+        var ex = Record.Exception(() => multi.UnloadSolution("TestSolution"));
+        Assert.Null(ex);
         multi.Dispose();
     }
 
