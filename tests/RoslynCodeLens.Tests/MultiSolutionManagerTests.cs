@@ -5,11 +5,14 @@ namespace RoslynCodeLens.Tests;
 public class MultiSolutionManagerTests : IAsyncLifetime
 {
     private string _solutionPath = null!;
+    private string _altSolutionPath = null!;
 
     public Task InitializeAsync()
     {
         _solutionPath = Path.GetFullPath(Path.Combine(
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
+        _altSolutionPath = Path.GetFullPath(Path.Combine(
+            AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolutionAlt", "TestSolutionAlt.slnx"));
         return Task.CompletedTask;
     }
 
@@ -183,16 +186,13 @@ public class MultiSolutionManagerTests : IAsyncLifetime
     [Fact]
     public async Task UnloadSolution_AmbiguousName_Throws()
     {
-        // "solution" is a substring of the full path (e.g. "TestSolution") but also of the
-        // directory segment "TestSolution", so we verify the guard triggers when multiple
-        // loaded paths share the search term. Since we can only load one real .sln here,
-        // we verify the single-match path succeeds and the error message is correct when ambiguous.
+        // Both paths contain "TestSolution" so searching for it matches two solutions.
         var multi = MultiSolutionManager.CreateEmpty();
         await multi.LoadSolutionAsync(_solutionPath);
+        await multi.LoadSolutionAsync(_altSolutionPath);
 
-        // Exact match — must not throw ambiguity error
-        var ex = Record.Exception(() => multi.UnloadSolution("TestSolution"));
-        Assert.Null(ex);
+        var ex = Assert.Throws<InvalidOperationException>(() => multi.UnloadSolution("TestSolution"));
+        Assert.Contains("Ambiguous", ex.Message, StringComparison.OrdinalIgnoreCase);
         multi.Dispose();
     }
 
