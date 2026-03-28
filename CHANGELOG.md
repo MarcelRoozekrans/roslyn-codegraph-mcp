@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.1](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.1.0...v1.1.1) (2026-03-28)
+
+
+### Bug Fixes
+
+* correct MCP registry name casing ([7770bbe](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/7770bbe191ce7a30edf17a5055d36b9c1b510d5a))
+* correct MCP registry name casing ([ad84450](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/ad844503043fda4a77af9b92c4eab61e3412f28e))
+
 ## [1.1.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.0.15...v1.1.0) (2026-03-24)
 
 
