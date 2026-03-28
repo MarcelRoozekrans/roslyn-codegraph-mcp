@@ -11,7 +11,7 @@ A Roslyn-based MCP server that gives AI agents deep semantic understanding of .N
   <img width="380" height="200" src="https://glama.ai/mcp/servers/MarcelRoozekrans/roslyn-codelens-mcp/badge" alt="roslyn-codelens-mcp MCP server" />
 </a>
 
-<!-- mcp-name: io.github.marcelroozekrans/roslyn-codelens -->
+<!-- mcp-name: io.github.MarcelRoozekrans/roslyn-codelens -->
 
 ---
 
