@@ -23,7 +23,7 @@ public class GetNugetDependenciesToolTests : IAsyncLifetime
 
         Assert.NotNull(result);
         Assert.NotEmpty(result!.Packages);
-        Assert.Contains(result.Packages, p => string.Equals(p.PackageName, "Microsoft.Extensions.DependencyInjection.Abstractions", StringComparison.Ordinal));
+        Assert.Contains(result.Packages, p => string.Equals(p.PackageName, "Microsoft.Extensions.DependencyInjection", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class GetNugetDependenciesToolTests : IAsyncLifetime
         var result = GetNugetDependenciesLogic.Execute(_loaded, null);
 
         Assert.NotNull(result);
-        var diPkg = result!.Packages.First(p => string.Equals(p.PackageName, "Microsoft.Extensions.DependencyInjection.Abstractions", StringComparison.Ordinal));
+        var diPkg = result!.Packages.First(p => string.Equals(p.PackageName, "Microsoft.Extensions.DependencyInjection", StringComparison.Ordinal));
         Assert.False(string.IsNullOrEmpty(diPkg.Version));
     }
 
