@@ -36,6 +36,9 @@ jobs:
       - name: Build
         run: dotnet build --no-restore -c Release -p:Version=${{ steps.version.outputs.version }}
 
+      - name: Restore test fixtures
+        run: dotnet restore tests/RoslynCodeLens.Tests/Fixtures/TestSolution/TestSolution.slnx
+
       - name: Test
         run: dotnet test --no-build -c Release --verbosity normal
 
