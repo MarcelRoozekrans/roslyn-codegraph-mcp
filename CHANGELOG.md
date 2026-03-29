@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.3](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.1.2...v1.1.3) (2026-03-29)
+
+
+### Bug Fixes
+
+* add missing DI package reference to test fixture TestLib2 ([33f9279](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/33f92793632257e9648dbd182bc9511f1ca86671))
+* add missing DI package reference to test fixture TestLib2 ([9940c1c](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/9940c1c175f685a0b2aa94603947abfd4b23ef3c))
+
 ## [1.1.2](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.1.1...v1.1.2) (2026-03-28)
 
 
