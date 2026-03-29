@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.4](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.1.3...v1.1.4) (2026-03-29)
+
+
+### Bug Fixes
+
+* restore test fixtures in release workflows ([6924b03](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/6924b0355eefde8f79ffc635e94aafd24f5a1bf0))
+* restore test fixtures in release workflows ([ba8e53c](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/ba8e53c0e3ea294909a0533597bff23be00bf5e8))
+
 ## [1.1.3](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.1.2...v1.1.3) (2026-03-29)
 
 
