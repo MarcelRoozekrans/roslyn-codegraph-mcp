@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.7](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.1.6...v1.1.7) (2026-03-30)
+
+
+### Bug Fixes
+
+* set server.json version to match release-please manifest ([6f35202](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/6f35202b7f2e7d37fb1e10f387239b8f91e0aaa6))
+* set server.json version to match release-please manifest ([7898409](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/789840973ed3de57fe12e6be2a313b0f99f4b5da))
+
 ## [1.1.6](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.1.5...v1.1.6) (2026-03-30)
 
 
