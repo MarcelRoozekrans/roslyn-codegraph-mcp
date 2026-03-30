@@ -15,6 +15,10 @@ A Roslyn-based MCP server that gives AI agents deep semantic understanding of .N
 
 ---
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/marcelroozekrans-roslyn-codelens-mcp).
+
 ## Features
 
 - **find_implementations** — Find all classes/structs implementing an interface or extending a class
