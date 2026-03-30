@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.6](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.1.5...v1.1.6) (2026-03-30)
+
+
+### Bug Fixes
+
+* reset server.json version for release-please management ([0dad708](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/0dad708f1efd42f9f5e78f3b41c9f1827b1a81b6))
+* sync server.json version with latest NuGet release ([55b80a8](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/55b80a85982ee13e8a86ceb447d327515d0acd6a))
+
 ## [1.1.5](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.1.4...v1.1.5) (2026-03-29)
 
 
