@@ -1,0 +1,38 @@
+name: Docs Build
+
+on:
+  pull_request:
+    paths:
+      - 'docs/site/**'
+      - 'docs/tool-extras/**'
+      - 'src/RoslynCodeLens/**'
+      - 'tools/DocGen/**'
+      - '.github/workflows/docs-build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: docs/site/package-lock.json
+
+      - name: Generate tool docs
+        run: |
+          dotnet run --project tools/DocGen -- \
+            --output docs/site/docs/tools \
+            --extras docs/tool-extras
+
+      - name: Build Docusaurus
+        working-directory: docs/site
+        run: |
+          npm ci
+          npm run build

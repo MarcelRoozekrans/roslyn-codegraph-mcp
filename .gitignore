@@ -27,3 +27,9 @@ BenchmarkDotNet.Artifacts/
 
 # Git worktrees
 .worktrees/
+
+# Docusaurus
+docs/site/node_modules/
+docs/site/build/
+docs/site/.docusaurus/
+docs/site/docs/tools/
