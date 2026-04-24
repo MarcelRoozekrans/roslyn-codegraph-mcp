@@ -1,0 +1,1385 @@
+# Documentation Site Implementation Plan
+
+> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+
+**Goal:** Build and deploy a Docusaurus documentation site to GitHub Pages with auto-generated tool reference pages and hand-written getting started guides.
+
+**Architecture:** Docusaurus project at `docs/site/`, a .NET console app at `tools/DocGen/` reflects over the RoslynCodeLens assembly to emit one markdown page per tool organized by category, two GitHub Actions workflows handle PR checks and deployment. Hand-written enrichment files in `docs/tool-extras/` are merged at generation time. Generated `docs/site/docs/tools/` is never committed.
+
+**Tech Stack:** Docusaurus 3.x (TypeScript config), Node.js 20, .NET 10, GitHub Actions, GitHub Pages
+
+---
+
+### Task 1: Scaffold and configure Docusaurus
+
+**Files:**
+- Create: `docs/site/` (Docusaurus project)
+- Modify: `.gitignore`
+
+**Step 1: Create branch**
+
+```bash
+git checkout -b docs/documentation-site
+```
+
+**Step 2: Scaffold Docusaurus**
+
+```bash
+npx create-docusaurus@3 docs/site classic --typescript
+```
+
+When prompted for package manager, choose `npm`. This creates `docs/site/` with all scaffold files and runs `npm install`.
+
+**Step 3: Remove default content**
+
+```bash
+rm -rf docs/site/blog
+rm -rf docs/site/docs
+mkdir -p docs/site/docs/getting-started docs/site/docs/guides
+```
+
+**Step 4: Add to `.gitignore`**
+
+Append to the existing `.gitignore` at the repo root:
+
+```
+# Docusaurus
+docs/site/node_modules/
+docs/site/build/
+docs/site/.docusaurus/
+docs/site/docs/tools/
+```
+
+**Step 5: Replace `docs/site/docusaurus.config.ts`** (full file replacement)
+
+```typescript
+import {themes as prismThemes} from 'prism-react-renderer';
+import type {Config} from '@docusaurus/types';
+import type * as Preset from '@docusaurus/preset-classic';
+
+const config: Config = {
+  title: 'roslyn-codelens-mcp',
+  tagline: 'Semantic code intelligence for .NET codebases via MCP',
+  favicon: 'img/favicon.ico',
+  url: 'https://marcelroozekrans.github.io',
+  baseUrl: '/roslyn-codelens-mcp/',
+  organizationName: 'MarcelRoozekrans',
+  projectName: 'roslyn-codelens-mcp',
+  trailingSlash: false,
+  onBrokenLinks: 'throw',
+  onBrokenMarkdownLinks: 'warn',
+  i18n: {defaultLocale: 'en', locales: ['en']},
+  presets: [
+    ['classic', {
+      docs: {
+        routeBasePath: '/',
+        sidebarPath: './sidebars.ts',
+        editUrl: 'https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/edit/main/docs/site/',
+      },
+      blog: false,
+      theme: {customCss: './src/css/custom.css'},
+    } satisfies Preset.Options],
+  ],
+  themeConfig: {
+    navbar: {
+      title: 'roslyn-codelens-mcp',
+      items: [
+        {type: 'docSidebar', sidebarId: 'mainSidebar', position: 'left', label: 'Docs'},
+        {
+          href: 'https://github.com/MarcelRoozekrans/roslyn-codelens-mcp',
+          label: 'GitHub',
+          position: 'right',
+        },
+      ],
+    },
+    footer: {
+      style: 'dark',
+      links: [
+        {
+          title: 'Docs',
+          items: [
+            {label: 'Getting Started', to: '/getting-started/installation'},
+            {label: 'Tool Reference', to: '/tools/navigation/go-to-definition'},
+          ],
+        },
+        {
+          title: 'More',
+          items: [
+            {label: 'GitHub', href: 'https://github.com/MarcelRoozekrans/roslyn-codelens-mcp'},
+            {label: 'NuGet', href: 'https://www.nuget.org/packages/RoslynCodeLens.Mcp'},
+          ],
+        },
+      ],
+      copyright: `Copyright © ${new Date().getFullYear()} Marcel Roozekrans. Built with Docusaurus.`,
+    },
+    prism: {
+      theme: prismThemes.github,
+      darkTheme: prismThemes.dracula,
+      additionalLanguages: ['csharp', 'json', 'bash'],
+    },
+  } satisfies Preset.ThemeConfig,
+};
+
+export default config;
+```
+
+**Step 6: Replace `docs/site/sidebars.ts`** (full file replacement)
+
+```typescript
+import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
+
+const sidebars: SidebarsConfig = {
+  mainSidebar: [
+    {type: 'doc', id: 'index', label: 'Overview'},
+    {
+      type: 'category',
+      label: 'Getting Started',
+      items: [
+        'getting-started/installation',
+        'getting-started/marketplace',
+        'getting-started/configuration',
+        'getting-started/first-use',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Guides',
+      items: [
+        'guides/analyze-a-codebase',
+        'guides/find-external-usages',
+        'guides/inspect-nuget-packages',
+        'guides/refactor-with-code-actions',
+        'guides/understand-di-wiring',
+      ],
+    },
+    {type: 'doc', id: 'external-assemblies', label: 'External Assemblies'},
+    {type: 'doc', id: 'faq', label: 'FAQ'},
+    {
+      type: 'category',
+      label: 'Tool Reference',
+      link: {type: 'generated-index', title: 'Tool Reference'},
+      items: [{type: 'autogenerated', dirName: 'tools'}],
+    },
+  ],
+};
+
+export default sidebars;
+```
+
+**Step 7: Create placeholder `docs/site/docs/index.md`**
+
+This prevents the build from failing before hand-written pages are added in later tasks.
+
+```markdown
+---
+title: Overview
+slug: /
+---
+
+# roslyn-codelens-mcp
+
+Documentation coming soon.
+```
+
+**Step 8: Verify build**
+
+```bash
+cd docs/site && npm run build
+```
+
+Expected: Build succeeds. The Tool Reference section will be empty until DocGen runs — that's fine for now.
+
+**Step 9: Commit**
+
+```bash
+git add docs/site .gitignore
+git commit -m "docs: scaffold Docusaurus site"
+```
+
+---
+
+### Task 2: Create DocGen .NET project
+
+**Files:**
+- Create: `tools/DocGen/DocGen.csproj`
+- Create: `tools/DocGen/Program.cs`
+
+DocGen reflects over the `RoslynCodeLens` assembly, finds all `[McpServerToolType]` classes and `[McpServerTool]` methods, and emits one `.md` file per tool into category subdirectories. Only parameters with `[Description]` are included (injected services don't have descriptions). Sidecar `.extra.md` files in `docs/tool-extras/` are merged at the end of each page.
+
+**Step 1: Create `tools/DocGen/DocGen.csproj`**
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>DocGen</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/RoslynCodeLens/RoslynCodeLens.csproj" />
+  </ItemGroup>
+</Project>
+```
+
+**Step 2: Create `tools/DocGen/Program.cs`**
+
+```csharp
+using System.ComponentModel;
+using System.Reflection;
+using System.Text;
+using ModelContextProtocol.Server;
+using RoslynCodeLens.Tools;
+
+string outputDir = "docs/site/docs/tools";
+string extrasDir = "docs/tool-extras";
+for (int i = 0; i < args.Length - 1; i++)
+{
+    if (args[i] == "--output") outputDir = args[i + 1];
+    if (args[i] == "--extras") extrasDir = args[i + 1];
+}
+
+var categoryMap = new Dictionary<string, string>(StringComparer.Ordinal)
+{
+    ["go_to_definition"]           = "navigation",
+    ["search_symbols"]             = "navigation",
+    ["find_references"]            = "navigation",
+    ["find_callers"]               = "navigation",
+    ["find_implementations"]       = "navigation",
+    ["find_attribute_usages"]      = "navigation",
+    ["get_symbol_context"]         = "analysis",
+    ["get_type_overview"]          = "analysis",
+    ["get_type_hierarchy"]         = "analysis",
+    ["get_file_overview"]          = "analysis",
+    ["analyze_method"]             = "analysis",
+    ["analyze_change_impact"]      = "analysis",
+    ["analyze_data_flow"]          = "analysis",
+    ["analyze_control_flow"]       = "analysis",
+    ["get_diagnostics"]            = "diagnostics",
+    ["get_code_fixes"]             = "diagnostics",
+    ["get_code_actions"]           = "diagnostics",
+    ["apply_code_action"]          = "diagnostics",
+    ["find_unused_symbols"]        = "code-quality",
+    ["get_complexity_metrics"]     = "code-quality",
+    ["find_naming_violations"]     = "code-quality",
+    ["find_large_classes"]         = "code-quality",
+    ["find_circular_dependencies"] = "code-quality",
+    ["find_reflection_usage"]      = "code-quality",
+    ["get_di_registrations"]       = "di-dependencies",
+    ["get_nuget_dependencies"]     = "di-dependencies",
+    ["get_project_dependencies"]   = "di-dependencies",
+    ["get_source_generators"]      = "source-generators",
+    ["get_generated_code"]         = "source-generators",
+    ["inspect_external_assembly"]  = "external-assemblies",
+    ["peek_il"]                    = "external-assemblies",
+    ["list_solutions"]             = "solution-management",
+    ["set_active_solution"]        = "solution-management",
+    ["load_solution"]              = "solution-management",
+    ["unload_solution"]            = "solution-management",
+    ["rebuild_solution"]           = "solution-management",
+};
+
+var categoryMeta = new Dictionary<string, (string Label, int Position)>(StringComparer.Ordinal)
+{
+    ["navigation"]          = ("Navigation", 1),
+    ["analysis"]            = ("Analysis", 2),
+    ["diagnostics"]         = ("Diagnostics & Refactoring", 3),
+    ["code-quality"]        = ("Code Quality", 4),
+    ["di-dependencies"]     = ("DI & Dependencies", 5),
+    ["source-generators"]   = ("Source Generators", 6),
+    ["external-assemblies"] = ("External Assemblies", 7),
+    ["solution-management"] = ("Solution Management", 8),
+};
+
+Directory.CreateDirectory(outputDir);
+Directory.CreateDirectory(extrasDir);
+
+foreach (var (dir, (label, position)) in categoryMeta)
+{
+    var catDir = Path.Combine(outputDir, dir);
+    Directory.CreateDirectory(catDir);
+    File.WriteAllText(
+        Path.Combine(catDir, "_category_.json"),
+        $$"""{"label": "{{label}}", "position": {{position}}}""" + Environment.NewLine);
+}
+
+var assembly = typeof(FindReferencesTool).Assembly;
+var toolTypes = assembly.GetTypes()
+    .Where(t => t.GetCustomAttribute<McpServerToolTypeAttribute>() is not null);
+
+int count = 0;
+foreach (var toolType in toolTypes)
+{
+    var methods = toolType
+        .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
+        .Where(m => m.GetCustomAttribute<McpServerToolAttribute>() is not null);
+
+    foreach (var method in methods)
+    {
+        var toolAttr = method.GetCustomAttribute<McpServerToolAttribute>()!;
+        var toolName = toolAttr.Name ?? method.Name;
+        var toolDesc = method.GetCustomAttribute<DescriptionAttribute>()?.Description ?? "";
+        var slug = toolName.Replace('_', '-');
+        var category = categoryMap.TryGetValue(toolName, out var cat) ? cat : "uncategorized";
+
+        var sb = new StringBuilder();
+        sb.AppendLine("---");
+        sb.AppendLine($"title: \"{toolName}\"");
+        sb.AppendLine($"sidebar_label: \"{toolName}\"");
+        sb.AppendLine($"description: \"{EscapeYaml(toolDesc)}\"");
+        sb.AppendLine($"slug: /tools/{slug}");
+        sb.AppendLine("---");
+        sb.AppendLine();
+        sb.AppendLine($"# `{toolName}`");
+        sb.AppendLine();
+        sb.AppendLine(toolDesc);
+        sb.AppendLine();
+
+        var ctx = new NullabilityInfoContext();
+        var userParams = method.GetParameters()
+            .Where(p => p.GetCustomAttribute<DescriptionAttribute>() is not null)
+            .ToList();
+
+        if (userParams.Count > 0)
+        {
+            sb.AppendLine("## Parameters");
+            sb.AppendLine();
+            sb.AppendLine("| Parameter | Type | Required | Description |");
+            sb.AppendLine("|-----------|------|:--------:|-------------|");
+            foreach (var p in userParams)
+            {
+                var desc = p.GetCustomAttribute<DescriptionAttribute>()!.Description;
+                var optional = p.HasDefaultValue || ctx.Create(p).WriteState == NullabilityState.Nullable;
+                sb.AppendLine($"| `{p.Name}` | `{FormatType(p.ParameterType)}` | {(optional ? "" : "✓")} | {desc} |");
+            }
+            sb.AppendLine();
+        }
+
+        var sidecarPath = Path.Combine(extrasDir, $"{slug}.extra.md");
+        if (File.Exists(sidecarPath))
+        {
+            sb.AppendLine(File.ReadAllText(sidecarPath).Trim());
+            sb.AppendLine();
+        }
+
+        var outPath = Path.Combine(outputDir, category, $"{slug}.md");
+        File.WriteAllText(outPath, sb.ToString());
+        Console.WriteLine($"  {outPath}");
+        count++;
+    }
+}
+
+Console.WriteLine($"Done — {count} tool pages generated.");
+return 0;
+
+static string FormatType(Type t)
+{
+    var underlying = Nullable.GetUnderlyingType(t);
+    if (underlying is not null) return $"{FormatType(underlying)}?";
+    if (!t.IsGenericType) return t.Name switch
+    {
+        "String" => "string", "Int32" => "int", "Int64" => "long",
+        "Boolean" => "bool",  "Double" => "double", "Void" => "void",
+        _ => t.Name,
+    };
+    var baseName = t.GetGenericTypeDefinition().Name;
+    baseName = baseName[..baseName.IndexOf('`', StringComparison.Ordinal)];
+    var args = string.Join(", ", t.GetGenericArguments().Select(FormatType));
+    return $"{baseName}<{args}>";
+}
+
+static string EscapeYaml(string s) =>
+    s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", " ").Replace("\r", "");
+```
+
+**Step 3: Verify DocGen builds**
+
+```bash
+dotnet build tools/DocGen
+```
+
+Expected: Build succeeds (no errors).
+
+**Step 4: Run DocGen and verify output**
+
+```bash
+dotnet run --project tools/DocGen -- --output /tmp/docgen-test --extras docs/tool-extras
+```
+
+Expected:
+- Console output: "Done — 35 tool pages generated." (count may be higher if Phase 2/3 PRs are merged)
+- 8 subdirectories created under `/tmp/docgen-test/`
+- Each subdirectory has a `_category_.json`
+
+Spot-check:
+
+```bash
+cat /tmp/docgen-test/navigation/find-references.md
+```
+
+Expected: file starts with `---` frontmatter containing `title: "find_references"` and has a `## Parameters` section.
+
+**Step 5: Commit**
+
+```bash
+git add tools/DocGen
+git commit -m "feat(docs): add DocGen tool reference generator"
+```
+
+---
+
+### Task 3: Write Getting Started pages
+
+**Files (create):**
+- `docs/site/docs/index.md` (replace placeholder)
+- `docs/site/docs/getting-started/installation.md`
+- `docs/site/docs/getting-started/marketplace.md`
+- `docs/site/docs/getting-started/configuration.md`
+- `docs/site/docs/getting-started/first-use.md`
+
+**Step 1: Replace `docs/site/docs/index.md`**
+
+```markdown
+---
+title: Overview
+slug: /
+---
+
+# roslyn-codelens-mcp
+
+**roslyn-codelens-mcp** is a [Model Context Protocol](https://modelcontextprotocol.io) server that gives AI agents deep semantic understanding of .NET codebases — without needing to grep source files or know where symbols appear in the editor.
+
+## Why symbol names instead of coordinates?
+
+Most code intelligence tools require `(filePath, line, column)` — you need to already know where a symbol lives. `roslyn-codelens-mcp` uses **symbol names** (`"IGreeter"`, `"Greeter.Greet"`). The server resolves them through a pre-built index, so tools work without an open editor.
+
+## What it does
+
+- **Navigate** — go to definitions, find references, callers, implementations, attribute usages
+- **Analyse** — type hierarchies, method flow, data flow, change impact
+- **Diagnose & refactor** — diagnostics, code fixes, code actions with diff preview
+- **Inspect quality** — unused symbols, complexity, naming violations, circular dependencies
+- **Understand DI** — find registrations, lifetimes, constructor wiring
+- **Inspect assemblies** — browse NuGet package APIs, peek IL disassembly
+
+## Quick start
+
+```bash
+dotnet tool install -g RoslynCodeLens.Mcp
+```
+
+Then add to your `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "roslyn-codelens": {
+      "command": "roslyn-codelens-mcp",
+      "args": ["--solution", "/path/to/your/Solution.sln"]
+    }
+  }
+}
+```
+
+See [Installation](getting-started/installation) for full setup details.
+```
+
+**Step 2: Create `docs/site/docs/getting-started/installation.md`**
+
+```markdown
+---
+title: Installation
+sidebar_position: 1
+---
+
+# Installation
+
+## Prerequisites
+
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later
+- A .NET solution (`.sln` or `.slnx` file)
+
+## Install the tool
+
+```bash
+dotnet tool install -g RoslynCodeLens.Mcp
+```
+
+Verify the install:
+
+```bash
+roslyn-codelens-mcp --version
+```
+
+## Configure `.mcp.json`
+
+Add the server to your project's `.mcp.json` (or `~/.claude/.mcp.json` for global config):
+
+```json
+{
+  "mcpServers": {
+    "roslyn-codelens": {
+      "command": "roslyn-codelens-mcp",
+      "args": ["--solution", "/absolute/path/to/YourSolution.sln"]
+    }
+  }
+}
+```
+
+The `--solution` argument is required on first start. Alternatively, use the `ROSLYN_CODELENS_SOLUTION` environment variable:
+
+```json
+{
+  "mcpServers": {
+    "roslyn-codelens": {
+      "command": "roslyn-codelens-mcp",
+      "env": {
+        "ROSLYN_CODELENS_SOLUTION": "/absolute/path/to/YourSolution.sln"
+      }
+    }
+  }
+}
+```
+
+## Verify the server starts
+
+Restart your MCP client (Claude Code, etc.). The server loads the solution on startup — this takes 5–30 seconds for large solutions.
+
+Once loaded, try:
+
+```
+Use get_type_overview to describe the type MyClass
+```
+
+If the server responds with type info, setup is complete.
+```
+
+**Step 3: Create `docs/site/docs/getting-started/marketplace.md`**
+
+```markdown
+---
+title: Marketplace Install
+sidebar_position: 2
+---
+
+# Install via Claude Marketplace
+
+If you use [Superpowers Extensions](https://github.com/superpowers-marketplace/superpowers-extensions) for Claude Code, you can install `roslyn-codelens-mcp` as a managed plugin — no manual `.mcp.json` editing required.
+
+## Steps
+
+1. Open Claude Code and run `/mcp-add`
+2. Search for `roslyn-codelens`
+3. Follow the install prompts
+
+The plugin configures the server command and loads the `SKILL.md` that teaches Claude when and how to use each tool.
+
+## After install
+
+Set your solution path. Either set `ROSLYN_CODELENS_SOLUTION` in your environment, or call `set_active_solution` once the server is running:
+
+```
+Use set_active_solution with path /path/to/YourSolution.sln
+```
+```
+
+**Step 4: Create `docs/site/docs/getting-started/configuration.md`**
+
+```markdown
+---
+title: Configuration
+sidebar_position: 3
+---
+
+# Configuration
+
+## Solution path
+
+The server needs to know which `.sln` or `.slnx` file to load.
+
+**Option 1: CLI argument**
+```json
+"args": ["--solution", "/path/to/Solution.sln"]
+```
+
+**Option 2: Environment variable**
+```json
+"env": {"ROSLYN_CODELENS_SOLUTION": "/path/to/Solution.sln"}
+```
+
+**Option 3: At runtime** — call `set_active_solution` after the server starts. Useful for multi-solution workflows.
+
+## Multiple solutions
+
+`roslyn-codelens-mcp` has a built-in solution manager. Load and switch between solutions at runtime:
+
+```
+Use list_solutions to see what's loaded
+Use set_active_solution with path /path/to/OtherSolution.sln
+```
+
+Only one solution is "active" at a time. All tool calls operate on the active solution.
+
+## Automatic hot reload
+
+The server watches for file changes via `FileChangeTracker`. When you edit and save a `.cs` file, the server updates its index automatically — no manual sync needed.
+
+DLL changes (e.g. after `dotnet build`) also invalidate the IL cache automatically.
+
+## Force reload
+
+If the solution gets into a bad state:
+
+```
+Use rebuild_solution to force a full reload
+```
+```
+
+**Step 5: Create `docs/site/docs/getting-started/first-use.md`**
+
+```markdown
+---
+title: First Use
+sidebar_position: 4
+---
+
+# First Use
+
+Once the server is running, try these calls to get oriented.
+
+## 1. Get a type overview
+
+```
+Use get_type_overview to describe the type Program
+```
+
+Returns members, hierarchy, diagnostics — all in one call.
+
+## 2. Find where something is used
+
+```
+Use find_references to find all usages of IMyService
+```
+
+## 3. Check diagnostics
+
+```
+Use get_diagnostics to show all errors and warnings in the solution
+```
+
+## 4. Explore an unfamiliar type
+
+```
+Use get_type_hierarchy for MyController
+Use analyze_method for MyController.HandleRequest
+```
+
+`get_type_overview` is the fastest onboarding call — it returns context + members + hierarchy + diagnostics in a single round-trip.
+
+## Next steps
+
+- [Guides](../guides/analyze-a-codebase) — end-to-end workflows
+- [Tool Reference](/tools/navigation/go-to-definition) — full parameter docs for all tools
+```
+
+**Step 6: Verify build**
+
+First generate tool pages (required for autogenerated sidebar to not error):
+
+```bash
+dotnet run --project tools/DocGen -- --output docs/site/docs/tools --extras docs/tool-extras
+cd docs/site && npm run build
+```
+
+Expected: Build succeeds.
+
+**Step 7: Commit**
+
+```bash
+git add docs/site/docs/index.md docs/site/docs/getting-started
+git commit -m "docs: add getting started pages"
+```
+
+---
+
+### Task 4: Write Guide pages
+
+**Files (create):**
+- `docs/site/docs/guides/analyze-a-codebase.md`
+- `docs/site/docs/guides/find-external-usages.md`
+- `docs/site/docs/guides/inspect-nuget-packages.md`
+- `docs/site/docs/guides/refactor-with-code-actions.md`
+- `docs/site/docs/guides/understand-di-wiring.md`
+
+**Step 1: Create `docs/site/docs/guides/analyze-a-codebase.md`**
+
+```markdown
+---
+title: Analyze a Codebase
+sidebar_position: 1
+---
+
+# Analyze a Codebase
+
+Use this workflow to onboard into an unfamiliar .NET codebase.
+
+## 1. Map project structure
+
+```
+Use get_project_dependencies for all projects
+```
+
+Shows which projects reference which, revealing the architectural layering.
+
+## 2. Find structural problems
+
+```
+Use find_circular_dependencies to check for cycles
+Use get_nuget_dependencies to list all NuGet packages
+```
+
+## 3. Survey a key type
+
+```
+Use get_type_overview for OrderService
+```
+
+Returns all members, base types, interfaces, and active diagnostics — one call.
+
+## 4. Check overall health
+
+```
+Use get_diagnostics to show all errors and warnings
+Use find_unused_symbols to find dead code
+Use find_naming_violations to check .NET naming conventions
+Use find_large_classes to spot oversized types
+```
+
+## 5. Understand DI wiring
+
+See the [Understand DI Wiring](understand-di-wiring) guide for a deeper walkthrough.
+```
+
+**Step 2: Create `docs/site/docs/guides/find-external-usages.md`**
+
+```markdown
+---
+title: Find External Usages
+sidebar_position: 2
+---
+
+# Find External Usages
+
+Trace how a NuGet package is actually used across your codebase — useful before upgrading or replacing a dependency.
+
+## 1. List NuGet packages
+
+```
+Use get_nuget_dependencies to show all packages
+```
+
+Pick the assembly you want to trace, e.g. `Newtonsoft.Json`.
+
+## 2. Find all reference sites
+
+```
+Use find_references for Newtonsoft.Json.JsonConvert
+```
+
+Returns every file and line that uses `JsonConvert` directly.
+
+## 3. Find callers of a specific method
+
+```
+Use find_callers for JsonConvert.DeserializeObject
+```
+
+Returns every method in your codebase that calls `DeserializeObject`.
+
+## 4. Assess full change impact
+
+```
+Use analyze_change_impact for JsonConvert.DeserializeObject
+```
+
+Returns the blast radius: direct callers, transitive callers, affected projects. Useful for estimating migration effort.
+```
+
+**Step 3: Create `docs/site/docs/guides/inspect-nuget-packages.md`**
+
+```markdown
+---
+title: Inspect NuGet Packages
+sidebar_position: 3
+---
+
+# Inspect NuGet Packages
+
+Browse closed-source assemblies referenced by your solution — without decompiling manually.
+
+## 1. Survey the assembly
+
+```
+Use inspect_external_assembly for Microsoft.Extensions.DependencyInjection.Abstractions
+```
+
+Returns the namespace tree and public type counts.
+
+## 2. Drill into a namespace
+
+```
+Use inspect_external_assembly for Microsoft.Extensions.DependencyInjection.Abstractions
+  with mode=namespace
+  and namespaceFilter=Microsoft.Extensions.DependencyInjection
+```
+
+Returns all public types and their members in that namespace.
+
+## 3. Peek at IL for a specific method
+
+```
+Use peek_il for IServiceCollection.Add
+```
+
+Returns the disassembled MSIL. Useful for understanding non-obvious behavior — e.g. whether an extension method is thread-safe.
+
+:::note
+`peek_il` works for NuGet packages restored to the local package cache. The assembly must be referenced by at least one project in the active solution.
+:::
+```
+
+**Step 4: Create `docs/site/docs/guides/refactor-with-code-actions.md`**
+
+```markdown
+---
+title: Refactor with Code Actions
+sidebar_position: 4
+---
+
+# Refactor with Code Actions
+
+All built-in Roslyn refactorings are available through two generic tools: `get_code_actions` and `apply_code_action`.
+
+## 1. See available actions
+
+```
+Use get_code_actions for MyFile.cs at line 42
+```
+
+Returns all refactoring and fix suggestions at that location — rename, extract method, implement interface, etc.
+
+## 2. Preview before applying
+
+```
+Use apply_code_action for MyFile.cs at line 42 with title="Extract Method" and preview=true
+```
+
+Returns a diff without writing to disk. Review it before committing.
+
+## 3. Apply the change
+
+```
+Use apply_code_action for MyFile.cs at line 42 with title="Extract Method" and preview=false
+```
+
+Writes to disk. The `FileChangeTracker` picks up the change automatically.
+
+## Common actions
+
+| Goal | Title to use |
+|------|-------------|
+| Rename symbol | `Rename <name>` |
+| Extract method | `Extract Method` |
+| Implement interface | `Implement interface` |
+| Generate constructor | `Generate constructor...` |
+| Add null checks | `Add null checks for all parameters` |
+| Encapsulate field | `Encapsulate field...` |
+| Generate Equals/GetHashCode | `Generate Equals and GetHashCode...` |
+
+:::tip
+Use `get_code_fixes` for diagnostic-driven fixes (e.g. "fix CS0246") and `get_code_actions` for general refactorings.
+:::
+```
+
+**Step 5: Create `docs/site/docs/guides/understand-di-wiring.md`**
+
+```markdown
+---
+title: Understand DI Wiring
+sidebar_position: 5
+---
+
+# Understand DI Wiring
+
+Trace service registrations and constructor dependencies in a DI container.
+
+## 1. Find all registrations
+
+```
+Use get_di_registrations for IMyService
+```
+
+Returns all `AddSingleton`/`AddScoped`/`AddTransient` calls for the interface — with lifetime and implementation type.
+
+## 2. Find implementations
+
+```
+Use find_implementations for IMyService
+```
+
+Returns all concrete types that implement the interface.
+
+## 3. Inspect a concrete type's dependencies
+
+```
+Use get_type_overview for MyServiceImpl
+```
+
+Members include the constructor — so you can see what it depends on.
+
+## 4. Assess impact before refactoring
+
+```
+Use analyze_change_impact for IMyService
+```
+
+Shows all callers, affected types, and projects touched if the interface changes.
+
+## End-to-end example
+
+```
+1. get_di_registrations for IOrderRepository
+   → registered as scoped, implementation: SqlOrderRepository
+
+2. get_type_overview for SqlOrderRepository
+   → constructor takes IDbConnectionFactory, ILogger<SqlOrderRepository>
+
+3. find_implementations for IDbConnectionFactory
+   → SqlConnectionFactory, InMemoryConnectionFactory (test double)
+
+4. analyze_change_impact for IOrderRepository
+   → 12 callers, 3 projects affected
+```
+```
+
+**Step 6: Verify build**
+
+```bash
+dotnet run --project tools/DocGen -- --output docs/site/docs/tools --extras docs/tool-extras
+cd docs/site && npm run build
+```
+
+Expected: Succeeds.
+
+**Step 7: Commit**
+
+```bash
+git add docs/site/docs/guides
+git commit -m "docs: add guide pages"
+```
+
+---
+
+### Task 5: Write concept and FAQ pages
+
+**Files (create):**
+- `docs/site/docs/external-assemblies.md`
+- `docs/site/docs/faq.md`
+
+**Step 1: Create `docs/site/docs/external-assemblies.md`**
+
+```markdown
+---
+title: External Assemblies
+---
+
+# External Assemblies
+
+`roslyn-codelens-mcp` can analyse assemblies referenced by your solution — including closed-source NuGet packages.
+
+## How origin tracking works
+
+Every resolved symbol carries a `SymbolOrigin` that classifies where it comes from:
+
+| Kind | Meaning |
+|------|---------|
+| `source` | Defined in a `.cs` file in the loaded solution |
+| `metadata` | From a referenced compiled DLL |
+
+## Tier 1: Cross-assembly navigation
+
+`find_references`, `find_callers`, and `find_implementations` all accept metadata symbol names. Calling `find_callers` for `ILogger.LogInformation` returns all places in your source that call it — even though `ILogger` lives in a NuGet package.
+
+Resolution uses `GetTypeByMetadataName` — the same Roslyn API that Visual Studio uses for "Go to Definition" on external types.
+
+## Tier 2: Assembly inspection
+
+`inspect_external_assembly` lets you browse the public API surface of any referenced assembly:
+
+- **`mode=summary`** — namespace tree with type counts. Use this to discover what's available.
+- **`mode=namespace`** — full type listings with members for a given namespace.
+
+To find available assembly names, call `get_nuget_dependencies`.
+
+## Tier 3: IL disassembly
+
+`peek_il` disassembles a specific method to MSIL using [ICSharpCode.Decompiler](https://github.com/icsharpcode/ILSpy) (MIT license). Useful for understanding non-obvious behavior in third-party code.
+
+The PEFile cache is invalidated automatically when a DLL changes on disk.
+
+## Which assembly name to use?
+
+Use the NuGet package name without the version, e.g. `Newtonsoft.Json`. To see all available names:
+
+```
+Use get_nuget_dependencies
+```
+```
+
+**Step 2: Create `docs/site/docs/faq.md`**
+
+```markdown
+---
+title: FAQ
+---
+
+# FAQ
+
+## Why not just grep the source files?
+
+Grep finds text patterns. `roslyn-codelens-mcp` understands semantic structure — types, interfaces, inheritance, call graphs, DI registrations. Grep on `IGreeter` misses implementations that store the service under a different variable name, and can't answer "what calls this method" or "what implements this interface."
+
+## Does it support multiple solutions?
+
+Yes. Use `list_solutions`, `set_active_solution`, `load_solution`, and `unload_solution` to manage multiple solutions. Only one is active at a time for tool calls.
+
+## How does hot reload work?
+
+The server runs a `FileChangeTracker` that watches for file system changes. Saving a `.cs` file updates the Roslyn workspace automatically — no `sync_documents` call needed.
+
+## Why does `find_references` return nothing for an external type?
+
+The package must be referenced by at least one project in the loaded solution. Call `get_nuget_dependencies` to check, then make sure the assembly name matches exactly.
+
+## How fast is it?
+
+Solution load takes 5–30 seconds (once at startup). After that, most calls run in under 1ms–3ms. Heavier operations:
+
+| Tool | Typical latency |
+|------|----------------|
+| `find_naming_violations` | ~8ms |
+| `find_references` | ~3ms |
+| `analyze_change_impact` | ~4ms |
+| `search_symbols` | ~1.4ms |
+
+Full benchmark results are in the [repository](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/tree/main/benchmarks).
+
+## What .NET versions are supported?
+
+The server targets .NET 10 and can analyse solutions targeting any .NET version (net48, net6.0, net8.0, net10.0, etc.).
+```
+
+**Step 3: Verify build**
+
+```bash
+dotnet run --project tools/DocGen -- --output docs/site/docs/tools --extras docs/tool-extras
+cd docs/site && npm run build
+```
+
+Expected: Succeeds.
+
+**Step 4: Commit**
+
+```bash
+git add docs/site/docs/external-assemblies.md docs/site/docs/faq.md
+git commit -m "docs: add concept and FAQ pages"
+```
+
+---
+
+### Task 6: Create sidecar extras
+
+**Files (create):**
+- `docs/tool-extras/inspect-external-assembly.extra.md`
+- `docs/tool-extras/peek-il.extra.md`
+
+**Step 1: Create `docs/tool-extras/inspect-external-assembly.extra.md`**
+
+```markdown
+## Examples
+
+**Survey an assembly's namespaces:**
+```
+Use inspect_external_assembly for Microsoft.Extensions.DependencyInjection.Abstractions
+```
+
+**Browse types in a namespace:**
+```
+Use inspect_external_assembly for Microsoft.Extensions.DependencyInjection.Abstractions
+  with mode=namespace
+  and namespaceFilter=Microsoft.Extensions.DependencyInjection
+```
+
+## See also
+
+- [External Assemblies](/external-assemblies) — conceptual overview of origin tracking
+- [`peek_il`](/tools/external-assemblies/peek-il) — disassemble a method to MSIL
+- [`get_nuget_dependencies`](/tools/di-dependencies/get-nuget-dependencies) — list available assembly names
+```
+
+**Step 2: Create `docs/tool-extras/peek-il.extra.md`**
+
+```markdown
+## Examples
+
+**Disassemble a regular method:**
+```
+Use peek_il for JsonConvert.DeserializeObject
+```
+
+**Disassemble a constructor (use `.ctor`):**
+```
+Use peek_il for SqlOrderRepository..ctor
+```
+
+## When to use
+
+Use `peek_il` when you need to understand what a closed-source method actually does — for example, to verify thread-safety, understand exception handling, or check whether a method has side effects not apparent from its signature.
+
+## Notes
+
+- Output is MSIL, not C#. For C# decompilation, use a tool like ILSpy or dnSpy directly.
+- The assembly must be referenced by at least one project in the active solution.
+- The IL cache is invalidated automatically when the DLL changes on disk.
+
+## See also
+
+- [`inspect_external_assembly`](/tools/external-assemblies/inspect-external-assembly) — browse the public API surface
+- [External Assemblies](/external-assemblies) — conceptual overview
+```
+
+**Step 3: Verify DocGen picks up sidecars**
+
+```bash
+dotnet run --project tools/DocGen -- --output /tmp/docgen-extras-test --extras docs/tool-extras
+grep -c "See also" /tmp/docgen-extras-test/external-assemblies/inspect-external-assembly.md
+grep -c "See also" /tmp/docgen-extras-test/external-assemblies/peek-il.md
+```
+
+Expected: Both output `1` (the sidecar "See also" section was merged in).
+
+**Step 4: Commit**
+
+```bash
+git add docs/tool-extras
+git commit -m "docs: add sidecar extras for external assembly tools"
+```
+
+---
+
+### Task 7: Add CI workflows
+
+**Files (create):**
+- `.github/workflows/docs-build.yml`
+- `.github/workflows/docs-deploy.yml`
+
+**Step 1: Create `.github/workflows/docs-build.yml`**
+
+```yaml
+name: Docs Build
+
+on:
+  pull_request:
+    paths:
+      - 'docs/site/**'
+      - 'docs/tool-extras/**'
+      - 'src/RoslynCodeLens/**'
+      - 'tools/DocGen/**'
+      - '.github/workflows/docs-build.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: docs/site/package-lock.json
+
+      - name: Generate tool docs
+        run: |
+          dotnet run --project tools/DocGen -- \
+            --output docs/site/docs/tools \
+            --extras docs/tool-extras
+
+      - name: Build Docusaurus
+        working-directory: docs/site
+        run: |
+          npm ci
+          npm run build
+```
+
+**Step 2: Create `.github/workflows/docs-deploy.yml`**
+
+```yaml
+name: Docs Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/site/**'
+      - 'docs/tool-extras/**'
+      - 'src/RoslynCodeLens/**'
+      - 'tools/DocGen/**'
+      - '.github/workflows/docs-deploy.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: docs/site/package-lock.json
+
+      - name: Generate tool docs
+        run: |
+          dotnet run --project tools/DocGen -- \
+            --output docs/site/docs/tools \
+            --extras docs/tool-extras
+
+      - name: Build Docusaurus
+        working-directory: docs/site
+        run: |
+          npm ci
+          npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/site/build
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+**Step 3: Commit**
+
+```bash
+git add .github/workflows/docs-build.yml .github/workflows/docs-deploy.yml
+git commit -m "ci: add docs build and deploy workflows"
+```
+
+**Step 4: Manual — enable GitHub Pages** _(one-time, done by repo owner after PR merges)_
+
+In GitHub repo settings → **Pages** → Source: select **GitHub Actions**.
+
+---
+
+### Task 8: Update NuGet PackageProjectUrl
+
+> **Note:** Do this step **after** the site is live (i.e., after the first successful deploy). Publishing the URL in a NuGet release before the site exists results in a broken link.
+
+**File:**
+- Modify: `src/RoslynCodeLens/RoslynCodeLens.csproj` line 12
+
+**Step 1: Change `PackageProjectUrl`**
+
+In `src/RoslynCodeLens/RoslynCodeLens.csproj`, change:
+
+```xml
+<PackageProjectUrl>https://github.com/MarcelRoozekrans/roslyn-codelens-mcp</PackageProjectUrl>
+```
+
+to:
+
+```xml
+<PackageProjectUrl>https://marcelroozekrans.github.io/roslyn-codelens-mcp/</PackageProjectUrl>
+```
+
+The `<RepositoryUrl>` line stays pointing to the GitHub source repo — that's correct.
+
+**Step 2: Verify build**
+
+```bash
+dotnet build src/RoslynCodeLens
+```
+
+Expected: Succeeds.
+
+**Step 3: Commit**
+
+```bash
+git add src/RoslynCodeLens/RoslynCodeLens.csproj
+git commit -m "chore: point NuGet project URL to docs site"
+```
+
+---
+
+### Task 9: Open PR
+
+**Step 1: Push branch**
+
+```bash
+git push -u origin docs/documentation-site
+```
+
+**Step 2: Open PR**
+
+```bash
+gh pr create --title "docs: add Docusaurus documentation site" --body "$(cat <<'EOF'
+## Summary
+
+- Docusaurus site at `docs/site/` targeting GitHub Pages at https://marcelroozekrans.github.io/roslyn-codelens-mcp/
+- `tools/DocGen/` — .NET console project auto-generates tool reference pages from assembly reflection (35+ tools, 8 categories)
+- 11 hand-written pages: overview, getting started (4), guides (5), concept, FAQ
+- `docs/tool-extras/` — sidecar enrichment files merged into generated pages at build time
+- Two CI workflows: `docs-build.yml` (PR check) + `docs-deploy.yml` (deploy on main)
+- `PackageProjectUrl` updated to point to docs site
+
+## After merge
+
+1. In GitHub → Settings → Pages → Source: select **GitHub Actions**
+2. Trigger deploy: push any change to a watched path, or run the workflow manually
+3. Verify: https://marcelroozekrans.github.io/roslyn-codelens-mcp/
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+EOF
+)"
+```
