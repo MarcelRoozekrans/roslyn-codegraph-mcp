@@ -1,0 +1,8 @@
+NOTICE
+
+roslyn-codelens-mcp uses the following third-party libraries:
+
+ICSharpCode.Decompiler (https://github.com/icsharpcode/ILSpy)
+  Version: 8.2.x
+  License: MIT (from version 8 onwards)
+  Used for: IL disassembly in the peek_il tool

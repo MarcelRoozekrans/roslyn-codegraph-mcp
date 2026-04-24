@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using RoslynCodeLens.Metadata;
 using RoslynCodeLens.Models;
 using RoslynCodeLens.Symbols;
 
@@ -55,6 +56,7 @@ public sealed class MultiSolutionManager : IDisposable
     public LoadedSolution GetLoadedSolution() => Active.GetLoadedSolution();
     public SymbolResolver GetResolver() => Active.GetResolver();
     public MetadataSymbolResolver GetMetadataResolver() => Active.GetMetadataResolver();
+    public IlDisassemblerAdapter GetIlDisassembler() => Active.GetIlDisassembler();
     public Task WaitForWarmupAsync() => Active.WaitForWarmupAsync();
     public Task<(int ProjectCount, TimeSpan Elapsed)> ForceReloadAsync() => Active.ForceReloadAsync();
 
