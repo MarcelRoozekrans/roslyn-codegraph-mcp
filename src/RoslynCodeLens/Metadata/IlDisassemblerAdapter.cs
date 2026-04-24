@@ -12,6 +12,8 @@ public sealed class IlDisassemblerAdapter
 
     public IlDisassemblerAdapter(PEFileCache cache) { _cache = cache; }
 
+    public PEFileCache Cache => _cache;
+
     public string DisassembleMethod(string assemblyPath, int metadataToken)
     {
         var pe = _cache.Get(assemblyPath);
