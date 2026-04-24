@@ -87,7 +87,7 @@ Look up an external type by name   → go_to_definition / get_symbol_context /
                                      (pass fully-qualified name; returns origin="metadata")
 Browse what a package exposes      → inspect_external_assembly
 Who in my code uses an ext. type?  → find_references / find_callers / find_implementations
-See a method's IL bytecode         → peek_il (Phase 3 — not yet available)
+See a method's IL bytecode         → peek_il (pass fully-qualified method name with param types)
 Inspect an arbitrary DLL           → add a <ProjectReference> to a throwaway
                                      project, rebuild_solution, then use normally
 ```
@@ -148,6 +148,11 @@ External symbols have `origin.kind = "metadata"` in tool results. Supply fully-q
 - `inspect_external_assembly` — browse a referenced assembly's public API:
   - `mode="summary"` → namespace tree + type counts (start here to orient yourself)
   - `mode="namespace"` → full type + member listing for one namespace
+- `peek_il` — read ilasm-style IL for a single method in a referenced assembly:
+  - Input: fully-qualified method name with parameter types (e.g. `Namespace.Type.Method(ParamType1, ParamType2)`)
+  - For constructors: use `..ctor` notation (e.g. `Namespace.Type..ctor(ParamType)`)
+  - Output: raw IL instructions (`IL_0000: ldarg.0`, etc.) — not decompiled C#
+  - When to use: after `find_callers` / `get_symbol_context` identifies an interesting external method and you want to understand its implementation
 
 **Worked example — drill into a NuGet package:**
 ```
@@ -170,6 +175,14 @@ find_references("Microsoft.Extensions.DependencyInjection.IServiceCollection")
 find_callers("Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton")
 → returns source call sites for AddSingleton (pass the extension class + method name)
 ```
+
+**To read the raw IL of an external method:**
+Use `peek_il` with the fully-qualified method name including parameter types:
+```
+peek_il("Microsoft.Extensions.DependencyInjection.ServiceDescriptor..ctor(System.Type, System.Type, Microsoft.Extensions.DependencyInjection.ServiceLifetime)")
+→ returns ilasm-style IL text, assembly name, and version
+```
+Limitations: abstract methods, interface instance members, and properties-as-whole (target the getter/setter accessor instead) are not supported.
 
 ### Solution Management
 - `list_solutions` — loaded solutions, which is active.
@@ -221,6 +234,7 @@ Reference concrete types, interfaces, and call sites in your analysis. Not *"the
 | `get_source_generators` | "What source generators are active?" |
 | `get_generated_code` | "Show generated code" |
 | `inspect_external_assembly` | "What does this NuGet package expose?" / "Show me the API of X assembly" |
+| `peek_il` | "Show IL for this method" / "What does this external method do at bytecode level?" |
 | `list_solutions` | "What solutions are loaded?" |
 | `load_solution` | "Load this .sln / .slnx at runtime" |
 | `unload_solution` | "Free memory for this solution" |
@@ -261,6 +275,7 @@ State the reason when you take the exception. If you're about to type a Grep/Glo
 | `find_callers` | Yes — finds source invocations of external methods | | |
 | `find_implementations` | Yes — finds source implementors of external interfaces/classes | | |
 | `inspect_external_assembly` | Metadata only — this is its purpose | Assembly must be referenced by a project in the solution | `get_nuget_dependencies` to discover assembly names |
+| `peek_il` | Metadata only — this is its purpose | Abstract methods and interface instance members not supported | Use `go_to_definition` to confirm the method exists first |
 | `get_diagnostics` | No — source only | | |
 | `get_code_fixes` | No — source only | | |
 | `get_code_actions` | No — source only | | |

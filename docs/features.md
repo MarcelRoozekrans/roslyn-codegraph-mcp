@@ -8,7 +8,7 @@
 
 | Dimension | sharplens-mcp | roslyn-codelens-mcp |
 |-----------|---------------|----------------------|
-| Tools | ~58 | 32 |
+| Tools | ~58 | 34 |
 | Architecture | Monolithic `RoslynService.cs` (~5 000 lines) | Modular Tool + Logic split per feature |
 | API paradigm | Position-based `(filePath, line, col)` | Symbol-name-based (`"IGreeter.Greet"`) |
 | Refactoring | 13 dedicated write/mutate tools | `get_code_actions` + `apply_code_action` (generic engine) |
@@ -81,6 +81,8 @@ All previously identified gaps have been closed. See Section 4 for phase status.
 | `get_generated_code` | Show source-generator output |
 | `get_source_generators` | List active source generators |
 | `get_nuget_dependencies` | List NuGet package references |
+| `inspect_external_assembly` | Browse API surface of referenced closed-source assemblies (NuGet/internal DLLs) |
+| `peek_il` | Read raw IL for metadata methods — understand external behavior without decompilation |
 | `rebuild_solution` | Force full reload |
 | `list_solutions` / `set_active_solution` | Multi-solution management |
 
@@ -129,10 +131,13 @@ All previously identified gaps have been closed. See Section 4 for phase status.
 | Find reflection usage | ❌ | ✅ | Dynamic/reflection coupling detection |
 | Rebuild solution | ❌ | ✅ | Force full reload + index rebuild |
 | Multi-solution management | ❌ | ✅ | `list_solutions` / `set_active_solution` |
+| External assembly browsing | ❌ | ✅ | `inspect_external_assembly` — summary + namespace drill-down |
+| Metadata symbol resolution | ❌ | ✅ | All Tier-1 tools accept fully-qualified external symbol names |
+| IL disassembly | ❌ | ✅ | `peek_il` — ilasm text for any referenced method |
 | Automatic hot reload | ❌ | ✅ | `FileChangeTracker` — no manual sync needed |
 | Symbol-name API | ❌ | ✅ | No coordinates needed; works without open editor |
 | Preview mode for edits | ❌ | ✅ | Diff returned before writing to disk |
-| BenchmarkDotNet suite | ❌ | ✅ | 28 benchmarks covering all tools |
+| BenchmarkDotNet suite | ❌ | ✅ | 31 benchmarks covering all tools |
 
 ---
 
