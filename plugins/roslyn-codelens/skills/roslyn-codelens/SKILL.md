@@ -76,6 +76,23 @@ If any of these thoughts cross your mind, stop and switch to the MCP tool:
 
 ## When to Use Each Tool
 
+### Decision Tree for External Assemblies
+
+```
+I want to...                         Tool / Approach
+─────────────────────────────────────────────────────────────────────
+Work with types in my source code  → existing tools (unchanged)
+Look up an external type by name   → go_to_definition / get_symbol_context /
+                                     get_type_overview / get_type_hierarchy
+                                     (pass fully-qualified name; returns origin="metadata")
+Browse what a package exposes      → inspect_external_assembly
+Who in my code uses an ext. type?  → find_references / find_callers /
+                                     find_implementations (Phase 2 — extended)
+See a method's IL bytecode         → peek_il (Phase 3 — not yet available)
+Inspect an arbitrary DLL           → add a <ProjectReference> to a throwaway
+                                     project, rebuild_solution, then use normally
+```
+
 ### Understanding a Codebase
 - `get_project_dependencies` — solution architecture, how projects relate.
 - `get_symbol_context` — full context for a type (namespace, base, interfaces, DI deps, public members).
@@ -124,6 +141,27 @@ If any of these thoughts cross your mind, stop and switch to the MCP tool:
 ### Source Generators
 - `get_source_generators` — list generators and their outputs.
 - `get_generated_code` — inspect generated source (filter by generator or file path).
+
+### Working with External Assemblies (Closed-Source / NuGet)
+
+External symbols have `origin.kind = "metadata"` in tool results. Supply fully-qualified names (e.g. `Microsoft.Extensions.DependencyInjection.IServiceCollection`) to the Tier-1 tools below — they fall back to metadata lookup automatically when no source match is found.
+
+- `inspect_external_assembly` — browse a referenced assembly's public API:
+  - `mode="summary"` → namespace tree + type counts (start here to orient yourself)
+  - `mode="namespace"` → full type + member listing for one namespace
+
+**Worked example — drill into a NuGet package:**
+```
+inspect_external_assembly(assemblyName: "Microsoft.Extensions.DependencyInjection.Abstractions", mode: "summary")
+→ shows NamespaceTree with Microsoft.Extensions.DependencyInjection (15 types)
+
+inspect_external_assembly(assemblyName: "Microsoft.Extensions.DependencyInjection.Abstractions",
+    mode: "namespace", namespaceFilter: "Microsoft.Extensions.DependencyInjection")
+→ returns IServiceCollection, ServiceDescriptor, ServiceLifetime, etc. with members and XML doc summaries
+```
+
+**To find where your code uses an external symbol** (Phase 2 — now available):
+Use `find_references` / `find_callers` / `find_implementations` with the fully-qualified external symbol name. Results will be source locations in your codebase.
 
 ### Solution Management
 - `list_solutions` — loaded solutions, which is active.
@@ -174,6 +212,7 @@ Reference concrete types, interfaces, and call sites in your analysis. Not *"the
 | `find_circular_dependencies` | "Any circular dependencies?" |
 | `get_source_generators` | "What source generators are active?" |
 | `get_generated_code` | "Show generated code" |
+| `inspect_external_assembly` | "What does this NuGet package expose?" / "Show me the API of X assembly" |
 | `list_solutions` | "What solutions are loaded?" |
 | `load_solution` | "Load this .sln / .slnx at runtime" |
 | `unload_solution` | "Free memory for this solution" |
@@ -199,3 +238,42 @@ Grep is the correct tool for:
 - Packaging / publishing.
 
 State the reason when you take the exception. If you're about to type a Grep/Glob/build command and can't state the reason out loud, you're rationalizing — use the MCP tool.
+
+## Metadata Support by Tool
+
+| Tool | Works on metadata symbols | Caveats | Alternative |
+|------|--------------------------|---------|-------------|
+| `go_to_definition` | Yes — returns `File=""`, `Line=0` with `origin` block | No source location; use to confirm identity | |
+| `get_symbol_context` | Yes — members, interfaces, base type | `InjectedDependencies` always empty | |
+| `get_type_overview` | Yes | Diagnostics always empty | |
+| `get_type_hierarchy` | Yes — base chain from metadata; derived types from source only | Cannot enumerate all ecosystem implementors | |
+| `find_attribute_usages` | Yes — resolves metadata attribute type, returns source usages | | |
+| `search_symbols` | Yes — includes metadata types (budget heuristic: BCL skipped when source hits exist) | May miss BCL types if source has matches | Use fully-qualified name with `go_to_definition` |
+| `find_references` | Yes — finds source call/reference sites for external symbols | | |
+| `find_callers` | Yes — finds source invocations of external methods | | |
+| `find_implementations` | Yes — finds source implementors of external interfaces | | |
+| `inspect_external_assembly` | Metadata only — this is its purpose | Assembly must be referenced by a project in the solution | `get_nuget_dependencies` to discover assembly names |
+| `get_diagnostics` | No — source only | | |
+| `get_code_fixes` | No — source only | | |
+| `get_code_actions` | No — source only | | |
+| `apply_code_action` | No — source only | | |
+| `analyze_data_flow` | No — source only | | |
+| `analyze_control_flow` | No — source only | | |
+| `analyze_change_impact` | No — source only | | |
+| `analyze_method` | No — source only | | |
+| `get_file_overview` | No — source only | | |
+| `find_unused_symbols` | No — source only | | |
+| `get_complexity_metrics` | No — source only | | |
+| `find_naming_violations` | No — source only | | |
+| `find_large_classes` | No — source only | | |
+| `find_circular_dependencies` | No — source only | | |
+| `get_source_generators` | No — source only | | |
+| `get_generated_code` | No — source only | | |
+| `get_di_registrations` | No — source only | | |
+| `get_nuget_dependencies` | Partial — lists referenced packages, not assemblies directly | Use `inspect_external_assembly` for assembly API | |
+| `find_reflection_usage` | No — source only | | |
+| `list_solutions` | N/A | | |
+| `set_active_solution` | N/A | | |
+| `load_solution` | N/A | | |
+| `unload_solution` | N/A | | |
+| `rebuild_solution` | N/A | | |
