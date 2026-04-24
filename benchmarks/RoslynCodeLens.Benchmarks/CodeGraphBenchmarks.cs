@@ -149,14 +149,14 @@ public class CodeGraphBenchmarks
     public object InspectExternalAssemblySummary()
     {
         return InspectExternalAssemblyLogic.Execute(
-            _metadata, "Microsoft.Extensions.DependencyInjection", "summary", null);
+            _metadata, "Microsoft.Extensions.DependencyInjection.Abstractions", "summary", null);
     }
 
     [Benchmark(Description = "inspect_external_assembly: namespace mode")]
     public object InspectExternalAssemblyNamespace()
     {
         return InspectExternalAssemblyLogic.Execute(
-            _metadata, "Microsoft.Extensions.DependencyInjection", "namespace",
+            _metadata, "Microsoft.Extensions.DependencyInjection.Abstractions", "namespace",
             "Microsoft.Extensions.DependencyInjection");
     }
 
