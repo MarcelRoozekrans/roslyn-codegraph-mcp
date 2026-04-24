@@ -122,7 +122,7 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "search_symbols: Greet")]
     public object SearchSymbols()
     {
-        return SearchSymbolsLogic.Execute(_resolver, "Greet");
+        return SearchSymbolsLogic.Execute(_resolver, _metadata, "Greet");
     }
 
     [Benchmark(Description = "get_nuget_dependencies: all")]
