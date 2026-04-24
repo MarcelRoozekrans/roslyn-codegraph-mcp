@@ -1,12 +1,13 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RoslynCodeLens.Models;
+using RoslynCodeLens.Symbols;
 
 namespace RoslynCodeLens.Tools;
 
 public static class AnalyzeMethodLogic
 {
-    public static MethodAnalysis? Execute(LoadedSolution loaded, SymbolResolver resolver, string symbol)
+    public static MethodAnalysis? Execute(LoadedSolution loaded, SymbolResolver resolver, MetadataSymbolResolver metadata, string symbol)
     {
         var methods = resolver.FindMethods(symbol);
         if (methods.Count == 0)
@@ -17,7 +18,7 @@ public static class AnalyzeMethodLogic
         var projectName = resolver.GetProjectName(target);
         var signature = target.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
 
-        var callers = FindCallersLogic.Execute(loaded, resolver, symbol);
+        var callers = FindCallersLogic.Execute(loaded, resolver, metadata, symbol);
         var outgoing = FindOutgoingCalls(loaded, target);
 
         return new MethodAnalysis(symbol, file, line, projectName, signature, callers, outgoing);

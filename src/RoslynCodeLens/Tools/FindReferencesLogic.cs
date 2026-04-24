@@ -1,19 +1,26 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RoslynCodeLens.Models;
+using RoslynCodeLens.Symbols;
 
 namespace RoslynCodeLens.Tools;
 
 public static class FindReferencesLogic
 {
-    public static IReadOnlyList<SymbolReference> Execute(LoadedSolution loaded, SymbolResolver resolver, string symbol)
+    public static IReadOnlyList<SymbolReference> Execute(
+        LoadedSolution loaded, SymbolResolver source, MetadataSymbolResolver metadata, string symbol)
     {
-        var targets = resolver.FindSymbols(symbol);
+        var targets = source.FindSymbols(symbol);
         if (targets.Count == 0)
-            return [];
+        {
+            var resolved = metadata.Resolve(symbol);
+            if (resolved == null)
+                return [];
+            targets = [resolved.Symbol];
+        }
 
         var targetSet = BuildTargetSet(targets);
-        return ScanForReferences(loaded, resolver, targetSet);
+        return ScanForReferences(loaded, source, targetSet);
     }
 
     private static HashSet<ISymbol> BuildTargetSet(IReadOnlyList<ISymbol> targets)

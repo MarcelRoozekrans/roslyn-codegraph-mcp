@@ -14,6 +14,6 @@ public static class FindReferencesTool
         [Description("Symbol name: simple type (MyClass), fully qualified (Namespace.MyClass), or member (MyClass.MyProperty)")] string symbol)
     {
         manager.EnsureLoaded();
-        return FindReferencesLogic.Execute(manager.GetLoadedSolution(), manager.GetResolver(), symbol);
+        return FindReferencesLogic.Execute(manager.GetLoadedSolution(), manager.GetResolver(), manager.GetMetadataResolver(), symbol);
     }
 }

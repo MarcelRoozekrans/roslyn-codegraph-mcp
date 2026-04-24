@@ -1,13 +1,14 @@
 using RoslynCodeLens.Models;
+using RoslynCodeLens.Symbols;
 
 namespace RoslynCodeLens.Tools;
 
 public static class AnalyzeChangeImpactLogic
 {
-    public static ChangeImpact? Execute(LoadedSolution loaded, SymbolResolver resolver, string symbol)
+    public static ChangeImpact? Execute(LoadedSolution loaded, SymbolResolver resolver, MetadataSymbolResolver metadata, string symbol)
     {
-        var references = FindReferencesLogic.Execute(loaded, resolver, symbol);
-        var callers = FindCallersLogic.Execute(loaded, resolver, symbol);
+        var references = FindReferencesLogic.Execute(loaded, resolver, metadata, symbol);
+        var callers = FindCallersLogic.Execute(loaded, resolver, metadata, symbol);
 
         // If neither found anything, symbol doesn't exist
         if (references.Count == 0 && callers.Count == 0)

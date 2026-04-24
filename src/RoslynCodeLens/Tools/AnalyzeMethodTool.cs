@@ -18,6 +18,6 @@ public static class AnalyzeMethodTool
         manager.EnsureLoaded();
         var loaded = manager.GetLoadedSolution();
         var resolver = manager.GetResolver();
-        return AnalyzeMethodLogic.Execute(loaded, resolver, symbol);
+        return AnalyzeMethodLogic.Execute(loaded, resolver, manager.GetMetadataResolver(), symbol);
     }
 }

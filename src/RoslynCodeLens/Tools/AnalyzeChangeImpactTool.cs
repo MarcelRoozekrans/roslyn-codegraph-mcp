@@ -18,6 +18,6 @@ public static class AnalyzeChangeImpactTool
         manager.EnsureLoaded();
         var loaded = manager.GetLoadedSolution();
         var resolver = manager.GetResolver();
-        return AnalyzeChangeImpactLogic.Execute(loaded, resolver, symbol);
+        return AnalyzeChangeImpactLogic.Execute(loaded, resolver, manager.GetMetadataResolver(), symbol);
     }
 }

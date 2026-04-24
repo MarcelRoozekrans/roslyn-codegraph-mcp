@@ -1,13 +1,24 @@
 using Microsoft.CodeAnalysis;
 using RoslynCodeLens.Models;
+using RoslynCodeLens.Symbols;
 
 namespace RoslynCodeLens.Tools;
 
 public static class FindImplementationsLogic
 {
-    public static IReadOnlyList<SymbolLocation> Execute(LoadedSolution loaded, SymbolResolver resolver, string symbol)
+    public static IReadOnlyList<SymbolLocation> Execute(
+        LoadedSolution loaded, SymbolResolver source, MetadataSymbolResolver metadata, string symbol)
     {
-        var targetTypes = resolver.FindNamedTypes(symbol);
+        var targetTypes = source.FindNamedTypes(symbol);
+        if (targetTypes.Count == 0)
+        {
+            var resolved = metadata.Resolve(symbol);
+            if (resolved?.Symbol is INamedTypeSymbol nt)
+                targetTypes = [nt];
+            else
+                return [];
+        }
+
         var results = new List<SymbolLocation>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
 
@@ -16,9 +27,9 @@ public static class FindImplementationsLogic
             IReadOnlyList<INamedTypeSymbol> candidates;
 
             if (target.TypeKind == TypeKind.Interface)
-                candidates = resolver.GetInterfaceImplementors(target);
+                candidates = source.GetInterfaceImplementors(target);
             else
-                candidates = resolver.GetDerivedTypes(target);
+                candidates = source.GetDerivedTypes(target);
 
             foreach (var candidate in candidates)
             {
@@ -26,15 +37,15 @@ public static class FindImplementationsLogic
                 if (!seen.Add(fullName))
                     continue;
 
-                var (file, line) = resolver.GetFileAndLine(candidate);
-                var project = resolver.GetProjectName(candidate);
+                var (file, line) = source.GetFileAndLine(candidate);
+                var project = source.GetProjectName(candidate);
                 var kind = candidate.TypeKind switch
                 {
                     TypeKind.Struct => "struct",
                     TypeKind.Interface => "interface",
                     _ => "class"
                 };
-                results.Add(new SymbolLocation(kind, fullName, file, line, project, resolver.IsGenerated(file)));
+                results.Add(new SymbolLocation(kind, fullName, file, line, project, source.IsGenerated(file)));
             }
         }
 

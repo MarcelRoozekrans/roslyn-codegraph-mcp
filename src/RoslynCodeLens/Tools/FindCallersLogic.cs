@@ -1,24 +1,43 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RoslynCodeLens.Models;
+using RoslynCodeLens.Symbols;
 
 namespace RoslynCodeLens.Tools;
 
 public static class FindCallersLogic
 {
-    public static IReadOnlyList<CallerInfo> Execute(LoadedSolution loaded, SymbolResolver resolver, string symbol)
+    public static IReadOnlyList<CallerInfo> Execute(
+        LoadedSolution loaded, SymbolResolver source, MetadataSymbolResolver metadata, string symbol)
     {
-        var targetMethods = resolver.FindMethods(symbol);
+        var targetMethods = source.FindMethods(symbol);
         if (targetMethods.Count == 0)
-            return [];
+        {
+            var resolved = metadata.Resolve(symbol);
+            if (resolved?.Symbol is IMethodSymbol m)
+            {
+                // Include all overloads with the same name from the same containing type
+                // so that generic overloads (e.g. AddScoped<T1,T2>) are all matched.
+                var allOverloads = (IReadOnlyList<IMethodSymbol>)(m.ContainingType?.GetMembers(m.Name)
+                    .OfType<IMethodSymbol>()
+                    .ToArray() ?? []);
+                targetMethods = allOverloads.Count > 0 ? allOverloads : [m];
+            }
+            else
+                return [];
+        }
 
         var targetSet = new HashSet<IMethodSymbol>(targetMethods, SymbolEqualityComparer.Default);
+        // For metadata targets resolved from one compilation, build a name-based fallback
+        // so cross-compilation symbol comparisons work (metadata from different compilations
+        // have different ISymbol instances but the same containing type + name).
+        var targetMetadataKeys = BuildMetadataKeys(targetMethods);
         var results = new List<CallerInfo>();
         var seen = new HashSet<(string, int)>();
 
         foreach (var (projectId, compilation) in loaded.Compilations)
         {
-            var projectName = resolver.GetProjectName(projectId);
+            var projectName = source.GetProjectName(projectId);
 
             foreach (var syntaxTree in compilation.SyntaxTrees)
             {
@@ -31,7 +50,7 @@ public static class FindCallersLogic
                     if (symbolInfo.Symbol is not IMethodSymbol calledMethod)
                         continue;
 
-                    if (!IsMethodMatch(calledMethod, targetSet, targetMethods))
+                    if (!IsMethodMatch(calledMethod, targetSet, targetMethods, targetMetadataKeys))
                         continue;
 
                     var lineSpan = invocation.GetLocation().GetLineSpan();
@@ -44,7 +63,7 @@ public static class FindCallersLogic
                     var callerName = GetCallerName(invocation);
                     var snippet = invocation.ToString();
 
-                    results.Add(new CallerInfo(callerName, file, line, snippet, projectName, resolver.IsGenerated(file)));
+                    results.Add(new CallerInfo(callerName, file, line, snippet, projectName, source.IsGenerated(file)));
                 }
             }
         }
@@ -52,10 +71,37 @@ public static class FindCallersLogic
         return results;
     }
 
-    private static bool IsMethodMatch(IMethodSymbol calledMethod, HashSet<IMethodSymbol> targetSet, IReadOnlyList<IMethodSymbol> targetMethods)
+    private static HashSet<string> BuildMetadataKeys(IReadOnlyList<IMethodSymbol> methods)
+    {
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var m in methods)
+        {
+            if (m.Locations.All(l => !l.IsInSource))
+            {
+                var typeName = m.ContainingType?.ToDisplayString() ?? string.Empty;
+                keys.Add($"{typeName}.{m.Name}");
+            }
+        }
+        return keys;
+    }
+
+    private static bool IsMethodMatch(
+        IMethodSymbol calledMethod,
+        HashSet<IMethodSymbol> targetSet,
+        IReadOnlyList<IMethodSymbol> targetMethods,
+        HashSet<string> targetMetadataKeys)
     {
         if (targetSet.Contains(calledMethod) || targetSet.Contains(calledMethod.OriginalDefinition))
             return true;
+
+        // Cross-compilation fallback for metadata symbols: compare by containing type name + method name
+        if (targetMetadataKeys.Count > 0 && calledMethod.Locations.All(l => !l.IsInSource))
+        {
+            var typeName = (calledMethod.OriginalDefinition.ContainingType ?? calledMethod.ContainingType)
+                ?.ToDisplayString() ?? string.Empty;
+            if (targetMetadataKeys.Contains($"{typeName}.{calledMethod.Name}"))
+                return true;
+        }
 
         for (int i = 0; i < targetMethods.Count; i++)
         {
