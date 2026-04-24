@@ -137,6 +137,21 @@ public class CodeGraphBenchmarks
         return FindAttributeUsagesLogic.Execute(_loaded, _resolver, _metadata, "Obsolete");
     }
 
+    [Benchmark(Description = "inspect_external_assembly: summary mode")]
+    public object InspectExternalAssemblySummary()
+    {
+        return InspectExternalAssemblyLogic.Execute(
+            _metadata, "Microsoft.Extensions.DependencyInjection", "summary", null);
+    }
+
+    [Benchmark(Description = "inspect_external_assembly: namespace mode")]
+    public object InspectExternalAssemblyNamespace()
+    {
+        return InspectExternalAssemblyLogic.Execute(
+            _metadata, "Microsoft.Extensions.DependencyInjection", "namespace",
+            "Microsoft.Extensions.DependencyInjection");
+    }
+
     [Benchmark(Description = "find_circular_dependencies: project")]
     public object FindCircularDependencies()
     {
