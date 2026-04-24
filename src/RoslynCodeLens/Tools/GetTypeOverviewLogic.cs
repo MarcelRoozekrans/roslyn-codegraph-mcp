@@ -1,4 +1,5 @@
 using RoslynCodeLens.Models;
+using RoslynCodeLens.Symbols;
 
 namespace RoslynCodeLens.Tools;
 
@@ -6,7 +7,8 @@ public static class GetTypeOverviewLogic
 {
     public static TypeOverview? Execute(LoadedSolution loaded, SymbolResolver resolver, string typeName)
     {
-        var context = GetSymbolContextLogic.Execute(loaded, resolver, typeName);
+        var metadata = new MetadataSymbolResolver(loaded, resolver);
+        var context = GetSymbolContextLogic.Execute(loaded, resolver, metadata, typeName);
         if (context == null)
             return null;
 

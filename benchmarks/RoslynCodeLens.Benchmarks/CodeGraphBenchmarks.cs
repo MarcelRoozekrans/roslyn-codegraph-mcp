@@ -92,7 +92,7 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "get_symbol_context: GreeterConsumer")]
     public object GetSymbolContext()
     {
-        return GetSymbolContextLogic.Execute(_loaded, _resolver, "GreeterConsumer")!;
+        return GetSymbolContextLogic.Execute(_loaded, _resolver, _metadata, "GreeterConsumer")!;
     }
 
     [Benchmark(Description = "find_reflection_usage: all")]

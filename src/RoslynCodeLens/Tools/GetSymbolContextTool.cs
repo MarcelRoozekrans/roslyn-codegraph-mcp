@@ -14,6 +14,10 @@ public static class GetSymbolContextTool
         [Description("Type name (simple or fully qualified)")] string symbol)
     {
         manager.EnsureLoaded();
-        return GetSymbolContextLogic.Execute(manager.GetLoadedSolution(), manager.GetResolver(), symbol);
+        return GetSymbolContextLogic.Execute(
+            manager.GetLoadedSolution(),
+            manager.GetResolver(),
+            manager.GetMetadataResolver(),
+            symbol);
     }
 }

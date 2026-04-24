@@ -1,4 +1,5 @@
 using RoslynCodeLens;
+using RoslynCodeLens.Symbols;
 using RoslynCodeLens.Tools;
 
 namespace RoslynCodeLens.Tests.Tools;
@@ -7,6 +8,7 @@ public class GetSymbolContextToolTests : IAsyncLifetime
 {
     private LoadedSolution _loaded = null!;
     private SymbolResolver _resolver = null!;
+    private MetadataSymbolResolver _metadata = null!;
 
     public async Task InitializeAsync()
     {
@@ -14,6 +16,7 @@ public class GetSymbolContextToolTests : IAsyncLifetime
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
         _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
+        _metadata = new MetadataSymbolResolver(_loaded, _resolver);
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -21,11 +24,27 @@ public class GetSymbolContextToolTests : IAsyncLifetime
     [Fact]
     public void GetContext_ForGreeterConsumer_ShowsInjectedDeps()
     {
-        var result = GetSymbolContextLogic.Execute(_loaded, _resolver, "GreeterConsumer");
+        var result = GetSymbolContextLogic.Execute(_loaded, _resolver, _metadata, "GreeterConsumer");
 
         Assert.NotNull(result);
         Assert.Equal("TestLib2", result.Namespace);
         Assert.Contains(result.InjectedDependencies, d => d.Contains("IGreeter", StringComparison.Ordinal));
         Assert.Contains(result.PublicMembers, m => m.Contains("SayHello", StringComparison.Ordinal));
+        Assert.Equal("source", result.Origin?.Kind);
+    }
+
+    [Fact]
+    public void GetContext_MetadataInterface_ReturnsMembersAndOrigin()
+    {
+        var result = GetSymbolContextLogic.Execute(
+            _loaded, _resolver, _metadata, "Microsoft.Extensions.DependencyInjection.IServiceCollection");
+
+        Assert.NotNull(result);
+        Assert.Equal("metadata", result!.Origin!.Kind);
+        Assert.Equal("Microsoft.Extensions.DependencyInjection", result.Namespace);
+        Assert.Empty(result.InjectedDependencies);
+        Assert.NotEmpty(result.PublicMembers);
+        Assert.Equal("", result.File);
+        Assert.Equal(0, result.Line);
     }
 }
