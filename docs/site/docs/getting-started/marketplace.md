@@ -1,7 +1,7 @@
 ---
-title: Marketplace
+title: Marketplace Install
 ---
 
-# Marketplace
+# Marketplace Install
 
 Documentation coming soon.

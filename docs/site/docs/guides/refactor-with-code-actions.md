@@ -1,7 +1,7 @@
 ---
-title: Refactor-with-code-actions
+title: Refactor with Code Actions
 ---
 
-# Refactor-with-code-actions
+# Refactor with Code Actions
 
 Documentation coming soon.

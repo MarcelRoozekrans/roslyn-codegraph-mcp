@@ -1,7 +1,7 @@
 ---
-title: Analyze-a-codebase
+title: Analyze a Codebase
 ---
 
-# Analyze-a-codebase
+# Analyze a Codebase
 
 Documentation coming soon.

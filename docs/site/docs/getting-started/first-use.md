@@ -1,7 +1,7 @@
 ---
-title: First-use
+title: First Use
 ---
 
-# First-use
+# First Use
 
 Documentation coming soon.

@@ -48,7 +48,7 @@ const config: Config = {
           title: 'Docs',
           items: [
             {label: 'Getting Started', to: '/getting-started/installation'},
-            {label: 'Tool Reference', to: '/tools/navigation/go-to-definition'},
+            {label: 'Tool Reference', to: '/tools'},
           ],
         },
         {

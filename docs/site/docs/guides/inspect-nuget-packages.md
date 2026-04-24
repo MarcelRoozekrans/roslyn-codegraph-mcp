@@ -1,7 +1,7 @@
 ---
-title: Inspect-nuget-packages
+title: Inspect NuGet Packages
 ---
 
-# Inspect-nuget-packages
+# Inspect NuGet Packages
 
 Documentation coming soon.

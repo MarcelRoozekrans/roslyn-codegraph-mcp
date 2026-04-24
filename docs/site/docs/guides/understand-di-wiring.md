@@ -1,7 +1,7 @@
 ---
-title: Understand-di-wiring
+title: Understand DI Wiring
 ---
 
-# Understand-di-wiring
+# Understand DI Wiring
 
 Documentation coming soon.

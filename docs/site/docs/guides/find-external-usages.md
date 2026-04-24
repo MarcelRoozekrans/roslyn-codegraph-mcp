@@ -1,7 +1,7 @@
 ---
-title: Find-external-usages
+title: Find External Usages
 ---
 
-# Find-external-usages
+# Find External Usages
 
 Documentation coming soon.
