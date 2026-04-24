@@ -160,8 +160,8 @@ inspect_external_assembly(assemblyName: "Microsoft.Extensions.DependencyInjectio
 → returns IServiceCollection, ServiceDescriptor, ServiceLifetime, etc. with members and XML doc summaries
 ```
 
-**To find where your code uses an external symbol** (Phase 2 — now available):
-Use `find_references` / `find_callers` / `find_implementations` with the fully-qualified external symbol name. Results will be source locations in your codebase.
+**To find where your code uses an external symbol** (Phase 2 — not yet available):
+`find_references` / `find_callers` / `find_implementations` do not yet accept external symbol names. Use `inspect_external_assembly` to discover the API surface, then search your source for usages manually.
 
 ### Solution Management
 - `list_solutions` — loaded solutions, which is active.
@@ -249,9 +249,9 @@ State the reason when you take the exception. If you're about to type a Grep/Glo
 | `get_type_hierarchy` | Yes — base chain from metadata; derived types from source only | Cannot enumerate all ecosystem implementors | |
 | `find_attribute_usages` | Yes — resolves metadata attribute type, returns source usages | | |
 | `search_symbols` | Yes — includes metadata types (budget heuristic: BCL skipped when source hits exist) | May miss BCL types if source has matches | Use fully-qualified name with `go_to_definition` |
-| `find_references` | Yes — finds source call/reference sites for external symbols | | |
-| `find_callers` | Yes — finds source invocations of external methods | | |
-| `find_implementations` | Yes — finds source implementors of external interfaces | | |
+| `find_references` | No — source only (Phase 2) | | |
+| `find_callers` | No — source only (Phase 2) | | |
+| `find_implementations` | No — source only (Phase 2) | | |
 | `inspect_external_assembly` | Metadata only — this is its purpose | Assembly must be referenced by a project in the solution | `get_nuget_dependencies` to discover assembly names |
 | `get_diagnostics` | No — source only | | |
 | `get_code_fixes` | No — source only | | |
