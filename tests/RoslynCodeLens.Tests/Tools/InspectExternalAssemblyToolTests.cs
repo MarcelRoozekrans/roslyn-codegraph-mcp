@@ -54,15 +54,17 @@ public class InspectExternalAssemblyToolTests : IAsyncLifetime
     [Fact]
     public void UnreferencedAssembly_Throws()
     {
-        Assert.Throws<ArgumentException>(() => InspectExternalAssemblyLogic.Execute(
+        var ex = Assert.Throws<ArgumentException>(() => InspectExternalAssemblyLogic.Execute(
             _metadata, "Some.NotReferenced.Library", mode: "summary", namespaceFilter: null));
+        Assert.Contains("get_nuget_dependencies", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
     public void NamespaceMode_UnknownNamespace_Throws()
     {
-        Assert.Throws<ArgumentException>(() => InspectExternalAssemblyLogic.Execute(
+        var ex = Assert.Throws<ArgumentException>(() => InspectExternalAssemblyLogic.Execute(
             _metadata, "Microsoft.Extensions.DependencyInjection.Abstractions",
             mode: "namespace", namespaceFilter: "NoSuch.Namespace"));
+        Assert.Contains("NoSuch.Namespace", ex.Message, StringComparison.Ordinal);
     }
 }

@@ -47,7 +47,7 @@ public static class InspectExternalAssemblyLogic
         var id = assembly.Identity;
         return new ExternalAssemblyOverview(
             "summary", id.Name, id.Version.ToString(),
-            TargetFramework: null, PublicKeyToken: FormatPublicKey(id.PublicKeyToken),
+            TargetFramework: GetTargetFramework(assembly), PublicKeyToken: FormatPublicKey(id.PublicKeyToken),
             NamespaceTree: tree, Types: []);
     }
 
@@ -72,7 +72,7 @@ public static class InspectExternalAssemblyLogic
         var id = assembly.Identity;
         return new ExternalAssemblyOverview(
             "namespace", id.Name, id.Version.ToString(),
-            TargetFramework: null, PublicKeyToken: FormatPublicKey(id.PublicKeyToken),
+            TargetFramework: GetTargetFramework(assembly), PublicKeyToken: FormatPublicKey(id.PublicKeyToken),
             NamespaceTree: [], Types: typeInfos);
     }
 
@@ -154,6 +154,14 @@ public static class InspectExternalAssemblyLogic
         if (start < 0 || end <= start)
             return null;
         return xml[(start + "<summary>".Length)..end].Trim();
+    }
+
+    private static string? GetTargetFramework(IAssemblySymbol assembly)
+    {
+        var attr = assembly.GetAttributes().FirstOrDefault(a =>
+            a.AttributeClass?.ToDisplayString() ==
+            "System.Runtime.Versioning.TargetFrameworkAttribute");
+        return attr?.ConstructorArguments.FirstOrDefault().Value as string;
     }
 
     private static string? FormatPublicKey(System.Collections.Immutable.ImmutableArray<byte> key)
