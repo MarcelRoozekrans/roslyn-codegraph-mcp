@@ -8,7 +8,7 @@
 
 | Dimension | sharplens-mcp | roslyn-codelens-mcp |
 |-----------|---------------|----------------------|
-| Tools | ~58 | 34 |
+| Tools | ~58 | 36 |
 | Architecture | Monolithic `RoslynService.cs` (~5 000 lines) | Modular Tool + Logic split per feature |
 | API paradigm | Position-based `(filePath, line, col)` | Symbol-name-based (`"IGreeter.Greet"`) |
 | Refactoring | 13 dedicated write/mutate tools | `get_code_actions` + `apply_code_action` (generic engine) |
@@ -18,7 +18,7 @@
 | Hot reload | Manual `sync_documents` tool | `FileChangeTracker` — automatic on file change |
 | Roslyn version | 5.0.0 | 4.14.0 |
 | .NET target | net8.0 | net10.0 |
-| Benchmarks | None | BenchmarkDotNet suite (28 benchmarks) |
+| Benchmarks | None | BenchmarkDotNet suite (31 benchmarks) |
 | Tests | Unknown | xUnit suite per tool |
 
 ### Why direct timing benchmarks are not meaningful

@@ -20,9 +20,12 @@ public sealed class PEFileCache : IDisposable
 
         var pe = new PEFile(path);
         var newEntry = (stamp, pe);
+        // MCP framework serialises tool calls so concurrent races are unlikely in practice.
+        // The AddOrUpdate factory disposes a stale (different-timestamp) entry; it intentionally
+        // skips disposal when the old entry has the same timestamp (concurrent load of same file).
         _cache.AddOrUpdate(path, newEntry, (_, old) =>
         {
-            if (!ReferenceEquals(old.File, pe))
+            if (old.Timestamp != stamp)
                 old.File.Dispose();
             return newEntry;
         });
