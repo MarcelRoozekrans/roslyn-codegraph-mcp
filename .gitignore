@@ -24,3 +24,6 @@ artifacts/
 
 # Benchmark results
 BenchmarkDotNet.Artifacts/
+
+# Git worktrees
+.worktrees/
