@@ -86,8 +86,7 @@ Look up an external type by name   → go_to_definition / get_symbol_context /
                                      get_type_overview / get_type_hierarchy
                                      (pass fully-qualified name; returns origin="metadata")
 Browse what a package exposes      → inspect_external_assembly
-Who in my code uses an ext. type?  → find_references / find_callers /
-                                     find_implementations (Phase 2 — extended)
+Who in my code uses an ext. type?  → find_references / find_callers / find_implementations
 See a method's IL bytecode         → peek_il (Phase 3 — not yet available)
 Inspect an arbitrary DLL           → add a <ProjectReference> to a throwaway
                                      project, rebuild_solution, then use normally
@@ -160,8 +159,17 @@ inspect_external_assembly(assemblyName: "Microsoft.Extensions.DependencyInjectio
 → returns IServiceCollection, ServiceDescriptor, ServiceLifetime, etc. with members and XML doc summaries
 ```
 
-**To find where your code uses an external symbol** (Phase 2 — not yet available):
-`find_references` / `find_callers` / `find_implementations` do not yet accept external symbol names. Use `inspect_external_assembly` to discover the API surface, then search your source for usages manually.
+**To find where your code uses an external symbol:**
+Use `find_references` / `find_callers` / `find_implementations` with the fully-qualified external symbol name. Results will be source locations in your codebase.
+
+**To find all source files using `IServiceCollection`:**
+```
+find_references("Microsoft.Extensions.DependencyInjection.IServiceCollection")
+→ returns source locations (all origin.kind="source") where your code references IServiceCollection
+
+find_callers("Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton")
+→ returns source call sites for AddSingleton (pass the extension class + method name)
+```
 
 ### Solution Management
 - `list_solutions` — loaded solutions, which is active.
@@ -249,9 +257,9 @@ State the reason when you take the exception. If you're about to type a Grep/Glo
 | `get_type_hierarchy` | Yes — base chain from metadata; derived types from source only | Cannot enumerate all ecosystem implementors | |
 | `find_attribute_usages` | Yes — resolves metadata attribute type, returns source usages | | |
 | `search_symbols` | Yes — includes metadata types (budget heuristic: BCL skipped when source hits exist) | May miss BCL types if source has matches | Use fully-qualified name with `go_to_definition` |
-| `find_references` | No — source only (Phase 2) | | |
-| `find_callers` | No — source only (Phase 2) | | |
-| `find_implementations` | No — source only (Phase 2) | | |
+| `find_references` | Yes — finds source usages/references of external symbols | | |
+| `find_callers` | Yes — finds source invocations of external methods | | |
+| `find_implementations` | Yes — finds source implementors of external interfaces/classes | | |
 | `inspect_external_assembly` | Metadata only — this is its purpose | Assembly must be referenced by a project in the solution | `get_nuget_dependencies` to discover assembly names |
 | `get_diagnostics` | No — source only | | |
 | `get_code_fixes` | No — source only | | |
