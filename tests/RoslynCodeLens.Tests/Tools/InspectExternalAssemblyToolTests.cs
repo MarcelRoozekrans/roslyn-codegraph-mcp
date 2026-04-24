@@ -31,8 +31,8 @@ public class InspectExternalAssemblyToolTests : IAsyncLifetime
         Assert.Equal("Microsoft.Extensions.DependencyInjection.Abstractions", result.Name);
         Assert.NotEmpty(result.NamespaceTree);
         Assert.Contains(result.NamespaceTree,
-            n => n.Namespace == "Microsoft.Extensions.DependencyInjection"
-              && n.PublicTypeNames.Contains("IServiceCollection"));
+            n => string.Equals(n.Namespace, "Microsoft.Extensions.DependencyInjection", StringComparison.Ordinal)
+              && n.PublicTypeNames.Contains("IServiceCollection", StringComparer.Ordinal));
         Assert.Empty(result.Types);
     }
 
