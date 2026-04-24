@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
+using RoslynCodeLens.Metadata;
 using RoslynCodeLens.Symbols;
 
 namespace RoslynCodeLens;
@@ -16,6 +17,8 @@ public sealed class SolutionManager : IDisposable
     private volatile bool _rebuilding;
     private Task? _warmupTask;
     private Exception? _warmupException;
+    private readonly PEFileCache _peCache = new();
+    private readonly IlDisassemblerAdapter _ilAdapter;
 
     private SolutionManager(LoadedSolution loaded, string? solutionPath)
     {
@@ -23,6 +26,7 @@ public sealed class SolutionManager : IDisposable
         _solutionPath = solutionPath;
         _resolver = new SymbolResolver(loaded);
         _metadataResolver = new MetadataSymbolResolver(loaded, _resolver);
+        _ilAdapter = new IlDisassemblerAdapter(_peCache);
     }
 
     public static async Task<SolutionManager> CreateAsync(string solutionPath)
@@ -70,6 +74,7 @@ public sealed class SolutionManager : IDisposable
                 if (_solutionPath != null)
                 {
                     _tracker = new FileChangeTracker(newLoaded, _solutionPath);
+                    _tracker.OnDllChanged = path => _peCache.Invalidate(path);
                 }
             }
 
@@ -114,6 +119,8 @@ public sealed class SolutionManager : IDisposable
         RebuildIfStale();
         return _metadataResolver;
     }
+
+    public IlDisassemblerAdapter GetIlDisassembler() => _ilAdapter;
 
     public void EnsureLoaded()
     {
@@ -239,5 +246,6 @@ public sealed class SolutionManager : IDisposable
     public void Dispose()
     {
         _tracker?.Dispose();
+        _peCache.Dispose();
     }
 }
