@@ -21,7 +21,7 @@ public static class GetTypeOverviewLogic
         if (context == null)
             return null;
 
-        var hierarchy = GetTypeHierarchyLogic.Execute(loaded, resolver, typeName);
+        var hierarchy = GetTypeHierarchyLogic.Execute(resolver, metadata, typeName);
 
         List<DiagnosticInfo> diagnostics;
         if (string.Equals(context.Origin?.Kind, "metadata", StringComparison.Ordinal))

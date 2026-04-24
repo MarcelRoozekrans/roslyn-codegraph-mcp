@@ -74,7 +74,7 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "get_type_hierarchy: Greeter")]
     public object GetTypeHierarchy()
     {
-        return GetTypeHierarchyLogic.Execute(_loaded, _resolver, "Greeter")!;
+        return GetTypeHierarchyLogic.Execute(_resolver, _metadata, "Greeter")!;
     }
 
     [Benchmark(Description = "get_di_registrations: IGreeter")]
