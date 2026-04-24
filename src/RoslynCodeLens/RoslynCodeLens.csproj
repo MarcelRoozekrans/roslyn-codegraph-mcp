@@ -9,7 +9,7 @@
     <PackageId>RoslynCodeLens.Mcp</PackageId>
     <Authors>Marcel Roozekrans</Authors>
     <Description>Roslyn-based MCP server providing semantic code intelligence for .NET codebases</Description>
-    <PackageProjectUrl>https://github.com/MarcelRoozekrans/roslyn-codelens-mcp</PackageProjectUrl>
+    <PackageProjectUrl>https://marcelroozekrans.github.io/roslyn-codelens-mcp/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/MarcelRoozekrans/roslyn-codelens-mcp</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
 <PackageTags>roslyn;mcp;code-analysis;dotnet-tool</PackageTags>
