@@ -1,4 +1,5 @@
 using RoslynCodeLens;
+using RoslynCodeLens.Symbols;
 using RoslynCodeLens.Tools;
 
 namespace RoslynCodeLens.Tests.Tools;
@@ -7,6 +8,7 @@ public class AnalyzeChangeImpactToolTests : IAsyncLifetime
 {
     private LoadedSolution _loaded = null!;
     private SymbolResolver _resolver = null!;
+    private MetadataSymbolResolver _metadata = null!;
 
     public async Task InitializeAsync()
     {
@@ -14,6 +16,7 @@ public class AnalyzeChangeImpactToolTests : IAsyncLifetime
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
         _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
+        _metadata = new MetadataSymbolResolver(_loaded, _resolver);
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -21,7 +24,7 @@ public class AnalyzeChangeImpactToolTests : IAsyncLifetime
     [Fact]
     public void Execute_ForInterfaceMethod_ReturnsImpact()
     {
-        var result = AnalyzeChangeImpactLogic.Execute(_loaded, _resolver, "IGreeter.Greet");
+        var result = AnalyzeChangeImpactLogic.Execute(_loaded, _resolver, _metadata, "IGreeter.Greet");
 
         Assert.NotNull(result);
         Assert.True(result.DirectReferenceCount > 0 || result.CallerCount > 0);
@@ -32,7 +35,7 @@ public class AnalyzeChangeImpactToolTests : IAsyncLifetime
     [Fact]
     public void Execute_ForUnknownSymbol_ReturnsNull()
     {
-        var result = AnalyzeChangeImpactLogic.Execute(_loaded, _resolver, "NonExistentClass.NoMethod");
+        var result = AnalyzeChangeImpactLogic.Execute(_loaded, _resolver, _metadata, "NonExistentClass.NoMethod");
 
         Assert.Null(result);
     }
