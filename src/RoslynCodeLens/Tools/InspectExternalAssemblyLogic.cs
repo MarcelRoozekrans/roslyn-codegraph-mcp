@@ -15,14 +15,15 @@ public static class InspectExternalAssemblyLogic
         var assembly = metadata.FindAssembly(assemblyName)
             ?? throw new ArgumentException(
                 $"Assembly '{assemblyName}' is not referenced by any project in the active solution. " +
-                "Use get_nuget_dependencies to list referenced assemblies.");
+                "Use get_nuget_dependencies to list referenced assemblies.",
+                nameof(assemblyName));
 
         return mode switch
         {
             "summary" => BuildSummary(assembly),
             "namespace" => BuildNamespace(assembly, namespaceFilter
-                ?? throw new ArgumentException("'namespaceFilter' is required when mode='namespace'.")),
-            _ => throw new ArgumentException($"Unknown mode '{mode}'. Expected 'summary' or 'namespace'.")
+                ?? throw new ArgumentException("'namespaceFilter' is required when mode='namespace'.", nameof(namespaceFilter))),
+            _ => throw new ArgumentException($"Unknown mode '{mode}'. Expected 'summary' or 'namespace'.", nameof(mode))
         };
     }
 
@@ -65,7 +66,8 @@ public static class InspectExternalAssemblyLogic
 
         if (types.Count == 0)
             throw new ArgumentException(
-                $"Namespace '{ns}' not found (or contains no public types) in assembly '{assembly.Identity.Name}'.");
+                $"Namespace '{ns}' not found (or contains no public types) in assembly '{assembly.Identity.Name}'.",
+                nameof(ns));
 
         var typeInfos = types.OrderBy(t => t.Name, StringComparer.Ordinal).Select(ToTypeInfo).ToList();
 
@@ -87,8 +89,8 @@ public static class InspectExternalAssemblyLogic
             _ => "class"
         };
         var modifiers = new List<string>();
-        if (t.IsAbstract && t.TypeKind != TypeKind.Interface) modifiers.Add("abstract");
-        if (t.IsSealed) modifiers.Add("sealed");
+        if (t.IsAbstract && !t.IsStatic && t.TypeKind != TypeKind.Interface) modifiers.Add("abstract");
+        if (t.IsSealed && !t.IsStatic) modifiers.Add("sealed");
         if (t.IsStatic) modifiers.Add("static");
 
         var baseType = t.BaseType is { SpecialType: not SpecialType.System_Object }
@@ -117,7 +119,9 @@ public static class InspectExternalAssemblyLogic
                     continue;
                 if (m is IMethodSymbol { MethodKind:
                     MethodKind.PropertyGet or MethodKind.PropertySet or
-                    MethodKind.EventAdd or MethodKind.EventRemove })
+                    MethodKind.EventAdd or MethodKind.EventRemove or
+                    MethodKind.EventRaise or MethodKind.StaticConstructor or
+                    MethodKind.DelegateInvoke })
                     continue;
                 var sig = m.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
                 if (!seen.Add(sig))
@@ -126,9 +130,11 @@ public static class InspectExternalAssemblyLogic
             }
         }
 
+#pragma warning disable EPS06 // ImmutableArray<T> is a small struct; copy is intentional and cheap
         var attributes = t.GetAttributes()
             .Select(a => a.AttributeClass?.Name ?? "Attribute")
             .ToList();
+#pragma warning restore EPS06
 
         return new ExternalTypeInfo(kind, t.ToDisplayString(), modifiers, baseType,
             interfaces, members, attributes, SummaryFromXmlDoc(t));
@@ -137,6 +143,8 @@ public static class InspectExternalAssemblyLogic
     private static string MemberKind(ISymbol s) => s switch
     {
         IMethodSymbol { MethodKind: MethodKind.Constructor } => "constructor",
+        IMethodSymbol { MethodKind: MethodKind.Conversion or MethodKind.UserDefinedOperator } => "operator",
+        IMethodSymbol { MethodKind: MethodKind.Destructor } => "destructor",
         IMethodSymbol => "method",
         IPropertySymbol => "property",
         IFieldSymbol => "field",
@@ -156,14 +164,21 @@ public static class InspectExternalAssemblyLogic
         return xml[(start + "<summary>".Length)..end].Trim();
     }
 
+#pragma warning disable EPS06 // ImmutableArray<T> is a small struct; copy is intentional and cheap
     private static string? GetTargetFramework(IAssemblySymbol assembly)
     {
         var attr = assembly.GetAttributes().FirstOrDefault(a =>
-            a.AttributeClass?.ToDisplayString() ==
-            "System.Runtime.Versioning.TargetFrameworkAttribute");
+            a.AttributeClass is { Name: "TargetFrameworkAttribute" } ac &&
+            string.Equals(
+                ac.ContainingNamespace?.ToDisplayString(),
+                "System.Runtime.Versioning",
+                StringComparison.Ordinal));
         return attr?.ConstructorArguments.FirstOrDefault().Value as string;
     }
+#pragma warning restore EPS06
 
+#pragma warning disable EPS06 // ImmutableArray<byte> is a small struct; copy is intentional and cheap
     private static string? FormatPublicKey(System.Collections.Immutable.ImmutableArray<byte> key)
         => key.IsDefaultOrEmpty ? null : string.Concat(key.Select(b => b.ToString("x2")));
+#pragma warning restore EPS06
 }
