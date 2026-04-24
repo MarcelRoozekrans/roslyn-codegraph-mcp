@@ -139,8 +139,8 @@ public static class PeekIlLogic
             }
 
             // Fallback: match by parameter count from the signature string
-            var paramTypes = ParseParamTypes(paramSignature);
-            var byCount = candidates.Where(c => c.Parameters.Length == paramTypes.Length).ToList();
+            var paramTypes = ParseParamTypes(paramSignature!.TrimStart('(').TrimEnd(')'));
+            var byCount = candidates.Where(c => c.Parameters.Length == paramTypes.Count).ToList();
             if (byCount.Count == 1)
             {
                 ValidateMethodBody(byCount[0], methodSymbol);
@@ -163,15 +163,33 @@ public static class PeekIlLogic
                 $"'{methodSymbol}' has no body (abstract or interface instance member).", nameof(methodSymbol));
     }
 
-    private static string[] ParseParamTypes(string paramSignature)
+    private static List<string> ParseParamTypes(string paramList)
     {
-        // "(T1, T2, T3)" -> ["T1", "T2", "T3"]
-        var inner = paramSignature.TrimStart('(').TrimEnd(')').Trim();
-        if (string.IsNullOrEmpty(inner))
-            return [];
-        return inner.Split(',').Select(s => s.Trim()).ToArray();
+        var result = new List<string>();
+        if (string.IsNullOrWhiteSpace(paramList))
+            return result;
+
+        var depth = 0;
+        var start = 0;
+        for (var i = 0; i < paramList.Length; i++)
+        {
+            var c = paramList[i];
+            if (c is '<' or '(') depth++;
+            else if (c is '>' or ')') depth--;
+            else if (c == ',' && depth == 0)
+            {
+                result.Add(paramList[start..i].Trim());
+                start = i + 1;
+            }
+        }
+        var last = paramList[start..].Trim();
+        if (last.Length > 0)
+            result.Add(last);
+        return result;
     }
 
+    // Returns first match; in multi-TFM solutions the same assembly may appear under multiple TFMs.
+    // Non-deterministic order is acceptable since IL is identical across TFM-specific metadata references.
     private static string? FindAssemblyPath(LoadedSolution loaded, IAssemblySymbol assembly)
     {
         foreach (var compilation in loaded.Compilations.Values)
