@@ -6,4 +6,5 @@ public record SymbolLocation(
     string File,
     int Line,
     string Project,
-    bool IsGenerated = false);
+    bool IsGenerated = false,
+    SymbolOrigin? Origin = null);
