@@ -3,7 +3,7 @@ using System;
 namespace TestLib;
 
 [Serializable]
-public class Greeter : IGreeter
+public class Greeter : IGreeter, IDisposable
 {
     public virtual string Greet(string name) => $"Hello, {name}!";
 
@@ -12,4 +12,6 @@ public class Greeter : IGreeter
 
     // Helper method intentionally triggers CA1822 (can be made static)
     public int ComputeLength(string value) => value.Length;
+
+    public void Dispose() { }
 }

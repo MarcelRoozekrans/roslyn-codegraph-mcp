@@ -14,6 +14,6 @@ public static class FindImplementationsTool
         [Description("Type name (simple or fully qualified)")] string symbol)
     {
         manager.EnsureLoaded();
-        return FindImplementationsLogic.Execute(manager.GetLoadedSolution(), manager.GetResolver(), symbol);
+        return FindImplementationsLogic.Execute(manager.GetLoadedSolution(), manager.GetResolver(), manager.GetMetadataResolver(), symbol);
     }
 }
