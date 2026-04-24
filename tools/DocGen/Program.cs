@@ -97,6 +97,7 @@ var toolTypes = assembly.GetTypes()
     .Where(t => t.GetCustomAttribute<McpServerToolTypeAttribute>() is not null);
 
 int count = 0;
+var ctx = new NullabilityInfoContext();
 foreach (var toolType in toolTypes)
 {
     var methods = toolType
@@ -124,7 +125,6 @@ foreach (var toolType in toolTypes)
         sb.AppendLine(toolDesc);
         sb.AppendLine();
 
-        var ctx = new NullabilityInfoContext();
         var userParams = method.GetParameters()
             .Where(p => p.GetCustomAttribute<DescriptionAttribute>() is not null)
             .ToList();
@@ -151,6 +151,7 @@ foreach (var toolType in toolTypes)
             sb.AppendLine();
         }
 
+        Directory.CreateDirectory(Path.Combine(outputDir, category));
         var outPath = Path.Combine(outputDir, category, $"{slug}.md");
         File.WriteAllText(outPath, sb.ToString());
         Console.WriteLine($"  {outPath}");
@@ -178,4 +179,4 @@ static string FormatType(Type t)
 }
 
 static string EscapeYaml(string s) =>
-    s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", " ").Replace("\r", "");
+    s.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\n", " ").Replace("\r", "").Replace("\t", " ");
