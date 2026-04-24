@@ -58,6 +58,9 @@ public class CodeGraphBenchmarks
         _ilDisassembler = new IlDisassemblerAdapter(_peFileCache);
     }
 
+    [GlobalCleanup]
+    public void Cleanup() => _peFileCache.Dispose();
+
     [Benchmark(Description = "Load and compile solution")]
     public async Task<LoadedSolution> SolutionLoading()
     {
