@@ -1,6 +1,6 @@
 ---
 name: roslyn-codelens
-description: Use when working with any .NET / C# code (.cs/.csproj/.sln files), finding callers/references/implementations, checking compiler errors or warnings, running dotnet build for diagnostics, searching for a type/method/interface by name, inspecting DI registrations, detecting dead code or circular dependencies, inspecting source-generator output, or about to Grep/Glob across a C# codebase — activates when roslyn-codelens MCP tools are available.
+description: Use when working with any .NET / C# code (.cs/.csproj/.sln/.slnx files), finding callers/references/implementations, checking compiler errors or warnings, running dotnet build for diagnostics, searching for a type/method/interface by name, inspecting DI registrations, detecting dead code or circular dependencies, inspecting source-generator output, or about to Grep/Glob across a C# codebase — activates when roslyn-codelens MCP tools are available.
 ---
 
 # Roslyn CodeLens — Semantic .NET Intelligence
@@ -59,7 +59,7 @@ If any of these thoughts cross your mind, stop and switch to the MCP tool:
 
 ## Pre-Action Checklist
 
-**Before calling `Grep` or `Glob` on `.cs` / `.csproj` / `.sln` / `.cshtml` files:**
+**Before calling `Grep` or `Glob` on `.cs` / `.csproj` / `.sln` / `.slnx` / `.cshtml` files:**
 1. Is the target a C# symbol (type/member/namespace)? → Use `search_symbols` or `find_references`.
 2. Is the target an attribute? → Use `find_attribute_usages`.
 3. Is the target a reflection pattern? → Use `find_reflection_usage`.
@@ -175,7 +175,7 @@ Reference concrete types, interfaces, and call sites in your analysis. Not *"the
 | `get_source_generators` | "What source generators are active?" |
 | `get_generated_code` | "Show generated code" |
 | `list_solutions` | "What solutions are loaded?" |
-| `load_solution` | "Load this .sln at runtime" |
+| `load_solution` | "Load this .sln / .slnx at runtime" |
 | `unload_solution` | "Free memory for this solution" |
 | `set_active_solution` | "Switch to project B" |
 | `rebuild_solution` | "Reload the solution" / "Diagnostics are stale" |
