@@ -9,4 +9,5 @@ public record SymbolContext(
     string? BaseClass,
     IReadOnlyList<string> Interfaces,
     IReadOnlyList<string> InjectedDependencies,
-    IReadOnlyList<string> PublicMembers);
+    IReadOnlyList<string> PublicMembers,
+    SymbolOrigin? Origin = null);

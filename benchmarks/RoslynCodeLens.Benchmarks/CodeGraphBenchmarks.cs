@@ -2,6 +2,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using Microsoft.Build.Locator;
 using RoslynCodeLens;
+using RoslynCodeLens.Symbols;
 using RoslynCodeLens.Tools;
 
 namespace RoslynCodeLens.Benchmarks;
@@ -12,6 +13,7 @@ public class CodeGraphBenchmarks
     private static readonly string FixturePath;
     private LoadedSolution _loaded = null!;
     private SymbolResolver _resolver = null!;
+    private MetadataSymbolResolver _metadata = null!;
     private string _greeterPath = null!;
     private string _diSetupPath = null!;
 
@@ -40,6 +42,7 @@ public class CodeGraphBenchmarks
     {
         _loaded = await new SolutionLoader().LoadAsync(FixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
+        _metadata = new MetadataSymbolResolver(_loaded, _resolver);
         _greeterPath = _loaded.Solution.Projects
             .First(p => string.Equals(p.Name, "TestLib", StringComparison.Ordinal))
             .Documents.First(d => string.Equals(d.Name, "Greeter.cs", StringComparison.Ordinal))
@@ -71,7 +74,7 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "get_type_hierarchy: Greeter")]
     public object GetTypeHierarchy()
     {
-        return GetTypeHierarchyLogic.Execute(_loaded, _resolver, "Greeter")!;
+        return GetTypeHierarchyLogic.Execute(_resolver, _metadata, "Greeter")!;
     }
 
     [Benchmark(Description = "get_di_registrations: IGreeter")]
@@ -89,7 +92,7 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "get_symbol_context: GreeterConsumer")]
     public object GetSymbolContext()
     {
-        return GetSymbolContextLogic.Execute(_loaded, _resolver, "GreeterConsumer")!;
+        return GetSymbolContextLogic.Execute(_loaded, _resolver, _metadata, "GreeterConsumer")!;
     }
 
     [Benchmark(Description = "find_reflection_usage: all")]
@@ -107,7 +110,7 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "go_to_definition: Greeter")]
     public object GoToDefinition()
     {
-        return GoToDefinitionLogic.Execute(_resolver, "Greeter");
+        return GoToDefinitionLogic.Execute(_resolver, _metadata, "Greeter");
     }
 
     [Benchmark(Description = "get_diagnostics: all")]
@@ -119,7 +122,7 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "search_symbols: Greet")]
     public object SearchSymbols()
     {
-        return SearchSymbolsLogic.Execute(_resolver, "Greet");
+        return SearchSymbolsLogic.Execute(_resolver, _metadata, "Greet");
     }
 
     [Benchmark(Description = "get_nuget_dependencies: all")]
@@ -131,7 +134,7 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "find_attribute_usages: Obsolete")]
     public object FindAttributeUsages()
     {
-        return FindAttributeUsagesLogic.Execute(_loaded, _resolver, "Obsolete");
+        return FindAttributeUsagesLogic.Execute(_loaded, _resolver, _metadata, "Obsolete");
     }
 
     [Benchmark(Description = "find_circular_dependencies: project")]
@@ -197,7 +200,7 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "get_type_overview: Greeter")]
     public object? GetTypeOverview()
     {
-        return GetTypeOverviewLogic.Execute(_loaded, _resolver, "Greeter");
+        return GetTypeOverviewLogic.Execute(_loaded, _resolver, _metadata, "Greeter");
     }
 
     [Benchmark(Description = "analyze_method: Greeter.Greet")]

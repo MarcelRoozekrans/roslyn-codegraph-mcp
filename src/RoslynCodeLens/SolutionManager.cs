@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
+using RoslynCodeLens.Symbols;
 
 namespace RoslynCodeLens;
 
@@ -8,6 +9,7 @@ public sealed class SolutionManager : IDisposable
 {
     private LoadedSolution _loaded;
     private SymbolResolver _resolver;
+    private MetadataSymbolResolver _metadataResolver;
     private readonly string? _solutionPath;
     private FileChangeTracker? _tracker;
     private readonly Lock _lock = new();
@@ -20,6 +22,7 @@ public sealed class SolutionManager : IDisposable
         _loaded = loaded;
         _solutionPath = solutionPath;
         _resolver = new SymbolResolver(loaded);
+        _metadataResolver = new MetadataSymbolResolver(loaded, _resolver);
     }
 
     public static async Task<SolutionManager> CreateAsync(string solutionPath)
@@ -56,11 +59,13 @@ public sealed class SolutionManager : IDisposable
                 Compilations = compilations
             };
             var newResolver = new SymbolResolver(newLoaded);
+            var newMetadataResolver = new MetadataSymbolResolver(newLoaded, newResolver);
 
             lock (_lock)
             {
                 _loaded = newLoaded;
                 _resolver = newResolver;
+                _metadataResolver = newMetadataResolver;
 
                 if (_solutionPath != null)
                 {
@@ -99,6 +104,15 @@ public sealed class SolutionManager : IDisposable
             throw new InvalidOperationException("Solution warmup failed.", _warmupException);
         RebuildIfStale();
         return _resolver;
+    }
+
+    public MetadataSymbolResolver GetMetadataResolver()
+    {
+        _warmupTask?.GetAwaiter().GetResult();
+        if (_warmupException != null)
+            throw new InvalidOperationException("Solution warmup failed.", _warmupException);
+        RebuildIfStale();
+        return _metadataResolver;
     }
 
     public void EnsureLoaded()
@@ -175,11 +189,13 @@ public sealed class SolutionManager : IDisposable
             Compilations = compilations
         };
         var newResolver = new SymbolResolver(newLoaded);
+        var newMetadataResolver = new MetadataSymbolResolver(newLoaded, newResolver);
 
         lock (_lock)
         {
             _loaded = newLoaded;
             _resolver = newResolver;
+            _metadataResolver = newMetadataResolver;
         }
 
         _tracker!.UpdateMappings(newLoaded);
@@ -204,11 +220,13 @@ public sealed class SolutionManager : IDisposable
             Compilations = compilations
         };
         var newResolver = new SymbolResolver(newLoaded);
+        var newMetadataResolver = new MetadataSymbolResolver(newLoaded, newResolver);
 
         lock (_lock)
         {
             _loaded = newLoaded;
             _resolver = newResolver;
+            _metadataResolver = newMetadataResolver;
         }
 
         _tracker?.UpdateMappings(newLoaded);

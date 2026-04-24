@@ -14,6 +14,6 @@ public static class SearchSymbolsTool
         [Description("Search query (substring match against symbol names)")] string query)
     {
         manager.EnsureLoaded();
-        return SearchSymbolsLogic.Execute(manager.GetResolver(), query);
+        return SearchSymbolsLogic.Execute(manager.GetResolver(), manager.GetMetadataResolver(), query);
     }
 }

@@ -1,23 +1,44 @@
 using Microsoft.CodeAnalysis;
 using RoslynCodeLens.Models;
+using RoslynCodeLens.Symbols;
 
 namespace RoslynCodeLens.Tools;
 
 public static class GetTypeHierarchyLogic
 {
-    public static TypeHierarchy? Execute(LoadedSolution loaded, SymbolResolver resolver, string symbol)
+    /// <summary>
+    /// Walks base classes, interfaces, and derived types for a named type. Accepts
+    /// both source-defined and metadata types. Derived types are source-only — the
+    /// server cannot enumerate all derivations across the ecosystem, so implementors
+    /// of a metadata interface will only be listed when they live in the loaded
+    /// solution's source.
+    /// </summary>
+    public static TypeHierarchy? Execute(
+        SymbolResolver resolver, MetadataSymbolResolver metadata, string symbol)
     {
-        var types = resolver.FindNamedTypes(symbol);
-        if (types.Count == 0)
-            return null;
+        INamedTypeSymbol? target = null;
+        SymbolOrigin origin = MetadataSymbolResolver.SourceOrigin;
 
-        var target = types[0];
+        var types = resolver.FindNamedTypes(symbol);
+        target = types.FirstOrDefault(t => t.Locations.Any(l => l.IsInSource));
+        if (target == null)
+        {
+            var resolved = metadata.Resolve(symbol);
+            if (resolved?.Symbol is INamedTypeSymbol metadataType)
+            {
+                target = metadataType;
+                origin = resolved.Origin;
+            }
+        }
+
+        if (target == null)
+            return null;
 
         var bases = CollectBaseTypes(target, resolver);
         var interfaces = CollectInterfaces(target, resolver);
         var derived = CollectDerivedTypes(target, resolver);
 
-        return new TypeHierarchy(bases, interfaces, derived);
+        return new TypeHierarchy(bases, interfaces, derived, Origin: origin);
     }
 
     private static List<SymbolLocation> CollectBaseTypes(INamedTypeSymbol target, SymbolResolver resolver)
@@ -26,10 +47,7 @@ public static class GetTypeHierarchyLogic
         var baseType = target.BaseType;
         while (baseType != null && baseType.SpecialType != SpecialType.System_Object)
         {
-            var (file, line) = resolver.GetFileAndLine(baseType);
-            var project = resolver.GetProjectName(baseType);
-            var kind = GetTypeKindString(baseType);
-            bases.Add(new SymbolLocation(kind, baseType.ToDisplayString(), file, line, project));
+            bases.Add(BuildLocation(baseType, resolver));
             baseType = baseType.BaseType;
         }
         return bases;
@@ -40,9 +58,7 @@ public static class GetTypeHierarchyLogic
         var interfaces = new List<SymbolLocation>();
         foreach (var iface in target.AllInterfaces)
         {
-            var (file, line) = resolver.GetFileAndLine(iface);
-            var project = resolver.GetProjectName(iface);
-            interfaces.Add(new SymbolLocation("interface", iface.ToDisplayString(), file, line, project));
+            interfaces.Add(BuildLocation(iface, resolver));
         }
         return interfaces;
     }
@@ -61,12 +77,20 @@ public static class GetTypeHierarchyLogic
             if (!seen.Add(fullName))
                 continue;
 
-            var (file, line) = resolver.GetFileAndLine(candidate);
-            var project = resolver.GetProjectName(candidate);
-            var kind = GetTypeKindString(candidate);
-            derived.Add(new SymbolLocation(kind, fullName, file, line, project));
+            derived.Add(BuildLocation(candidate, resolver));
         }
         return derived;
+    }
+
+    private static SymbolLocation BuildLocation(INamedTypeSymbol type, SymbolResolver resolver)
+    {
+        var (file, line) = resolver.GetFileAndLine(type);
+        var project = resolver.GetProjectName(type);
+        var kind = GetTypeKindString(type);
+        return new SymbolLocation(
+            kind, type.ToDisplayString(), file, line, project,
+            IsGenerated: false,
+            Origin: MetadataSymbolResolver.ToOrigin(type));
     }
 
     private static string GetTypeKindString(INamedTypeSymbol type)
@@ -75,7 +99,7 @@ public static class GetTypeHierarchyLogic
         {
             TypeKind.Struct => "struct",
             TypeKind.Interface => "interface",
-            _ => "class"
+            _ => "class",
         };
     }
 }
