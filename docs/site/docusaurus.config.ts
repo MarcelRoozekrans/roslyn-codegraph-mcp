@@ -14,6 +14,7 @@ const config: Config = {
   organizationName: 'MarcelRoozekrans',
   projectName: 'roslyn-codelens-mcp',
   trailingSlash: false,
+  // TODO: revert to 'throw' after Task 2 (DocGen) generates docs/site/docs/tools/
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
   i18n: {defaultLocale: 'en', locales: ['en']},
