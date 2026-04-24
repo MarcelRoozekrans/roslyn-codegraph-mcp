@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using RoslynCodeLens.Models;
+using RoslynCodeLens.Symbols;
 
 namespace RoslynCodeLens;
 
@@ -53,6 +54,7 @@ public sealed class MultiSolutionManager : IDisposable
     public void EnsureLoaded() => Active.EnsureLoaded();
     public LoadedSolution GetLoadedSolution() => Active.GetLoadedSolution();
     public SymbolResolver GetResolver() => Active.GetResolver();
+    public MetadataSymbolResolver GetMetadataResolver() => Active.GetMetadataResolver();
     public Task WaitForWarmupAsync() => Active.WaitForWarmupAsync();
     public Task<(int ProjectCount, TimeSpan Elapsed)> ForceReloadAsync() => Active.ForceReloadAsync();
 
