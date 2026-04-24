@@ -14,6 +14,6 @@ public static class FindCallersTool
         [Description("Method name as Type.Method (simple or fully qualified)")] string symbol)
     {
         manager.EnsureLoaded();
-        return FindCallersLogic.Execute(manager.GetLoadedSolution(), manager.GetResolver(), symbol);
+        return FindCallersLogic.Execute(manager.GetLoadedSolution(), manager.GetResolver(), manager.GetMetadataResolver(), symbol);
     }
 }

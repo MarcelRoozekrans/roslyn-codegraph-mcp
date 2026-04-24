@@ -1,4 +1,5 @@
 using RoslynCodeLens;
+using RoslynCodeLens.Symbols;
 using RoslynCodeLens.Tools;
 
 namespace RoslynCodeLens.Tests.Tools;
@@ -7,6 +8,7 @@ public class AnalyzeMethodToolTests : IAsyncLifetime
 {
     private LoadedSolution _loaded = null!;
     private SymbolResolver _resolver = null!;
+    private MetadataSymbolResolver _metadata = null!;
 
     public async Task InitializeAsync()
     {
@@ -14,6 +16,7 @@ public class AnalyzeMethodToolTests : IAsyncLifetime
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
         _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
+        _metadata = new MetadataSymbolResolver(_loaded, _resolver);
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -21,7 +24,7 @@ public class AnalyzeMethodToolTests : IAsyncLifetime
     [Fact]
     public void Execute_ForGreeterGreet_ReturnsAnalysis()
     {
-        var result = AnalyzeMethodLogic.Execute(_loaded, _resolver, "Greeter.Greet");
+        var result = AnalyzeMethodLogic.Execute(_loaded, _resolver, _metadata, "Greeter.Greet");
 
         Assert.NotNull(result);
         Assert.NotEmpty(result.Signature);
@@ -32,7 +35,7 @@ public class AnalyzeMethodToolTests : IAsyncLifetime
     [Fact]
     public void Execute_ForGreeterGreet_HasCallers()
     {
-        var result = AnalyzeMethodLogic.Execute(_loaded, _resolver, "Greeter.Greet");
+        var result = AnalyzeMethodLogic.Execute(_loaded, _resolver, _metadata, "Greeter.Greet");
 
         Assert.NotNull(result);
         // Greet is called from GreeterConsumer.SayHello
@@ -42,7 +45,7 @@ public class AnalyzeMethodToolTests : IAsyncLifetime
     [Fact]
     public void Execute_ForUnknownMethod_ReturnsNull()
     {
-        var result = AnalyzeMethodLogic.Execute(_loaded, _resolver, "NoSuchClass.NoSuchMethod");
+        var result = AnalyzeMethodLogic.Execute(_loaded, _resolver, _metadata, "NoSuchClass.NoSuchMethod");
 
         Assert.Null(result);
     }

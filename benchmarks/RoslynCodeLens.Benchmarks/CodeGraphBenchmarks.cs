@@ -62,13 +62,13 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "find_implementations: IGreeter")]
     public object FindImplementations()
     {
-        return FindImplementationsLogic.Execute(_loaded, _resolver, "IGreeter");
+        return FindImplementationsLogic.Execute(_loaded, _resolver, _metadata, "IGreeter");
     }
 
     [Benchmark(Description = "find_callers: IGreeter.Greet")]
     public object FindCallers()
     {
-        return FindCallersLogic.Execute(_loaded, _resolver, "IGreeter.Greet");
+        return FindCallersLogic.Execute(_loaded, _resolver, _metadata, "IGreeter.Greet");
     }
 
     [Benchmark(Description = "get_type_hierarchy: Greeter")]
@@ -104,7 +104,7 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "find_references: IGreeter")]
     public object FindReferences()
     {
-        return FindReferencesLogic.Execute(_loaded, _resolver, "IGreeter");
+        return FindReferencesLogic.Execute(_loaded, _resolver, _metadata, "IGreeter");
     }
 
     [Benchmark(Description = "go_to_definition: Greeter")]
@@ -194,7 +194,7 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "analyze_change_impact: IGreeter.Greet")]
     public object? AnalyzeChangeImpact()
     {
-        return AnalyzeChangeImpactLogic.Execute(_loaded, _resolver, "IGreeter.Greet");
+        return AnalyzeChangeImpactLogic.Execute(_loaded, _resolver, _metadata, "IGreeter.Greet");
     }
 
     [Benchmark(Description = "get_type_overview: Greeter")]
@@ -206,7 +206,7 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "analyze_method: Greeter.Greet")]
     public object? AnalyzeMethod()
     {
-        return AnalyzeMethodLogic.Execute(_loaded, _resolver, "Greeter.Greet");
+        return AnalyzeMethodLogic.Execute(_loaded, _resolver, _metadata, "Greeter.Greet");
     }
 
     [Benchmark(Description = "get_file_overview: Greeter.cs")]
