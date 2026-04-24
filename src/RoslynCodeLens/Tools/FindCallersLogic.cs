@@ -105,6 +105,8 @@ public static class FindCallersLogic
 
         for (int i = 0; i < targetMethods.Count; i++)
         {
+            if (!string.Equals(calledMethod.Name, targetMethods[i].Name, StringComparison.Ordinal))
+                continue;
             if (IsInterfaceImplementation(calledMethod, targetMethods[i]))
                 return true;
         }
