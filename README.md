@@ -166,6 +166,10 @@ dotnet test
 dotnet run --project benchmarks/RoslynCodeLens.Benchmarks -c Release
 ```
 
+## Third-party licenses
+
+- [ICSharpCode.Decompiler](https://github.com/icsharpcode/ILSpy) — MIT license (v8+). Used for IL disassembly in the `peek_il` tool.
+
 ## License
 
 MIT
