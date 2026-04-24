@@ -13,7 +13,10 @@ public sealed class FileChangeTracker : IDisposable
     private Timer? _debounceTimer;
     private readonly HashSet<string> _pendingChanges = new(StringComparer.OrdinalIgnoreCase);
 
-    private static readonly string[] WatchedExtensions = [".cs", ".csproj", ".props", ".targets"];
+    private static readonly string[] WatchedExtensions = [".cs", ".csproj", ".props", ".targets", ".dll"];
+
+    /// <summary>Invoked (outside the lock) when a .dll file changes, so callers can invalidate PE caches.</summary>
+    public Action<string>? OnDllChanged { get; set; }
 
     public FileChangeTracker(LoadedSolution loaded, string solutionPath)
     {
@@ -152,13 +155,17 @@ public sealed class FileChangeTracker : IDisposable
 
     private void ProcessPendingChanges(object? state)
     {
+        HashSet<string> changes;
         lock (_lock)
         {
-            var changes = new HashSet<string>(_pendingChanges, StringComparer.OrdinalIgnoreCase);
+            changes = new HashSet<string>(_pendingChanges, StringComparer.OrdinalIgnoreCase);
             _pendingChanges.Clear();
 
             foreach (var filePath in changes)
             {
+                if (filePath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                    continue; // DLL changes are handled below, outside the lock
+
                 if (_fileToProject.TryGetValue(filePath, out var projectId))
                 {
                     MarkStaleTransitive(projectId);
@@ -169,6 +176,17 @@ public sealed class FileChangeTracker : IDisposable
                     foreach (var pid in _fileToProject.Values)
                         _staleProjects.Add(pid);
                 }
+            }
+        }
+
+        // Notify DLL changes outside the lock
+        var onDll = OnDllChanged;
+        if (onDll != null)
+        {
+            foreach (var filePath in changes)
+            {
+                if (filePath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                    onDll(filePath);
             }
         }
     }
