@@ -14,6 +14,6 @@ public static class GoToDefinitionTool
         [Description("Symbol name: simple type (MyClass), fully qualified (Namespace.MyClass), or member (MyClass.DoWork)")] string symbol)
     {
         manager.EnsureLoaded();
-        return GoToDefinitionLogic.Execute(manager.GetResolver(), symbol);
+        return GoToDefinitionLogic.Execute(manager.GetResolver(), manager.GetMetadataResolver(), symbol);
     }
 }

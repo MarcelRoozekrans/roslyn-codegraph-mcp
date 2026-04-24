@@ -2,6 +2,7 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using Microsoft.Build.Locator;
 using RoslynCodeLens;
+using RoslynCodeLens.Symbols;
 using RoslynCodeLens.Tools;
 
 namespace RoslynCodeLens.Benchmarks;
@@ -12,6 +13,7 @@ public class CodeGraphBenchmarks
     private static readonly string FixturePath;
     private LoadedSolution _loaded = null!;
     private SymbolResolver _resolver = null!;
+    private MetadataSymbolResolver _metadata = null!;
     private string _greeterPath = null!;
     private string _diSetupPath = null!;
 
@@ -40,6 +42,7 @@ public class CodeGraphBenchmarks
     {
         _loaded = await new SolutionLoader().LoadAsync(FixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
+        _metadata = new MetadataSymbolResolver(_loaded, _resolver);
         _greeterPath = _loaded.Solution.Projects
             .First(p => string.Equals(p.Name, "TestLib", StringComparison.Ordinal))
             .Documents.First(d => string.Equals(d.Name, "Greeter.cs", StringComparison.Ordinal))
@@ -107,7 +110,7 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "go_to_definition: Greeter")]
     public object GoToDefinition()
     {
-        return GoToDefinitionLogic.Execute(_resolver, "Greeter");
+        return GoToDefinitionLogic.Execute(_resolver, _metadata, "Greeter");
     }
 
     [Benchmark(Description = "get_diagnostics: all")]
