@@ -200,7 +200,7 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "get_type_overview: Greeter")]
     public object? GetTypeOverview()
     {
-        return GetTypeOverviewLogic.Execute(_loaded, _resolver, "Greeter");
+        return GetTypeOverviewLogic.Execute(_loaded, _resolver, _metadata, "Greeter");
     }
 
     [Benchmark(Description = "analyze_method: Greeter.Greet")]

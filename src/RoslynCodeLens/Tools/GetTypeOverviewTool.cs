@@ -18,6 +18,7 @@ public static class GetTypeOverviewTool
         manager.EnsureLoaded();
         var loaded = manager.GetLoadedSolution();
         var resolver = manager.GetResolver();
-        return GetTypeOverviewLogic.Execute(loaded, resolver, typeName);
+        var metadata = manager.GetMetadataResolver();
+        return GetTypeOverviewLogic.Execute(loaded, resolver, metadata, typeName);
     }
 }
