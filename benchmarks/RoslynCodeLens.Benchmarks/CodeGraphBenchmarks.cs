@@ -134,7 +134,7 @@ public class CodeGraphBenchmarks
     [Benchmark(Description = "find_attribute_usages: Obsolete")]
     public object FindAttributeUsages()
     {
-        return FindAttributeUsagesLogic.Execute(_loaded, _resolver, "Obsolete");
+        return FindAttributeUsagesLogic.Execute(_loaded, _resolver, _metadata, "Obsolete");
     }
 
     [Benchmark(Description = "find_circular_dependencies: project")]

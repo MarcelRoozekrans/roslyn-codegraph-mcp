@@ -14,6 +14,10 @@ public static class FindAttributeUsagesTool
         [Description("Attribute name to search for (with or without 'Attribute' suffix)")] string attribute)
     {
         manager.EnsureLoaded();
-        return FindAttributeUsagesLogic.Execute(manager.GetLoadedSolution(), manager.GetResolver(), attribute);
+        return FindAttributeUsagesLogic.Execute(
+            manager.GetLoadedSolution(),
+            manager.GetResolver(),
+            manager.GetMetadataResolver(),
+            attribute);
     }
 }
