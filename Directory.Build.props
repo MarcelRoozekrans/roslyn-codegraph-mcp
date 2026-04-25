@@ -1,6 +1,6 @@
 <Project>
   <ItemGroup>
-    <PackageReference Include="Meziantou.Analyzer" Version="3.0.52">
+    <PackageReference Include="Meziantou.Analyzer" Version="3.0.54">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
