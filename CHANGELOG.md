@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.2.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.1.7...v1.2.0) (2026-04-25)
+
+
+### Features
+
+* external-assembly analysis — Phase 1 (Tier 1 + inspect_external_assembly) ([#96](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/issues/96)) ([52b229b](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/52b229baf9e1585d61d2903c3f8b4ceca713b19f))
+* external-assembly analysis — Phase 2 (Tier-2 references) ([#98](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/issues/98)) ([a078981](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/a07898114d8e65dd91f312a04de9bccf17d8c215))
+* external-assembly analysis — Phase 3 (peek_il) ([#100](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/issues/100)) ([175d9aa](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/175d9aa85ea1f0c352f06d6114a511490051fcaa))
+
+
+### Performance Improvements
+
+* fix find_callers and find_attribute_usages regressions, add missing benchmarks ([8422cb9](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/8422cb91eb977fd63b4574a54110fd984e597a5f))
+* skip FindImplementationForInterfaceMember when method names differ ([7d137a3](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/7d137a34a9cf8ad1b8e7046846800a6a903b5b3e))
+* use default ToDisplayString() in FindAttributeUsagesLogic.BuildResults ([f64dee4](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/f64dee4513009a3162af546c05aa4ef6591cc8d3))
+
 ## [1.1.7](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.1.6...v1.1.7) (2026-03-30)
 
 
