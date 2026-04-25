@@ -73,9 +73,7 @@ public static class FindAttributeUsagesLogic
                 _ => "member",
             };
 
-            var targetName = symbol is INamedTypeSymbol
-                ? symbol.ToDisplayString()
-                : symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+            var targetName = symbol.ToDisplayString();
 
             // Deduplicate: the attribute index stores each usage twice (once keyed
             // by "Obsolete" and once by "ObsoleteAttribute"), and the metadata

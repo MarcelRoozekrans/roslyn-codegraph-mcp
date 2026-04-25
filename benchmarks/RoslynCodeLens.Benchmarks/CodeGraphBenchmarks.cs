@@ -4,6 +4,7 @@ using Microsoft.Build.Locator;
 using RoslynCodeLens;
 using RoslynCodeLens.Symbols;
 using RoslynCodeLens.Tools;
+using RoslynCodeLens.Metadata;
 
 namespace RoslynCodeLens.Benchmarks;
 
@@ -16,6 +17,8 @@ public class CodeGraphBenchmarks
     private MetadataSymbolResolver _metadata = null!;
     private string _greeterPath = null!;
     private string _diSetupPath = null!;
+    private PEFileCache _peFileCache = null!;
+    private IlDisassemblerAdapter _ilDisassembler = null!;
 
     static CodeGraphBenchmarks()
     {
@@ -51,7 +54,12 @@ public class CodeGraphBenchmarks
             .First(p => string.Equals(p.Name, "TestLib2", StringComparison.Ordinal))
             .Documents.First(d => string.Equals(d.Name, "DiSetup.cs", StringComparison.Ordinal))
             .FilePath!;
+        _peFileCache = new PEFileCache();
+        _ilDisassembler = new IlDisassemblerAdapter(_peFileCache);
     }
+
+    [GlobalCleanup]
+    public void Cleanup() => _peFileCache.Dispose();
 
     [Benchmark(Description = "Load and compile solution")]
     public async Task<LoadedSolution> SolutionLoading()
@@ -135,6 +143,29 @@ public class CodeGraphBenchmarks
     public object FindAttributeUsages()
     {
         return FindAttributeUsagesLogic.Execute(_loaded, _resolver, _metadata, "Obsolete");
+    }
+
+    [Benchmark(Description = "inspect_external_assembly: summary mode")]
+    public object InspectExternalAssemblySummary()
+    {
+        return InspectExternalAssemblyLogic.Execute(
+            _metadata, "Microsoft.Extensions.DependencyInjection.Abstractions", "summary", null);
+    }
+
+    [Benchmark(Description = "inspect_external_assembly: namespace mode")]
+    public object InspectExternalAssemblyNamespace()
+    {
+        return InspectExternalAssemblyLogic.Execute(
+            _metadata, "Microsoft.Extensions.DependencyInjection.Abstractions", "namespace",
+            "Microsoft.Extensions.DependencyInjection");
+    }
+
+    [Benchmark(Description = "peek_il: ServiceCollectionServiceExtensions.AddScoped")]
+    public object PeekIl()
+    {
+        return PeekIlLogic.Execute(
+            _loaded, _metadata, _ilDisassembler,
+            "Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddScoped(Microsoft.Extensions.DependencyInjection.IServiceCollection, System.Type)");
     }
 
     [Benchmark(Description = "find_circular_dependencies: project")]
