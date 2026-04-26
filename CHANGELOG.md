@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.1](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.2.0...v1.2.1) (2026-04-26)
+
+
+### Bug Fixes
+
+* enable manifest mode for release-please and sync version files to 1.2.0 ([03d3a8f](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/03d3a8f96d32117eee29f826ed3949cfaf31a6f1))
+* enable release-please manifest mode + sync version files to 1.2.0 ([b159d05](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/b159d0517c4ffa60042575d6c761e315e0650eed))
+
 ## [1.2.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.1.7...v1.2.0) (2026-04-25)
 
 
