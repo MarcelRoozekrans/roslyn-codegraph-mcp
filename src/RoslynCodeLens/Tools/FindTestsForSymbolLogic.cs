@@ -16,7 +16,6 @@ public static class FindTestsForSymbolLogic
         bool transitive = false,
         int maxDepth = 3)
     {
-        // Clamp maxDepth into [1, 5]
         maxDepth = Math.Clamp(maxDepth, 1, 5);
 
         var targetMethods = source.FindMethods(symbol);
@@ -28,14 +27,73 @@ public static class FindTestsForSymbolLogic
             return new FindTestsForSymbolResult(symbol, [], []);
 
         var directTests = new List<TestReference>();
+        var transitiveTests = new List<TestReference>();
         var seenTestSymbols = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
-        var targetSet = new HashSet<IMethodSymbol>(targetMethods, SymbolEqualityComparer.Default);
+        var visited = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
 
+        // BFS: each entry is (method we want callers for, chain so far ending with the target method's short name)
+        var queue = new Queue<(IMethodSymbol Method, List<string> Chain, int Depth)>();
+        foreach (var t in targetMethods)
+        {
+            queue.Enqueue((t, [t.Name], 0));
+            visited.Add(t);
+        }
+
+        while (queue.Count > 0)
+        {
+            var (frontier, chain, depth) = queue.Dequeue();
+
+            foreach (var caller in EnumerateDirectCallers(loaded, source, testProjectIds, frontier))
+            {
+                if (!visited.Add(caller.Method))
+                    continue;
+
+                var classification = ClassifyAsTest(caller.Method, caller.ProjectName);
+                if (classification is not null)
+                {
+                    if (!seenTestSymbols.Add(caller.Method))
+                        continue;
+
+                    if (depth == 0)
+                    {
+                        // Direct hit
+                        directTests.Add(classification);
+                    }
+                    else if (transitive)
+                    {
+                        // Transitive hit — attach call chain (caller's path through helpers to target)
+                        transitiveTests.Add(classification with { CallChain = chain });
+                    }
+                    // Tests are terminal — never expand past them.
+                    continue;
+                }
+
+                // Non-test caller. In transitive mode, enqueue if depth budget remains.
+                if (transitive && depth + 1 < maxDepth)
+                {
+                    var newChain = new List<string>(chain.Count + 1) { caller.Method.Name };
+                    newChain.AddRange(chain);
+                    queue.Enqueue((caller.Method, newChain, depth + 1));
+                }
+            }
+        }
+
+        return new FindTestsForSymbolResult(symbol, directTests, transitiveTests);
+    }
+
+    private record DirectCaller(IMethodSymbol Method, string ProjectName);
+
+    private static IEnumerable<DirectCaller> EnumerateDirectCallers(
+        LoadedSolution loaded,
+        SymbolResolver source,
+        IReadOnlySet<ProjectId> testProjectIds,
+        IMethodSymbol target)
+    {
+        // Two-pass scan: test projects (terminal lookups) and non-test projects
+        // (helper hops in transitive mode). We need both because a helper might live
+        // in TestLib2 (non-test project) and a test in NUnitFixture invokes it.
         foreach (var (projectId, compilation) in loaded.Compilations)
         {
-            if (!testProjectIds.Contains(projectId))
-                continue;
-
             var projectName = source.GetProjectName(projectId);
 
             foreach (var syntaxTree in compilation.SyntaxTrees)
@@ -49,25 +107,19 @@ public static class FindTestsForSymbolLogic
                     if (symbolInfo.Symbol is not IMethodSymbol calledMethod)
                         continue;
 
-                    if (!targetSet.Contains(calledMethod) && !targetSet.Contains(calledMethod.OriginalDefinition))
+                    if (!SymbolEqualityComparer.Default.Equals(calledMethod, target) &&
+                        !SymbolEqualityComparer.Default.Equals(calledMethod.OriginalDefinition, target) &&
+                        !SymbolEqualityComparer.Default.Equals(calledMethod, target.OriginalDefinition))
                         continue;
 
-                    // Find the enclosing method symbol
-                    var enclosingMethod = FindEnclosingMethodSymbol(invocation, semanticModel);
-                    if (enclosingMethod is null)
+                    var enclosing = FindEnclosingMethodSymbol(invocation, semanticModel);
+                    if (enclosing is null)
                         continue;
 
-                    if (!seenTestSymbols.Add(enclosingMethod))
-                        continue;
-
-                    var testInfo = ClassifyAsTest(enclosingMethod, projectName);
-                    if (testInfo is not null)
-                        directTests.Add(testInfo);
+                    yield return new DirectCaller(enclosing, projectName);
                 }
             }
         }
-
-        return new FindTestsForSymbolResult(symbol, directTests, []);
     }
 
     private static IMethodSymbol? FindEnclosingMethodSymbol(SyntaxNode node, SemanticModel semanticModel)

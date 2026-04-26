@@ -69,4 +69,45 @@ public class FindTestsForSymbolToolTests : IAsyncLifetime
         Assert.Empty(result.DirectTests);
         Assert.Empty(result.TransitiveTests);
     }
+
+    [Fact]
+    public void Transitive_FindsTestViaHelper()
+    {
+        var result = FindTestsForSymbolLogic.Execute(
+            _loaded, _resolver, _metadata, "Greeter.Greet", transitive: true, maxDepth: 3);
+
+        // TransitiveGreetTest reaches Greet only through HelperThatGreets.
+        var transitive = result.TransitiveTests.SingleOrDefault(t =>
+            t.FullyQualifiedName.EndsWith("TransitiveGreetTest", StringComparison.Ordinal));
+
+        Assert.NotNull(transitive);
+        Assert.NotNull(transitive!.CallChain);
+        Assert.Contains("HelperThatGreets", transitive.CallChain!);
+        Assert.Equal("Greet", transitive.CallChain![^1]);  // target last
+    }
+
+    [Fact]
+    public void Transitive_DirectHitsStillInDirectBucket()
+    {
+        var result = FindTestsForSymbolLogic.Execute(
+            _loaded, _resolver, _metadata, "Greeter.Greet", transitive: true, maxDepth: 3);
+
+        // DirectGreetTest is a direct caller; it must remain in DirectTests, not TransitiveTests.
+        Assert.Contains(result.DirectTests, t =>
+            t.FullyQualifiedName.EndsWith("DirectGreetTest", StringComparison.Ordinal));
+        Assert.DoesNotContain(result.TransitiveTests, t =>
+            t.FullyQualifiedName.EndsWith("DirectGreetTest", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Transitive_RespectsMaxDepth()
+    {
+        // maxDepth=1 means the walk only inspects direct callers. The transitive helper
+        // (depth-2 from the target) must not produce a transitive hit.
+        var result = FindTestsForSymbolLogic.Execute(
+            _loaded, _resolver, _metadata, "Greeter.Greet", transitive: true, maxDepth: 1);
+
+        Assert.DoesNotContain(result.TransitiveTests, t =>
+            t.FullyQualifiedName.EndsWith("TransitiveGreetTest", StringComparison.Ordinal));
+    }
 }
