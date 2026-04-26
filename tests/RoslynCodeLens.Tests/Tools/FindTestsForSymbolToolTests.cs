@@ -9,7 +9,6 @@ public class FindTestsForSymbolToolTests : IAsyncLifetime
 {
     private LoadedSolution _loaded = null!;
     private SymbolResolver _resolver = null!;
-    private MetadataSymbolResolver _metadata = null!;
 
     public async Task InitializeAsync()
     {
@@ -17,7 +16,6 @@ public class FindTestsForSymbolToolTests : IAsyncLifetime
             AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
         _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
         _resolver = new SymbolResolver(_loaded);
-        _metadata = new MetadataSymbolResolver(_loaded, _resolver);
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -26,7 +24,7 @@ public class FindTestsForSymbolToolTests : IAsyncLifetime
     public void Direct_FindsNUnitAndMSTestTestsForGreeter()
     {
         var result = FindTestsForSymbolLogic.Execute(
-            _loaded, _resolver, _metadata, "Greeter.Greet", transitive: false, maxDepth: 3);
+            _loaded, _resolver, "Greeter.Greet", transitive: false, maxDepth: 3);
 
         Assert.Contains(result.DirectTests, t => t.Framework == TestFramework.NUnit);
         Assert.Contains(result.DirectTests, t => t.Framework == TestFramework.MSTest);
@@ -36,7 +34,7 @@ public class FindTestsForSymbolToolTests : IAsyncLifetime
     public void Direct_DoesNotIncludeTransitiveCallers()
     {
         var result = FindTestsForSymbolLogic.Execute(
-            _loaded, _resolver, _metadata, "Greeter.Greet", transitive: false, maxDepth: 3);
+            _loaded, _resolver, "Greeter.Greet", transitive: false, maxDepth: 3);
 
         // TransitiveGreetTest (NUnit) reaches Greet only via HelperThatGreets — it must
         // NOT appear in direct mode.
@@ -50,7 +48,7 @@ public class FindTestsForSymbolToolTests : IAsyncLifetime
     public void Direct_IncludesEachAttributeOnceEvenForDataDriven()
     {
         var result = FindTestsForSymbolLogic.Execute(
-            _loaded, _resolver, _metadata, "Greeter.Greet", transitive: false, maxDepth: 3);
+            _loaded, _resolver, "Greeter.Greet", transitive: false, maxDepth: 3);
 
         // ParameterisedGreetTest exists in both NUnit and MSTest fixtures with multiple
         // data rows; it should appear once per framework, not per row.
@@ -64,7 +62,7 @@ public class FindTestsForSymbolToolTests : IAsyncLifetime
     public void Direct_UnknownSymbol_ReturnsEmpty()
     {
         var result = FindTestsForSymbolLogic.Execute(
-            _loaded, _resolver, _metadata, "DoesNotExist.Method", transitive: false, maxDepth: 3);
+            _loaded, _resolver, "DoesNotExist.Method", transitive: false, maxDepth: 3);
 
         Assert.Empty(result.DirectTests);
         Assert.Empty(result.TransitiveTests);
@@ -74,7 +72,7 @@ public class FindTestsForSymbolToolTests : IAsyncLifetime
     public void Transitive_FindsTestViaHelper()
     {
         var result = FindTestsForSymbolLogic.Execute(
-            _loaded, _resolver, _metadata, "Greeter.Greet", transitive: true, maxDepth: 3);
+            _loaded, _resolver, "Greeter.Greet", transitive: true, maxDepth: 3);
 
         // TransitiveGreetTest reaches Greet only through HelperThatGreets.
         var transitive = result.TransitiveTests.SingleOrDefault(t =>
@@ -90,7 +88,7 @@ public class FindTestsForSymbolToolTests : IAsyncLifetime
     public void Transitive_DirectHitsStillInDirectBucket()
     {
         var result = FindTestsForSymbolLogic.Execute(
-            _loaded, _resolver, _metadata, "Greeter.Greet", transitive: true, maxDepth: 3);
+            _loaded, _resolver, "Greeter.Greet", transitive: true, maxDepth: 3);
 
         // DirectGreetTest is a direct caller; it must remain in DirectTests, not TransitiveTests.
         Assert.Contains(result.DirectTests, t =>
@@ -105,7 +103,7 @@ public class FindTestsForSymbolToolTests : IAsyncLifetime
         // maxDepth=1 means the walk only inspects direct callers. The transitive helper
         // (depth-2 from the target) must not produce a transitive hit.
         var result = FindTestsForSymbolLogic.Execute(
-            _loaded, _resolver, _metadata, "Greeter.Greet", transitive: true, maxDepth: 1);
+            _loaded, _resolver, "Greeter.Greet", transitive: true, maxDepth: 1);
 
         Assert.DoesNotContain(result.TransitiveTests, t =>
             t.FullyQualifiedName.EndsWith("TransitiveGreetTest", StringComparison.Ordinal));

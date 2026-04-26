@@ -11,7 +11,6 @@ public static class FindTestsForSymbolLogic
     public static FindTestsForSymbolResult Execute(
         LoadedSolution loaded,
         SymbolResolver source,
-        MetadataSymbolResolver metadata,
         string symbol,
         bool transitive = false,
         int maxDepth = 3)
@@ -28,6 +27,20 @@ public static class FindTestsForSymbolLogic
 
         var directTests = new List<TestReference>();
         var transitiveTests = new List<TestReference>();
+        BfsWalk(loaded, source, targetMethods, transitive, maxDepth, directTests, transitiveTests);
+
+        return new FindTestsForSymbolResult(symbol, directTests, transitiveTests);
+    }
+
+    private static void BfsWalk(
+        LoadedSolution loaded,
+        SymbolResolver source,
+        IReadOnlyList<IMethodSymbol> targetMethods,
+        bool transitive,
+        int maxDepth,
+        List<TestReference> directTests,
+        List<TestReference> transitiveTests)
+    {
         var seenTestSymbols = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
         var visited = new HashSet<IMethodSymbol>(SymbolEqualityComparer.Default);
 
@@ -43,7 +56,7 @@ public static class FindTestsForSymbolLogic
         {
             var (frontier, chain, depth) = queue.Dequeue();
 
-            foreach (var caller in EnumerateDirectCallers(loaded, source, testProjectIds, frontier))
+            foreach (var caller in EnumerateDirectCallers(loaded, source, frontier))
             {
                 if (!visited.Add(caller.Method))
                     continue;
@@ -77,8 +90,6 @@ public static class FindTestsForSymbolLogic
                 }
             }
         }
-
-        return new FindTestsForSymbolResult(symbol, directTests, transitiveTests);
     }
 
     private record DirectCaller(IMethodSymbol Method, string ProjectName);
@@ -86,7 +97,6 @@ public static class FindTestsForSymbolLogic
     private static IEnumerable<DirectCaller> EnumerateDirectCallers(
         LoadedSolution loaded,
         SymbolResolver source,
-        IReadOnlySet<ProjectId> testProjectIds,
         IMethodSymbol target)
     {
         // Two-pass scan: test projects (terminal lookups) and non-test projects

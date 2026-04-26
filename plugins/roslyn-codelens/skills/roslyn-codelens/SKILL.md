@@ -278,7 +278,6 @@ State the reason when you take the exception. If you're about to type a Grep/Glo
 | `find_references` | Yes — finds source usages/references of external symbols | | |
 | `find_callers` | Yes — finds source invocations of external methods | | |
 | `find_implementations` | Yes — finds source implementors of external interfaces/classes | | |
-| `find_tests_for_symbol` | Partial — accepts metadata symbols as targets; tests must be source | Test methods discovered via xUnit/NUnit/MSTest attributes in source projects | |
 | `inspect_external_assembly` | Metadata only — this is its purpose | Assembly must be referenced by a project in the solution | `get_nuget_dependencies` to discover assembly names |
 | `peek_il` | Metadata only — this is its purpose | Abstract methods and interface instance members not supported | Use `go_to_definition` to confirm the method exists first |
 | `get_diagnostics` | No — source only | | |

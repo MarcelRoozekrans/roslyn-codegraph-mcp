@@ -19,7 +19,6 @@ public static class FindTestsForSymbolTool
         return FindTestsForSymbolLogic.Execute(
             manager.GetLoadedSolution(),
             manager.GetResolver(),
-            manager.GetMetadataResolver(),
             symbol,
             transitive,
             maxDepth);
