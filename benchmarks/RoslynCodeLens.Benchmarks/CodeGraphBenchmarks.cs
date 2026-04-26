@@ -79,6 +79,13 @@ public class CodeGraphBenchmarks
         return FindCallersLogic.Execute(_loaded, _resolver, _metadata, "IGreeter.Greet");
     }
 
+    [Benchmark(Description = "find_tests_for_symbol: IGreeter.Greet")]
+    public object FindTestsForSymbol()
+    {
+        return FindTestsForSymbolLogic.Execute(
+            _loaded, _resolver, _metadata, "IGreeter.Greet", transitive: false, maxDepth: 3);
+    }
+
     [Benchmark(Description = "get_type_hierarchy: Greeter")]
     public object GetTypeHierarchy()
     {
