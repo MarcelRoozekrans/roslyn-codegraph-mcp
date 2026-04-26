@@ -41,6 +41,8 @@ If any of these thoughts cross your mind, stop and switch to the MCP tool:
 | "Let me `Grep` for `Activator.CreateInstance`" | `find_reflection_usage` |
 | "I'll check if this method is used by reading files" | `find_callers` / `find_unused_symbols` |
 | "I'll eyeball complexity by reading the method" | `get_complexity_metrics` |
+| "Let me `Grep` for tests that call this method" | `find_tests_for_symbol` |
+| "Which tests will break if I change this?" | `find_tests_for_symbol` |
 
 **All of these mean: the MCP tool is the correct tool. Use it.**
 
@@ -108,6 +110,7 @@ Inspect an arbitrary DLL           → add a <ProjectReference> to a throwaway
 ### Finding Dependencies and Usage
 - `find_callers` — every call site for a method.
 - `find_implementations` — all implementors of an interface / extenders of a class.
+- `find_tests_for_symbol` — xUnit/NUnit/MSTest methods that exercise a production symbol; opt-in transitive walk through helpers.
 - `get_di_registrations` — DI wiring and lifetimes.
 - `find_reflection_usage` — hidden/dynamic coupling (`Activator.CreateInstance`, `MethodInfo.Invoke`, assembly scanning).
 - `get_nuget_dependencies` — NuGet packages and versions.
@@ -213,6 +216,7 @@ Reference concrete types, interfaces, and call sites in your analysis. Not *"the
 | `find_implementations` | "What implements this interface?" / "What extends this class?" |
 | `find_callers` | "Who calls this method?" / "What depends on this?" |
 | `find_references` | "Where is this symbol used?" / "Show all references" |
+| `find_tests_for_symbol` | "What tests cover this method?" / "Which tests will break if I change X?" |
 | `go_to_definition` | "Where is this defined?" / "Jump to source" |
 | `search_symbols` | "Find types/methods matching this name" |
 | `get_type_hierarchy` | "What's the inheritance chain?" |
@@ -274,6 +278,7 @@ State the reason when you take the exception. If you're about to type a Grep/Glo
 | `find_references` | Yes — finds source usages/references of external symbols | | |
 | `find_callers` | Yes — finds source invocations of external methods | | |
 | `find_implementations` | Yes — finds source implementors of external interfaces/classes | | |
+| `find_tests_for_symbol` | Partial — accepts metadata symbols as targets; tests must be source | Test methods discovered via xUnit/NUnit/MSTest attributes in source projects | |
 | `inspect_external_assembly` | Metadata only — this is its purpose | Assembly must be referenced by a project in the solution | `get_nuget_dependencies` to discover assembly names |
 | `peek_il` | Metadata only — this is its purpose | Abstract methods and interface instance members not supported | Use `go_to_definition` to confirm the method exists first |
 | `get_diagnostics` | No — source only | | |
