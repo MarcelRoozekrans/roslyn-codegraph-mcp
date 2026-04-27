@@ -21,11 +21,12 @@ public class FindTestsForSymbolToolTests : IAsyncLifetime
     public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
-    public void Direct_FindsNUnitAndMSTestTestsForGreeter()
+    public void Direct_FindsXUnitNUnitAndMSTestTestsForGreeter()
     {
         var result = FindTestsForSymbolLogic.Execute(
             _loaded, _resolver, "Greeter.Greet", transitive: false, maxDepth: 3);
 
+        Assert.Contains(result.DirectTests, t => t.Framework == TestFramework.XUnit);
         Assert.Contains(result.DirectTests, t => t.Framework == TestFramework.NUnit);
         Assert.Contains(result.DirectTests, t => t.Framework == TestFramework.MSTest);
     }
@@ -56,6 +57,22 @@ public class FindTestsForSymbolToolTests : IAsyncLifetime
             t.Framework == TestFramework.NUnit &&
             t.FullyQualifiedName.EndsWith("ParameterisedGreetTest", StringComparison.Ordinal)).ToList();
         Assert.Single(nunitParameterised);
+
+        var xunitParameterised = result.DirectTests.Where(t =>
+            t.Framework == TestFramework.XUnit &&
+            t.FullyQualifiedName.EndsWith("ParameterisedGreetTest", StringComparison.Ordinal)).ToList();
+        Assert.Single(xunitParameterised);
+    }
+
+    [Fact]
+    public void Direct_SymbolWithZeroTestCallers_ReturnsEmpty()
+    {
+        // Greeter.GreetFormal exists in TestLib but no test calls it.
+        var result = FindTestsForSymbolLogic.Execute(
+            _loaded, _resolver, "Greeter.GreetFormal", transitive: false, maxDepth: 3);
+
+        Assert.Empty(result.DirectTests);
+        Assert.Empty(result.TransitiveTests);
     }
 
     [Fact]

@@ -3,4 +3,5 @@
   <Project Path="TestLib2/TestLib2.csproj" />
   <Project Path="NUnitFixture/NUnitFixture.csproj" />
   <Project Path="MSTestFixture/MSTestFixture.csproj" />
+  <Project Path="XUnitFixture/XUnitFixture.csproj" />
 </Solution>

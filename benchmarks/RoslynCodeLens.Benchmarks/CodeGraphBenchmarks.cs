@@ -86,6 +86,13 @@ public class CodeGraphBenchmarks
             _loaded, _resolver, "IGreeter.Greet", transitive: false, maxDepth: 3);
     }
 
+    [Benchmark(Description = "find_tests_for_symbol (transitive): IGreeter.Greet")]
+    public object FindTestsForSymbolTransitive()
+    {
+        return FindTestsForSymbolLogic.Execute(
+            _loaded, _resolver, "IGreeter.Greet", transitive: true, maxDepth: 3);
+    }
+
     [Benchmark(Description = "get_type_hierarchy: Greeter")]
     public object GetTypeHierarchy()
     {
