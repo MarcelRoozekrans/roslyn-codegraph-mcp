@@ -14,4 +14,6 @@ public class Greeter : IGreeter, IDisposable
     public int ComputeLength(string value) => value.Length;
 
     public void Dispose() { }
+
+    public string GreetFormal(string name) => $"Greetings, {name}";
 }

@@ -24,6 +24,7 @@ A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/marcel
 
 - **find_implementations** — Find all classes/structs implementing an interface or extending a class
 - **find_callers** — Find every call site for a method, property, or constructor
+- **find_tests_for_symbol** — List xUnit/NUnit/MSTest methods that exercise a production symbol; opt-in transitive walk through helpers
 - **get_type_hierarchy** — Walk base classes, interfaces, and derived types
 - **get_di_registrations** — Scan for DI service registrations
 - **get_project_dependencies** — Get the project reference graph
