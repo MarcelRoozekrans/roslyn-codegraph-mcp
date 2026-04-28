@@ -218,6 +218,12 @@ public class CodeGraphBenchmarks
         return FindUncoveredSymbolsLogic.Execute(_loaded, _resolver);
     }
 
+    [Benchmark(Description = "find_async_violations: whole solution")]
+    public object FindAsyncViolations()
+    {
+        return FindAsyncViolationsLogic.Execute(_loaded, _resolver);
+    }
+
     [Benchmark(Description = "get_source_generators: all")]
     public object GetSourceGenerators()
     {
