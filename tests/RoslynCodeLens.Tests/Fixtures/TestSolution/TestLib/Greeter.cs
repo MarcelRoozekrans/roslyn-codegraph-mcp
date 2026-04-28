@@ -16,4 +16,31 @@ public class Greeter : IGreeter, IDisposable
     public void Dispose() { }
 
     public string GreetFormal(string name) => $"Greetings, {name}";
+
+    // Public computed property — uncovered. Complexity > 1 because of the if branch.
+    public int FormalNameLength
+    {
+        get
+        {
+            if (_lastFormalName is null)
+                return 0;
+            return _lastFormalName.Length;
+        }
+    }
+
+    private string? _lastFormalName;
+
+    // Public method — uncovered, high complexity (>= 5) for the riskHotspotCount test.
+    public string ClassifyName(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+            return "empty";
+        if (name.Length < 3)
+            return "short";
+        if (name.Length > 20)
+            return "long";
+        if (name.Contains(' '))
+            return "multi-word";
+        return "normal";
+    }
 }

@@ -26,6 +26,7 @@ A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/marcel
 - **find_implementations** — Find all classes/structs implementing an interface or extending a class
 - **find_callers** — Find every call site for a method, property, or constructor
 - **find_tests_for_symbol** — List xUnit/NUnit/MSTest methods that exercise a production symbol; opt-in transitive walk through helpers
+- **find_uncovered_symbols** — Public methods and properties no test transitively reaches; sorted by cyclomatic complexity for prioritization
 - **get_type_hierarchy** — Walk base classes, interfaces, and derived types
 - **get_di_registrations** — Scan for DI service registrations
 - **get_project_dependencies** — Get the project reference graph
@@ -135,37 +136,40 @@ All type lookups use pre-built reverse inheritance maps, member indexes, and att
 
 | Tool | Latency | Memory |
 |------|--------:|-------:|
-| `find_circular_dependencies` | 675 ns | 1.2 KB |
-| `go_to_definition` | 834 ns | 576 B |
-| `get_project_dependencies` | 883 ns | 1.3 KB |
-| `find_implementations` | 1.5 µs | 720 B |
-| `get_symbol_context` | 2.2 µs | 1000 B |
-| `get_type_hierarchy` | 2.6 µs | 1.3 KB |
-| `get_source_generators` | 4.1 µs | 7.1 KB |
-| `analyze_data_flow` | 5.8 µs | 880 B |
-| `get_generated_code` | 25 µs | 7.8 KB |
-| `inspect_external_assembly` (summary) | 27 µs | 22 KB |
-| `find_attribute_usages` | 43 µs | 832 B |
-| `analyze_control_flow` | 70 µs | 13 KB |
-| `get_complexity_metrics` | 94 µs | 6.0 KB |
-| `find_large_classes` | 100 µs | 896 B |
-| `get_diagnostics` | 104 µs | 22 KB |
-| `get_nuget_dependencies` | 124 µs | 15 KB |
-| `get_di_registrations` | 131 µs | 12 KB |
-| `get_file_overview` | 160 µs | 24 KB |
-| `get_type_overview` | 183 µs | 25 KB |
-| `find_reflection_usage` | 197 µs | 15 KB |
-| `peek_il` | 286 µs | 30 KB |
-| `find_callers` | 434 µs | 37 KB |
-| `analyze_method` | 489 µs | 37 KB |
-| `inspect_external_assembly` (namespace) | 527 µs | 268 KB |
-| `get_code_actions` | 783 µs | 50 KB |
-| `search_symbols` | 1.1 ms | 70 KB |
-| `find_references` | 2.2 ms | 197 KB |
-| `find_unused_symbols` | 2.4 ms | 201 KB |
-| `analyze_change_impact` | 2.8 ms | 235 KB |
-| `find_naming_violations` | 7.6 ms | 654 KB |
-| Solution loading (one-time) | ~1.5 s | 8.8 MB |
+| `go_to_definition` | 1.5 µs | 576 B |
+| `get_project_dependencies` | 1.9 µs | 1.5 KB |
+| `find_implementations` | 2.8 µs | 720 B |
+| `get_symbol_context` | 2.9 µs | 1.0 KB |
+| `find_circular_dependencies` | 3.3 µs | 2.4 KB |
+| `get_type_hierarchy` | 4.2 µs | 1.3 KB |
+| `get_source_generators` | 14 µs | 17 KB |
+| `analyze_data_flow` | 17 µs | 1.2 KB |
+| `inspect_external_assembly` (summary) | 57 µs | 22 KB |
+| `get_generated_code` | 60 µs | 18 KB |
+| `find_attribute_usages` | 99 µs | 904 B |
+| `analyze_control_flow` | 180 µs | 14 KB |
+| `find_large_classes` | 303 µs | 1.4 KB |
+| `get_di_registrations` | 473 µs | 14 KB |
+| `get_complexity_metrics` | 556 µs | 12 KB |
+| `find_reflection_usage` | 588 µs | 17 KB |
+| `get_type_overview` | 607 µs | 54 KB |
+| `get_diagnostics` | 643 µs | 50 KB |
+| `get_nuget_dependencies` | 787 µs | 37 KB |
+| `get_file_overview` | 799 µs | 53 KB |
+| `inspect_external_assembly` (namespace) | 1.1 ms | 270 KB |
+| `peek_il` | 1.1 ms | 33 KB |
+| `get_code_actions` | 1.2 ms | 53 KB |
+| `find_callers` | 4.3 ms | 160 KB |
+| `search_symbols` | 4.4 ms | 552 KB |
+| `find_tests_for_symbol` (direct) | 4.4 ms | 203 KB |
+| `analyze_method` | 4.4 ms | 160 KB |
+| `find_uncovered_symbols` | 6.6 ms | 180 KB |
+| `find_tests_for_symbol` (transitive) | 8.0 ms | 356 KB |
+| `find_references` | 13 ms | 606 KB |
+| `find_unused_symbols` | 19 ms | 617 KB |
+| `find_naming_violations` | 21 ms | 785 KB |
+| `analyze_change_impact` | 21 ms | 773 KB |
+| Solution loading (one-time) | ~4.7 s | 13 MB |
 
 ## Hot Reload
 
