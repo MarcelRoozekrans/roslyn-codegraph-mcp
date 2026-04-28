@@ -112,7 +112,7 @@ Inspect an arbitrary DLL           → add a <ProjectReference> to a throwaway
 - `find_callers` — every call site for a method.
 - `find_implementations` — all implementors of an interface / extenders of a class.
 - `find_tests_for_symbol` — xUnit/NUnit/MSTest methods that exercise a production symbol; opt-in transitive walk through helpers.
-- `find_uncovered_symbols` — Public methods and properties no test transitively reaches (≤ 3 helper hops); sorted by cyclomatic complexity for prioritization.
+- `find_uncovered_symbols` — Public methods and properties no test transitively reaches (≤ 3 helper hops); sorted by cyclomatic complexity for prioritization. Strict reference-based: an override is not marked covered just because its base or interface declaration is reached — a test calling `IFoo.Bar` does not cover `Foo.Bar`.
 - `get_di_registrations` — DI wiring and lifetimes.
 - `find_reflection_usage` — hidden/dynamic coupling (`Activator.CreateInstance`, `MethodInfo.Invoke`, assembly scanning).
 - `get_nuget_dependencies` — NuGet packages and versions.
