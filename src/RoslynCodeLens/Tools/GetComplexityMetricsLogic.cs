@@ -1,6 +1,6 @@
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using RoslynCodeLens.Analysis;
 using RoslynCodeLens.Models;
 
 namespace RoslynCodeLens.Tools;
@@ -26,7 +26,7 @@ public static class GetComplexityMetricsLogic
 
                 foreach (var method in root.DescendantNodes().OfType<MethodDeclarationSyntax>())
                 {
-                    var complexity = CalculateComplexity(method);
+                    var complexity = ComplexityCalculator.Calculate(method);
 
                     if (complexity < threshold)
                         continue;
@@ -44,45 +44,5 @@ public static class GetComplexityMetricsLogic
         }
 
         return results.OrderByDescending(r => r.Complexity).ToList();
-    }
-
-    private static int CalculateComplexity(MethodDeclarationSyntax method)
-    {
-        var complexity = 1;
-
-        foreach (var node in method.DescendantNodes())
-        {
-            switch (node.Kind())
-            {
-                case SyntaxKind.IfStatement:
-                case SyntaxKind.ElseClause:
-                case SyntaxKind.SwitchSection:
-                case SyntaxKind.ForStatement:
-                case SyntaxKind.ForEachStatement:
-                case SyntaxKind.WhileStatement:
-                case SyntaxKind.DoStatement:
-                case SyntaxKind.CatchClause:
-                case SyntaxKind.ConditionalExpression:
-                    complexity++;
-                    break;
-            }
-        }
-
-        foreach (var token in method.DescendantTokens())
-        {
-#pragma warning disable EPS06
-            var kind = token.Kind();
-#pragma warning restore EPS06
-            switch (kind)
-            {
-                case SyntaxKind.AmpersandAmpersandToken:
-                case SyntaxKind.BarBarToken:
-                case SyntaxKind.QuestionQuestionToken:
-                    complexity++;
-                    break;
-            }
-        }
-
-        return complexity;
     }
 }
