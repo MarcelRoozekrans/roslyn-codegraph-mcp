@@ -238,46 +238,10 @@ public static class FindUncoveredSymbolsLogic
     private static bool IsCovered(ISymbol candidate, HashSet<IMethodSymbol> coveredSet)
     {
         if (candidate is IMethodSymbol method)
-            return IsMethodCovered(method, coveredSet);
+            return coveredSet.Contains(method.OriginalDefinition);
         if (candidate is IPropertySymbol property)
-            return (property.GetMethod is not null && IsMethodCovered(property.GetMethod, coveredSet))
-                || (property.SetMethod is not null && IsMethodCovered(property.SetMethod, coveredSet));
-        return false;
-    }
-
-    private static bool IsMethodCovered(IMethodSymbol method, HashSet<IMethodSymbol> coveredSet)
-    {
-        if (coveredSet.Contains(method.OriginalDefinition))
-            return true;
-
-        // Virtual dispatch: if any base method (or implemented interface method) is covered,
-        // the override could be invoked at runtime, so treat it as covered too.
-        var current = method.OverriddenMethod;
-        while (current is not null)
-        {
-            if (coveredSet.Contains(current.OriginalDefinition))
-                return true;
-            current = current.OverriddenMethod;
-        }
-
-        // Interface implementations.
-        var containingType = method.ContainingType;
-        if (containingType is not null)
-        {
-            foreach (var iface in containingType.AllInterfaces)
-            {
-                foreach (var ifaceMember in iface.GetMembers().OfType<IMethodSymbol>())
-                {
-                    var impl = containingType.FindImplementationForInterfaceMember(ifaceMember);
-                    if (SymbolEqualityComparer.Default.Equals(impl, method)
-                        && coveredSet.Contains(ifaceMember.OriginalDefinition))
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
-
+            return (property.GetMethod is not null && coveredSet.Contains(property.GetMethod.OriginalDefinition))
+                || (property.SetMethod is not null && coveredSet.Contains(property.SetMethod.OriginalDefinition));
         return false;
     }
 

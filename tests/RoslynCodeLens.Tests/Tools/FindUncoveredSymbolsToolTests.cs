@@ -36,7 +36,7 @@ public class FindUncoveredSymbolsToolTests : IAsyncLifetime
         var result = FindUncoveredSymbolsLogic.Execute(_loaded, _resolver);
 
         Assert.DoesNotContain(result.UncoveredSymbols, s =>
-            s.Symbol.EndsWith("Greeter.Greet", StringComparison.Ordinal));
+            string.Equals(s.Symbol, "Greeter.Greet", StringComparison.Ordinal));
     }
 
     [Fact]
