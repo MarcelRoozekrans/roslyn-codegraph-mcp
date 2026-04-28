@@ -224,6 +224,12 @@ public class CodeGraphBenchmarks
         return FindAsyncViolationsLogic.Execute(_loaded, _resolver);
     }
 
+    [Benchmark(Description = "find_disposable_misuse: whole solution")]
+    public object FindDisposableMisuse()
+    {
+        return FindDisposableMisuseLogic.Execute(_loaded, _resolver);
+    }
+
     [Benchmark(Description = "get_source_generators: all")]
     public object GetSourceGenerators()
     {
