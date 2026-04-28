@@ -117,4 +117,17 @@ public class FindUncoveredSymbolsToolTests : IAsyncLifetime
         Assert.DoesNotContain(result.UncoveredSymbols, s =>
             s.Project.EndsWith("Fixture", StringComparison.Ordinal));
     }
+
+    [Fact]
+    public void Result_UnreachedOverride_AppearsAsUncovered()
+    {
+        // Strict reference-based coverage: FancyGreeter.Greet overrides the (covered)
+        // Greeter.Greet, but no test instantiates FancyGreeter or calls its override.
+        // It must appear as uncovered — propagating coverage through the override chain
+        // would silently hide real testing debt.
+        var result = FindUncoveredSymbolsLogic.Execute(_loaded, _resolver);
+
+        Assert.Contains(result.UncoveredSymbols, s =>
+            string.Equals(s.Symbol, "FancyGreeter.Greet", StringComparison.Ordinal));
+    }
 }
