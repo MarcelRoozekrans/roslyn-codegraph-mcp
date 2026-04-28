@@ -142,33 +142,20 @@ public static class FindTestsForSymbolLogic
 
     private static TestReference? ClassifyAsTest(IMethodSymbol method, string projectName)
     {
-        foreach (var attr in method.GetAttributes())
-        {
-            var ns = attr.AttributeClass?.ContainingNamespace?.ToDisplayString() ?? string.Empty;
-            var name = attr.AttributeClass?.Name ?? string.Empty;
+        var classification = TestMethodClassifier.Classify(method);
+        if (classification is null) return null;
 
-            var framework = TestAttributeRecognizer.Recognize(ns, name);
-            if (framework is not null)
-            {
-                var location = method.Locations.FirstOrDefault(l => l.IsInSource);
-                if (location is null)
-                    return null;
+        var location = method.Locations.FirstOrDefault(l => l.IsInSource);
+        if (location is null) return null;
 
-                var lineSpan = location.GetLineSpan();
-                var attributeShortName = name.EndsWith("Attribute", StringComparison.Ordinal)
-                    ? name[..^"Attribute".Length]
-                    : name;
+        var lineSpan = location.GetLineSpan();
 
-                return new TestReference(
-                    FullyQualifiedName: method.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Replace("global::", string.Empty, StringComparison.Ordinal),
-                    Framework: framework.Value,
-                    Attribute: attributeShortName,
-                    FilePath: lineSpan.Path,
-                    Line: lineSpan.StartLinePosition.Line + 1,
-                    Project: projectName);
-            }
-        }
-
-        return null;
+        return new TestReference(
+            FullyQualifiedName: method.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).Replace("global::", string.Empty, StringComparison.Ordinal),
+            Framework: classification.Framework,
+            Attribute: classification.AttributeShortName,
+            FilePath: lineSpan.Path,
+            Line: lineSpan.StartLinePosition.Line + 1,
+            Project: projectName);
     }
 }
