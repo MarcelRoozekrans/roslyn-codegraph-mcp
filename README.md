@@ -43,6 +43,7 @@ A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/marcel
 - **get_complexity_metrics** — Cyclomatic complexity analysis per method
 - **find_naming_violations** — Check .NET naming convention compliance
 - **find_async_violations** — Sync-over-async, `async void` misuse, missing awaits, fire-and-forget tasks; per-violation report with severity
+- **find_disposable_misuse** — `IDisposable`/`IAsyncDisposable` instances not wrapped in `using`/`await using`/returned/assigned to field; severity error/warning per violation.
 - **find_large_classes** — Find oversized types by member or line count
 - **find_unused_symbols** — Dead code detection via reference analysis
 - **get_source_generators** — List source generators and their output per project
