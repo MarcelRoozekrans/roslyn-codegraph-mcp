@@ -255,7 +255,9 @@ public static class FindAsyncViolationsLogic
             or "System.Runtime.CompilerServices.ConfiguredTaskAwaitable.ConfiguredTaskAwaiter"
             or "System.Runtime.CompilerServices.ConfiguredTaskAwaitable<TResult>.ConfiguredTaskAwaiter"
             or "System.Runtime.CompilerServices.ValueTaskAwaiter"
-            or "System.Runtime.CompilerServices.ValueTaskAwaiter<TResult>";
+            or "System.Runtime.CompilerServices.ValueTaskAwaiter<TResult>"
+            or "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable.ConfiguredValueTaskAwaiter"
+            or "System.Runtime.CompilerServices.ConfiguredValueTaskAwaitable<TResult>.ConfiguredValueTaskAwaiter";
     }
 
     private static bool IsGeneratedFile(SyntaxTree tree)

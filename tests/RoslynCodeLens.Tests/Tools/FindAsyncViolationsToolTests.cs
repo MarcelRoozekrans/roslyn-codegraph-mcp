@@ -23,7 +23,7 @@ public class FindAsyncViolationsToolTests : IAsyncLifetime
     [Theory]
     [InlineData(AsyncViolationPattern.SyncOverAsyncResult, "GetResultViolation")]
     [InlineData(AsyncViolationPattern.SyncOverAsyncWait, "WaitViolation")]
-    [InlineData(AsyncViolationPattern.SyncOverAsyncGetAwaiterGetResult, "GetAwaiterGetResultViolation")]
+    [InlineData(AsyncViolationPattern.SyncOverAsyncGetAwaiterGetResult, ".GetAwaiterGetResultViolation")]
     [InlineData(AsyncViolationPattern.AsyncVoid, "AsyncVoidViolation")]
     [InlineData(AsyncViolationPattern.MissingAwait, "MissingAwaitViolation")]
     [InlineData(AsyncViolationPattern.FireAndForget, "FireAndForgetViolation")]
@@ -36,6 +36,16 @@ public class FindAsyncViolationsToolTests : IAsyncLifetime
             v.ContainingMethod.EndsWith(methodName, StringComparison.Ordinal)).ToList();
 
         Assert.Single(hits);
+    }
+
+    [Fact]
+    public void DetectsConfiguredAwaiter_GetResult()
+    {
+        var result = FindAsyncViolationsLogic.Execute(_loaded, _resolver);
+
+        Assert.Contains(result.Violations, v =>
+            v.Pattern == AsyncViolationPattern.SyncOverAsyncGetAwaiterGetResult &&
+            v.ContainingMethod.EndsWith("ConfiguredGetAwaiterGetResultViolation", StringComparison.Ordinal));
     }
 
     [Fact]

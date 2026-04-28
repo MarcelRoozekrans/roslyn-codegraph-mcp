@@ -47,6 +47,13 @@ public class Violations
         Task.Delay(10);
     }
 
+    // 3b. SyncOverAsyncGetAwaiterGetResult via ConfigureAwait — same pattern, different awaiter type
+    public string ConfiguredGetAwaiterGetResultViolation()
+    {
+        var task = Task.FromResult("hello");
+        return task.ConfigureAwait(false).GetAwaiter().GetResult();
+    }
+
     // ============ NEGATIVE CASES (must NOT be flagged) ============
 
     public async Task ProperAwait()
