@@ -44,6 +44,7 @@ If any of these thoughts cross your mind, stop and switch to the MCP tool:
 | "Let me `Grep` for tests that call this method" | `find_tests_for_symbol` |
 | "Which tests will break if I change this?" | `find_tests_for_symbol` |
 | "What should I write tests for?" / "Where's our testing debt?" / "Show me untested public methods" | `find_uncovered_symbols` |
+| "Are there async bugs?" / "Find sync-over-async" / "Are we using `.Result` anywhere?" | `find_async_violations` |
 
 **All of these mean: the MCP tool is the correct tool. Use it.**
 
@@ -139,6 +140,7 @@ Inspect an arbitrary DLL           → add a <ProjectReference> to a throwaway
 - `find_unused_symbols` — dead code (reference-based).
 - `get_complexity_metrics` — cyclomatic complexity per method.
 - `find_naming_violations` — .NET naming conventions.
+- `find_async_violations` — Detects sync-over-async (`.Result`/`.Wait()`/`GetAwaiter().GetResult()`), `async void` outside event handlers, missing awaits in async methods, and fire-and-forget tasks. Severity error/warning per violation. Static analysis; no runtime data.
 - `find_large_classes` — oversized types.
 - `find_circular_dependencies` — project/namespace cycles.
 
@@ -236,6 +238,7 @@ Reference concrete types, interfaces, and call sites in your analysis. Not *"the
 | `find_unused_symbols` | "Any dead code?" |
 | `get_complexity_metrics` | "Which methods are too complex?" |
 | `find_naming_violations` | "Check naming conventions" |
+| `find_async_violations` | "Are there async bugs?" / "Find sync-over-async" |
 | `find_large_classes` | "Find classes that need splitting" |
 | `find_circular_dependencies` | "Any circular dependencies?" |
 | `get_source_generators` | "What source generators are active?" |
