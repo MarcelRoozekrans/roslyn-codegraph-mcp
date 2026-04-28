@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.5.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.4.0...v1.5.0) (2026-04-28)
+
+
+### Features
+
+* add find_async_violations MCP tool (sync-over-async, async void, missing await, fire-and-forget) ([5ac2f1a](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/5ac2f1adb9861893c940acedfb7959a7b10d36ca))
+* add FindAsyncViolationsLogic with six pattern detectors ([0153007](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/015300710a8d93964b766c537bd8d419c1761269))
+* add models for find_async_violations output ([b8cf04b](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/b8cf04be0b10d725cfe1a11cb8e739bad635a2ba))
+* register find_async_violations MCP tool ([b336055](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/b336055caefb24c1bc2ad5560ef3046c1e756a5e))
+
+
+### Bug Fixes
+
+* detect .Result on ValueTask&lt;T&gt;; silence MA0002 ToDictionary warnings ([46c5bf1](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/46c5bf197cf11beeee7d2110c02d17582060ab21))
+* detect GetResult() on ConfiguredValueTaskAwaitable ([bd0890c](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/bd0890ce702907f4c3a9531fb284a46c9ceff57d))
+
 ## [1.4.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.3.0...v1.4.0) (2026-04-28)
 
 
