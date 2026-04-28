@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.6.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.5.0...v1.6.0) (2026-04-28)
+
+
+### Features
+
+* add find_disposable_misuse MCP tool (IDisposable / IAsyncDisposable leak detection) ([8306f44](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/8306f44eaca64873d344acb05567a72403dbe682))
+* add FindDisposableMisuseLogic with two pattern detectors ([751108d](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/751108d288947c8cc09c13f084dc62bcb6f114ef))
+* add models for find_disposable_misuse output ([f80f9f6](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/f80f9f6b5b89fbb197c3878443d9c6dacd4da42c))
+* register find_disposable_misuse MCP tool ([5cc5bb6](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/5cc5bb661ec85096ac76266a975ba73d0bd91abf))
+
 ## [1.5.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.4.0...v1.5.0) (2026-04-28)
 
 
