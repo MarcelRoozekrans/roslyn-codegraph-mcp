@@ -49,6 +49,16 @@ public class FindAsyncViolationsToolTests : IAsyncLifetime
     }
 
     [Fact]
+    public void DetectsResult_OnValueTask()
+    {
+        var result = FindAsyncViolationsLogic.Execute(_loaded, _resolver);
+
+        Assert.Contains(result.Violations, v =>
+            v.Pattern == AsyncViolationPattern.SyncOverAsyncResult &&
+            v.ContainingMethod.EndsWith("GetResultOnValueTaskViolation", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void DoesNotFlag_ProperlyAwaited()
     {
         var result = FindAsyncViolationsLogic.Execute(_loaded, _resolver);

@@ -54,6 +54,13 @@ public class Violations
         return task.ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
+    // 1b. SyncOverAsyncResult on ValueTask<T> (same blocking pattern, different awaitable type)
+    public string GetResultOnValueTaskViolation()
+    {
+        var task = new System.Threading.Tasks.ValueTask<string>("hello");
+        return task.Result;
+    }
+
     // ============ NEGATIVE CASES (must NOT be flagged) ============
 
     public async Task ProperAwait()

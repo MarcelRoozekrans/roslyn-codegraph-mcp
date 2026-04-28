@@ -73,7 +73,7 @@ public static class FindAsyncViolationsLogic
                             memberAccess.Parent is not InvocationExpressionSyntax)
                         {
                             var receiverType = semanticModel.GetTypeInfo(memberAccess.Expression).Type;
-                            if (IsTaskType(receiverType, taskSymbol, taskGenericSymbol))
+                            if (HasTaskResultProperty(receiverType, taskSymbol, taskGenericSymbol, valueTaskGenericSymbol))
                             {
                                 violations.Add(BuildViolation(
                                     AsyncViolationPattern.SyncOverAsyncResult,
@@ -151,11 +151,11 @@ public static class FindAsyncViolationsLogic
         });
 
         var byPattern = violations
-            .GroupBy(v => v.Pattern.ToString())
-            .ToDictionary(g => g.Key, g => g.Count());
+            .GroupBy(v => v.Pattern.ToString(), StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.Count(), StringComparer.Ordinal);
         var bySeverity = violations
-            .GroupBy(v => v.Severity.ToString())
-            .ToDictionary(g => g.Key, g => g.Count());
+            .GroupBy(v => v.Severity.ToString(), StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => g.Count(), StringComparer.Ordinal);
 
         var summary = new AsyncViolationSummary(
             TotalViolations: violations.Count,
@@ -197,16 +197,17 @@ public static class FindAsyncViolationsLogic
         return false;
     }
 
-    private static bool IsTaskType(ITypeSymbol? type, INamedTypeSymbol taskSymbol, INamedTypeSymbol? taskGenericSymbol)
+    private static bool HasTaskResultProperty(ITypeSymbol? type, INamedTypeSymbol taskSymbol, INamedTypeSymbol? taskGenericSymbol, INamedTypeSymbol? valueTaskGenericSymbol)
     {
         if (type is null) return false;
         if (SymbolEqualityComparer.Default.Equals(type, taskSymbol)) return true;
-        if (taskGenericSymbol is not null &&
-            type is INamedTypeSymbol named &&
-            named.IsGenericType &&
-            SymbolEqualityComparer.Default.Equals(named.ConstructedFrom, taskGenericSymbol))
+        if (type is INamedTypeSymbol named && named.IsGenericType)
         {
-            return true;
+            var ctor = named.ConstructedFrom;
+            if (taskGenericSymbol is not null &&
+                SymbolEqualityComparer.Default.Equals(ctor, taskGenericSymbol)) return true;
+            if (valueTaskGenericSymbol is not null &&
+                SymbolEqualityComparer.Default.Equals(ctor, valueTaskGenericSymbol)) return true;
         }
         return false;
     }
