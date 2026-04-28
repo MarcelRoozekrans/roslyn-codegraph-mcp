@@ -5,4 +5,5 @@
   <Project Path="MSTestFixture/MSTestFixture.csproj" />
   <Project Path="XUnitFixture/XUnitFixture.csproj" />
   <Project Path="AsyncFixture/AsyncFixture.csproj" />
+  <Project Path="DisposableFixture/DisposableFixture.csproj" />
 </Solution>
