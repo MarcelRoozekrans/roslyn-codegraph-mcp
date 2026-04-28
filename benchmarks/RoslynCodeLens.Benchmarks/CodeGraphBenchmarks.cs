@@ -212,6 +212,12 @@ public class CodeGraphBenchmarks
         return FindUnusedSymbolsLogic.Execute(_loaded, _resolver, null, false);
     }
 
+    [Benchmark(Description = "find_uncovered_symbols: whole solution")]
+    public object FindUncoveredSymbols()
+    {
+        return FindUncoveredSymbolsLogic.Execute(_loaded, _resolver);
+    }
+
     [Benchmark(Description = "get_source_generators: all")]
     public object GetSourceGenerators()
     {
