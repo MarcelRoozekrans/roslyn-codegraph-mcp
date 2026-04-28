@@ -43,6 +43,7 @@ If any of these thoughts cross your mind, stop and switch to the MCP tool:
 | "I'll eyeball complexity by reading the method" | `get_complexity_metrics` |
 | "Let me `Grep` for tests that call this method" | `find_tests_for_symbol` |
 | "Which tests will break if I change this?" | `find_tests_for_symbol` |
+| "What should I write tests for?" / "Where's our testing debt?" / "Show me untested public methods" | `find_uncovered_symbols` |
 
 **All of these mean: the MCP tool is the correct tool. Use it.**
 
@@ -111,6 +112,7 @@ Inspect an arbitrary DLL           → add a <ProjectReference> to a throwaway
 - `find_callers` — every call site for a method.
 - `find_implementations` — all implementors of an interface / extenders of a class.
 - `find_tests_for_symbol` — xUnit/NUnit/MSTest methods that exercise a production symbol; opt-in transitive walk through helpers.
+- `find_uncovered_symbols` — Public methods and properties no test transitively reaches (≤ 3 helper hops); sorted by cyclomatic complexity for prioritization.
 - `get_di_registrations` — DI wiring and lifetimes.
 - `find_reflection_usage` — hidden/dynamic coupling (`Activator.CreateInstance`, `MethodInfo.Invoke`, assembly scanning).
 - `get_nuget_dependencies` — NuGet packages and versions.
@@ -217,6 +219,7 @@ Reference concrete types, interfaces, and call sites in your analysis. Not *"the
 | `find_callers` | "Who calls this method?" / "What depends on this?" |
 | `find_references` | "Where is this symbol used?" / "Show all references" |
 | `find_tests_for_symbol` | "What tests cover this method?" / "Which tests will break if I change X?" |
+| `find_uncovered_symbols` | "What should I write tests for?" / "Where's our testing debt?" |
 | `go_to_definition` | "Where is this defined?" / "Jump to source" |
 | `search_symbols` | "Find types/methods matching this name" |
 | `get_type_hierarchy` | "What's the inheritance chain?" |
