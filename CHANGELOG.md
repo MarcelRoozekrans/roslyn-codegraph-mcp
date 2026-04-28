@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.2.1...v1.3.0) (2026-04-27)
+
+
+### Features
+
+* add find_tests_for_symbol MCP tool (xUnit/NUnit/MSTest) ([c5252a2](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/c5252a2f7940b072493e17d64946938f4b5792d9))
+* add FindTestsForSymbolLogic (direct mode) ([1f8cf9a](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/1f8cf9ad03b56161a3f78528a910fcf988f775a8))
+* add TestAttributeRecognizer for xUnit/NUnit/MSTest ([d65a763](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/d65a76384d5b2847c8e2bbefa4fd69996820ff73))
+* add TestProjectDetector via package-ref pattern scan ([4199cf6](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/4199cf685386c2f28e49dc4fc02be66b7c19ba25))
+* add transitive mode to FindTestsForSymbolLogic ([41db467](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/41db467c6c166447235237bb14d648aa5c66b400))
+* register find_tests_for_symbol MCP tool ([e15213d](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/e15213d7f9ad1a5ae6a36241478ef2ffa4bc8de7))
+
 ## [1.2.1](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.2.0...v1.2.1) (2026-04-26)
 
 
