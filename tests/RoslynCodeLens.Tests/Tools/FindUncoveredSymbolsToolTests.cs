@@ -1,6 +1,7 @@
 using RoslynCodeLens;
 using RoslynCodeLens.Models;
 using RoslynCodeLens.Symbols;
+using RoslynCodeLens.TestDiscovery;
 using RoslynCodeLens.Tools;
 
 namespace RoslynCodeLens.Tests.Tools;
@@ -114,8 +115,13 @@ public class FindUncoveredSymbolsToolTests : IAsyncLifetime
     {
         var result = FindUncoveredSymbolsLogic.Execute(_loaded, _resolver);
 
+        var testProjectNames = TestProjectDetector
+            .GetTestProjectIds(_loaded.Solution)
+            .Select(id => _loaded.Solution.GetProject(id)!.Name)
+            .ToHashSet(StringComparer.Ordinal);
+
         Assert.DoesNotContain(result.UncoveredSymbols, s =>
-            s.Project.EndsWith("Fixture", StringComparison.Ordinal));
+            testProjectNames.Contains(s.Project));
     }
 
     [Fact]
