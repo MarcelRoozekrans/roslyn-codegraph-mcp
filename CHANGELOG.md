@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.4.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.3.0...v1.4.0) (2026-04-28)
+
+
+### Features
+
+* add find_uncovered_symbols MCP tool (test-coverage report with risk hotspots) ([983bf57](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/983bf57be6df3288d7ad21c26775a09e33dbdaf1))
+* add FindUncoveredSymbolsLogic ([4527259](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/4527259fe167b3337f86db667bb95b2a6c6ee3a0))
+* add models for find_uncovered_symbols output ([67232e7](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/67232e76b9f7269737f35d4c5c965259c762c0e1))
+* register find_uncovered_symbols MCP tool ([9ca45d0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/9ca45d0b8b3ae705292c9d497cb39626f4b79cc7))
+
+
+### Bug Fixes
+
+* revert virtual-dispatch propagation; tighten Greeter.Greet test predicate ([14cf42b](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/14cf42b6751847a732c549bc368570f5abd4cd33))
+
 ## [1.3.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.2.1...v1.3.0) (2026-04-27)
 
 
