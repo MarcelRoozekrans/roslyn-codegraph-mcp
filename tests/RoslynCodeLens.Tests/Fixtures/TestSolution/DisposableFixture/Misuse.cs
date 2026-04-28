@@ -36,6 +36,20 @@ public class Misuse
         OpenStream();
     }
 
+    // Pattern 1 (DisposableNotDisposed): outer leak masked by a nested lambda's same-named return.
+    // The inner `stream` is returned from the lambda but the outer `stream` actually leaks.
+    // Symbol-based matching (vs text-match) correctly flags only the outer one.
+    public void NotDisposedWhenInnerLambdaShadows()
+    {
+        var stream = new MemoryStream();
+        Func<Stream> getOther = () =>
+        {
+            var stream = new MemoryStream();
+            return stream;
+        };
+        _ = getOther;
+    }
+
     // ============ NEGATIVE CASES (must NOT be flagged) ============
 
     public void DisposedViaUsingDeclaration()

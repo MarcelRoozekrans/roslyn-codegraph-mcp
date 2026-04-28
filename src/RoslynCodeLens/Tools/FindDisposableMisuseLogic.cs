@@ -100,8 +100,10 @@ public static class FindDisposableMisuseLogic
                 if (!ImplementsDisposable(typeInfo.Type, idisposable, iasyncDisposable))
                     continue;
 
-                var variableName = declarator.Identifier.Text;
-                if (IsDisposalAcknowledged(body, variableName, semanticModel))
+                if (semanticModel.GetDeclaredSymbol(declarator) is not ILocalSymbol localSymbol)
+                    continue;
+
+                if (IsDisposalAcknowledged(body, localSymbol, semanticModel))
                     continue;
 
                 violations.Add(BuildViolation(
@@ -161,28 +163,28 @@ public static class FindDisposableMisuseLogic
         return false;
     }
 
-    private static bool IsDisposalAcknowledged(SyntaxNode body, string variableName, SemanticModel semanticModel)
+    private static bool IsDisposalAcknowledged(SyntaxNode body, ILocalSymbol localSymbol, SemanticModel semanticModel)
     {
         foreach (var node in body.DescendantNodes())
         {
-            // return x;  or  return (X)x;  or  return Wrap(x);
+            // return x;  or  return Wrap(x);  — caller takes ownership
             if (node is ReturnStatementSyntax returnStmt && returnStmt.Expression is not null)
             {
-                if (ContainsIdentifier(returnStmt.Expression, variableName))
+                if (ReferencesSymbol(returnStmt.Expression, localSymbol, semanticModel))
                     return true;
             }
 
             if (node is AssignmentExpressionSyntax assignment &&
                 assignment.IsKind(SyntaxKind.SimpleAssignmentExpression))
             {
-                if (!ContainsIdentifier(assignment.Right, variableName))
+                if (!ReferencesSymbol(assignment.Right, localSymbol, semanticModel))
                     continue;
 
                 // LHS is `this.field` / `someInstance.field` — ownership transferred to instance.
                 if (assignment.Left is MemberAccessExpressionSyntax)
                     return true;
 
-                // LHS is a bare identifier — check if it resolves to an out/ref parameter or a field/property.
+                // LHS is a bare identifier — check whether it resolves to an out/ref parameter or a field/property.
                 if (assignment.Left is IdentifierNameSyntax leftId)
                 {
                     var symbolInfo = semanticModel.GetSymbolInfo(leftId);
@@ -202,17 +204,16 @@ public static class FindDisposableMisuseLogic
         return false;
     }
 
-    private static bool ContainsIdentifier(SyntaxNode node, string name)
+    private static bool ReferencesSymbol(SyntaxNode node, ILocalSymbol target, SemanticModel semanticModel)
     {
-        if (node is IdentifierNameSyntax id && id.Identifier.Text == name)
-            return true;
-
-        foreach (var descendant in node.DescendantNodes().OfType<IdentifierNameSyntax>())
+        foreach (var id in node.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
         {
-            if (descendant.Identifier.Text == name)
+            if (semanticModel.GetSymbolInfo(id).Symbol is ILocalSymbol local &&
+                SymbolEqualityComparer.Default.Equals(local, target))
+            {
                 return true;
+            }
         }
-
         return false;
     }
 

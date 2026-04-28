@@ -93,6 +93,20 @@ public class FindDisposableMisuseToolTests : IAsyncLifetime
     }
 
     [Fact]
+    public void DetectsOuterLeak_WhenInnerLambdaShadows()
+    {
+        // The fixture method NotDisposedWhenInnerLambdaShadows declares an outer 'stream'
+        // (which leaks) and a nested lambda that declares its own 'stream' and returns it.
+        // Text-based identifier matching would falsely acknowledge the outer leak; symbol-based
+        // matching correctly flags it.
+        var result = FindDisposableMisuseLogic.Execute(_loaded, _resolver);
+
+        Assert.Contains(result.Violations, v =>
+            v.Pattern == DisposableMisusePattern.DisposableNotDisposed &&
+            v.ContainingMethod.EndsWith("NotDisposedWhenInnerLambdaShadows", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void DoesNotFlag_TestProjectMembers()
     {
         var result = FindDisposableMisuseLogic.Execute(_loaded, _resolver);
