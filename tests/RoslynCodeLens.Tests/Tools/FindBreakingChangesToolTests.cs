@@ -240,11 +240,14 @@ public class FindBreakingChangesToolTests : IAsyncLifetime
     public void Assembly_Baseline_RoundtripsCleanly()
     {
         var src = """
+            using System.Threading.Tasks;
             namespace BaselineProbe
             {
                 public class Foo
                 {
                     public void Bar() {}
+                    public string Echo(string input, int count) => input;
+                    public Task<int> Counted(int n) => Task.FromResult(n);
                 }
             }
             """;
@@ -273,6 +276,16 @@ public class FindBreakingChangesToolTests : IAsyncLifetime
                 c.Name == "BaselineProbe.Foo" && c.Kind == BreakingChangeKind.Removed);
             Assert.Contains(result.Changes, c =>
                 c.Name.Contains("BaselineProbe.Foo.Bar", StringComparison.Ordinal) &&
+                c.Kind == BreakingChangeKind.Removed);
+
+            // Methods whose signatures reference BCL types must resolve cleanly — without
+            // BCL refs in LoadBaselineFromAssembly's compilation, parameter and return types
+            // would render as ?-error symbols and the FQN would lose its parameter list.
+            Assert.Contains(result.Changes, c =>
+                c.Name == "BaselineProbe.Foo.Echo(string, int)" &&
+                c.Kind == BreakingChangeKind.Removed);
+            Assert.Contains(result.Changes, c =>
+                c.Name == "BaselineProbe.Foo.Counted(int)" &&
                 c.Kind == BreakingChangeKind.Removed);
         }
         finally

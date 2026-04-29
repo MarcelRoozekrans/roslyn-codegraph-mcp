@@ -167,9 +167,17 @@ public static class FindBreakingChangesLogic
     private static IReadOnlyList<PublicApiEntry> LoadBaselineFromAssembly(string path)
     {
         var reference = MetadataReference.CreateFromFile(path);
+
+        // Without BCL references, every signature mentioning a referenced type (string, int,
+        // Task<T>, ...) renders as an error type and FQNs diverge from the source-walked
+        // counterpart. Pull the runtime's trusted platform assemblies so signatures resolve.
+        var bclRefs = AppDomain.CurrentDomain.GetAssemblies()
+            .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
+            .Select(a => (MetadataReference)MetadataReference.CreateFromFile(a.Location));
+
         var compilation = CSharpCompilation.Create(
             "baseline-extraction",
-            references: [reference]);
+            references: bclRefs.Append(reference));
 
         if (compilation.GetAssemblyOrModuleSymbol(reference) is not IAssemblySymbol assembly)
             throw new InvalidOperationException(
@@ -184,6 +192,7 @@ public static class FindBreakingChangesLogic
         var opts = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true,
             ReadCommentHandling = JsonCommentHandling.Skip,
             AllowTrailingCommas = true
         };
