@@ -70,7 +70,7 @@ Cycles surface naturally — a node points back at one already in the dict, and 
 
 1. Resolve `symbol` via `SymbolResolver.FindMethods()` — take first match (consistent with `analyze_method`).
 2. For each visited source-located node:
-   - Walk method body for `InvocationExpressionSyntax`, `ObjectCreationExpressionSyntax`, member-access expressions on properties/indexers/operators.
+   - Walk method body for `InvocationExpressionSyntax`, `ObjectCreationExpressionSyntax`, `ImplicitObjectCreationExpressionSyntax` (target-typed `new()`), `ConstructorInitializerSyntax` (`: base(...)` / `: this(...)`), member-access expressions on properties/indexers/operators.
    - Resolve each via `SemanticModel.GetSymbolInfo` to `IMethodSymbol`.
    - Add edge `current → callee`.
    - If callee has source location and not yet visited, enqueue.

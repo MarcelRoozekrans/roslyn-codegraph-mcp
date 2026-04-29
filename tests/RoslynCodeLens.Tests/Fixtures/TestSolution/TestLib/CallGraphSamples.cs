@@ -36,3 +36,17 @@ public readonly record struct Money(int Cents)
 {
     public static Money operator +(Money a, Money b) => new(a.Cents + b.Cents);
 }
+
+public class CtorInitSamples
+{
+    public CtorInitSamples() : this(0) { }
+    public CtorInitSamples(int x) { _x = x; }
+    private int _x;
+
+    public string ImplicitNew()
+    {
+        SampleHolder h = new();
+        h.Value = "y";
+        return h.Value;
+    }
+}

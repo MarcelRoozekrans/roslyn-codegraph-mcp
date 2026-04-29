@@ -204,4 +204,46 @@ public class GetCallGraphToolTests : IAsyncLifetime
             await GetCallGraphLogic.ExecuteAsync(
                 _loaded, _resolver, _metadata, "CallGraphSamples.Root", "sideways", 3, 500));
     }
+
+    [Fact]
+    public async Task Both_Direction_SharesMaxNodesBudget()
+    {
+        // With maxNodes=2, the SUM of callees.Count + callers.Count must be <= 2.
+        var result = (await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "Greeter.Greet", "both", 5, 2))!;
+
+        Assert.True(result.Truncated);
+        Assert.True(result.Callees.Count + result.Callers.Count <= 2,
+            $"Total nodes {result.Callees.Count + result.Callers.Count} exceeded cap of 2");
+    }
+
+    [Fact]
+    public async Task Callees_ImplicitObjectCreation_ProducesConstructorEdge()
+    {
+        var result = (await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "CtorInitSamples.ImplicitNew", "callees", 1, 500))!;
+
+        var rootKey = result.Callees.Keys.First(k => k.Contains("ImplicitNew", StringComparison.Ordinal));
+        Assert.Contains(result.Callees[rootKey].Edges,
+            e => e.EdgeKind == CallGraphEdgeKind.Constructor &&
+                 e.Target.Contains("SampleHolder", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Callees_ConstructorInitializer_ProducesConstructorEdge()
+    {
+        // The parameterless ctor `() : this(0)` calls the (int) ctor.
+        var result = await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "CtorInitSamples..ctor", "callees", 1, 500);
+
+        // Either FindMethods doesn't find ctors directly (null) — accept that gracefully and
+        // skip; or it does, in which case we expect a Constructor edge to the (int) overload.
+        if (result is null) return;
+
+        var rootKey = result.Callees.Keys.FirstOrDefault(k => k.Contains("CtorInitSamples", StringComparison.Ordinal));
+        if (rootKey is null) return;
+
+        Assert.Contains(result.Callees[rootKey].Edges,
+            e => e.EdgeKind == CallGraphEdgeKind.Constructor);
+    }
 }

@@ -46,10 +46,10 @@ public static class GetCallGraphLogic
         var truncated = false;
 
         if (direction is "callees" or "both")
-            truncated |= WalkCallees(loaded, treeToCompilation, resolver, root, rootFqn, maxDepth, maxNodes, cancellationToken, callees);
+            truncated |= WalkCallees(loaded, treeToCompilation, resolver, root, rootFqn, maxDepth, maxNodes, cancellationToken, callees, callers);
 
         if (direction is "callers" or "both")
-            truncated |= await WalkCallersAsync(loaded, resolver, root, rootFqn, maxDepth, maxNodes, callers, cancellationToken).ConfigureAwait(false);
+            truncated |= await WalkCallersAsync(loaded, resolver, root, rootFqn, maxDepth, maxNodes, callers, callees, cancellationToken).ConfigureAwait(false);
 
         return new GetCallGraphResult(
             Root: rootFqn,
@@ -69,7 +69,8 @@ public static class GetCallGraphLogic
         int maxDepth,
         int maxNodes,
         CancellationToken cancellationToken,
-        Dictionary<string, CallGraphNode> map)
+        Dictionary<string, CallGraphNode> map,
+        Dictionary<string, CallGraphNode> otherMap)
     {
         var queue = new Queue<(IMethodSymbol Sym, int Depth)>();
         queue.Enqueue((root, 0));
@@ -93,7 +94,7 @@ public static class GetCallGraphLogic
 
                 if (!map.ContainsKey(calleeFqn))
                 {
-                    if (map.Count >= maxNodes)
+                    if (map.Count + otherMap.Count >= maxNodes)
                     {
                         truncated = true;
                         // edge to truncated target still recorded below
@@ -125,6 +126,7 @@ public static class GetCallGraphLogic
         int maxDepth,
         int maxNodes,
         Dictionary<string, CallGraphNode> map,
+        Dictionary<string, CallGraphNode> otherMap,
         CancellationToken cancellationToken)
     {
         var queue = new Queue<(IMethodSymbol Sym, int Depth)>();
@@ -153,7 +155,7 @@ public static class GetCallGraphLogic
                 var callerFqn = Fqn(caller);
                 if (!map.ContainsKey(callerFqn))
                 {
-                    if (map.Count >= maxNodes)
+                    if (map.Count + otherMap.Count >= maxNodes)
                     {
                         truncated = true;
                         // edge to truncated target still recorded below
@@ -213,6 +215,22 @@ public static class GetCallGraphLogic
                     if (semanticModel.GetSymbolInfo(oc).Symbol is IMethodSymbol ctor)
                     {
                         called = ctor;
+                        kind = CallGraphEdgeKind.Constructor;
+                    }
+                    break;
+
+                case ImplicitObjectCreationExpressionSyntax ioc:
+                    if (semanticModel.GetSymbolInfo(ioc).Symbol is IMethodSymbol ictor)
+                    {
+                        called = ictor;
+                        kind = CallGraphEdgeKind.Constructor;
+                    }
+                    break;
+
+                case ConstructorInitializerSyntax ci:
+                    if (semanticModel.GetSymbolInfo(ci).Symbol is IMethodSymbol cctor)
+                    {
+                        called = cctor;
                         kind = CallGraphEdgeKind.Constructor;
                     }
                     break;
