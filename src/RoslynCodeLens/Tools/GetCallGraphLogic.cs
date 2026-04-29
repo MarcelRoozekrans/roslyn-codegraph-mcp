@@ -254,7 +254,9 @@ public static class GetCallGraphLogic
     }
 
     private static bool IsPropertyWriteContext(MemberAccessExpressionSyntax ma)
-        => ma.Parent is AssignmentExpressionSyntax asg && asg.Left == ma;
+        => ma.Parent is AssignmentExpressionSyntax asg
+           && asg.Left == ma
+           && asg.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.SimpleAssignmentExpression);
 
     private static CallGraphNode BuildNode(
         SymbolResolver resolver,
