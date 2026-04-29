@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.9.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.8.0...v1.9.0) (2026-04-29)
+
+
+### Features
+
+* add get_call_graph MCP tool ([c5ead9a](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/c5ead9ac92933d2a3c26c1482c58edc4ad3cb79c))
+* add GetCallGraphLogic with transitive caller/callee BFS ([a801188](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/a801188037c18e80ff51ffc6232b24668c4c2c66))
+* add models for get_call_graph ([ae3e295](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/ae3e29555fccf87a14e8390c2e11900b1eec1a96))
+* register get_call_graph MCP tool ([7dc3102](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/7dc3102f9f19a5d4dc190136b33ed3f6473c5baa))
+
+
+### Bug Fixes
+
+* make WalkCallers async and preserve edges to truncated targets ([3797346](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/3797346f5604fd5a85c01b92c2f1ecc60bc65551))
+* only suppress property-get edge for simple assignment, not compound ([34181df](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/34181df7b15c00d43d89b8049eb716985a3b0cac))
+* share maxNodes budget and follow implicit-new/ctor-initializer calls ([8826ee8](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/8826ee8e73945817abdd9cd97e023e641b5d8746))
+
+
+### Performance Improvements
+
+* cache SyntaxTree→Compilation map and thread cancellation through callees walk ([7bcc0a4](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/7bcc0a4e1b0547864f0962b68b28ed2cae7805eb))
+
 ## [1.8.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.7.0...v1.8.0) (2026-04-29)
 
 
