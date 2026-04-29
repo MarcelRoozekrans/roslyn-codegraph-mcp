@@ -36,12 +36,17 @@ public static class GetCallGraphLogic
         var root = methods[0];
         var rootFqn = Fqn(root);
 
+        var treeToCompilation = new Dictionary<SyntaxTree, Compilation>();
+        foreach (var (_, comp) in loaded.Compilations)
+            foreach (var tree in comp.SyntaxTrees)
+                treeToCompilation[tree] = comp;
+
         var callees = new Dictionary<string, CallGraphNode>(StringComparer.Ordinal);
         var callers = new Dictionary<string, CallGraphNode>(StringComparer.Ordinal);
         var truncated = false;
 
         if (direction is "callees" or "both")
-            truncated |= WalkCallees(loaded, resolver, root, rootFqn, maxDepth, maxNodes, callees);
+            truncated |= WalkCallees(loaded, treeToCompilation, resolver, root, rootFqn, maxDepth, maxNodes, cancellationToken, callees);
 
         if (direction is "callers" or "both")
             truncated |= await WalkCallersAsync(loaded, resolver, root, rootFqn, maxDepth, maxNodes, callers, cancellationToken).ConfigureAwait(false);
@@ -57,11 +62,13 @@ public static class GetCallGraphLogic
 
     private static bool WalkCallees(
         LoadedSolution loaded,
+        IReadOnlyDictionary<SyntaxTree, Compilation> treeToCompilation,
         SymbolResolver resolver,
         IMethodSymbol root,
         string rootFqn,
         int maxDepth,
         int maxNodes,
+        CancellationToken cancellationToken,
         Dictionary<string, CallGraphNode> map)
     {
         var queue = new Queue<(IMethodSymbol Sym, int Depth)>();
@@ -72,13 +79,15 @@ public static class GetCallGraphLogic
 
         while (queue.Count > 0)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var (current, depth) = queue.Dequeue();
             if (depth >= maxDepth) continue;
 
             var currentFqn = Fqn(current);
             var edges = new List<CallGraphEdge>();
 
-            foreach (var (callee, edgeKind) in EnumerateOutgoingCalls(loaded, current))
+            foreach (var (callee, edgeKind) in EnumerateOutgoingCalls(treeToCompilation, current, cancellationToken))
             {
                 var calleeFqn = Fqn(callee);
 
@@ -126,6 +135,8 @@ public static class GetCallGraphLogic
 
         while (queue.Count > 0)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var (current, depth) = queue.Dequeue();
             if (depth >= maxDepth) continue;
 
@@ -164,21 +175,15 @@ public static class GetCallGraphLogic
     }
 
     private static IEnumerable<(IMethodSymbol Callee, CallGraphEdgeKind EdgeKind)> EnumerateOutgoingCalls(
-        LoadedSolution loaded, IMethodSymbol method)
+        IReadOnlyDictionary<SyntaxTree, Compilation> treeToCompilation,
+        IMethodSymbol method,
+        CancellationToken cancellationToken)
     {
         var location = method.Locations.FirstOrDefault(l => l.IsInSource);
         if (location?.SourceTree is null) yield break;
 
-        Compilation? compilation = null;
-        foreach (var (_, comp) in loaded.Compilations)
-        {
-            if (comp.SyntaxTrees.Contains(location.SourceTree))
-            {
-                compilation = comp;
-                break;
-            }
-        }
-        if (compilation is null) yield break;
+        if (!treeToCompilation.TryGetValue(location.SourceTree, out var compilation))
+            yield break;
 
         var semanticModel = compilation.GetSemanticModel(location.SourceTree);
         var bodyNode = location.SourceTree.GetRoot().FindNode(location.SourceSpan);
@@ -187,6 +192,8 @@ public static class GetCallGraphLogic
 
         foreach (var node in bodyNode.DescendantNodesAndSelf())
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             IMethodSymbol? called = null;
             CallGraphEdgeKind kind = CallGraphEdgeKind.Method;
 
