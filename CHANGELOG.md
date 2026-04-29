@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.7.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.6.0...v1.7.0) (2026-04-29)
+
+
+### Features
+
+* add get_public_api_surface MCP tool (public + protected API enumeration) ([5f3b3eb](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/5f3b3eba366d634815986ec5dc4221eef1f0e925))
+* add GetPublicApiSurfaceLogic with public/protected enumeration ([545368e](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/545368eb20b7f8f4dc7b874d02aed60633fd80ed))
+* add models for get_public_api_surface output ([0eb5345](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/0eb53452d5032ba8ced4080190f60b3073bf7f5e))
+* register get_public_api_surface MCP tool ([559626f](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/559626ff1423c5e4a9d40c0608d039e47cb3a9f5))
+
+
+### Bug Fixes
+
+* exclude public-nested-in-internal types and emit parameterised member names ([69282f9](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/69282f9d517c0e52a6aa12a162be4ba21769c9be))
+
 ## [1.6.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.5.0...v1.6.0) (2026-04-28)
 
 
