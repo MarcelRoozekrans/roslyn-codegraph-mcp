@@ -229,6 +229,23 @@ public class SymbolResolver
         return results;
     }
 
+    public IReadOnlyList<IEventSymbol> FindEvents(string symbol)
+    {
+        var results = new List<IEventSymbol>();
+        var parts = symbol.Split('.');
+        if (parts.Length < 2) return results;
+
+        var typeName = string.Join('.', parts[..^1]);
+        var eventName = parts[^1];
+
+        foreach (var type in FindNamedTypes(typeName))
+        {
+            results.AddRange(type.GetMembers(eventName).OfType<IEventSymbol>());
+        }
+
+        return results;
+    }
+
     public static IEnumerable<INamedTypeSymbol> GetAllTypes(INamespaceSymbol ns)
     {
         return ns.GetTypeMembers().SelectMany(GetAllNestedTypes)
