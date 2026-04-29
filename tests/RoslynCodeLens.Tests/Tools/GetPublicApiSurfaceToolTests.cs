@@ -130,6 +130,23 @@ public class GetPublicApiSurfaceToolTests : IAsyncLifetime
     }
 
     [Fact]
+    public void Result_ConstructorName_RendersAsTypeDotType()
+    {
+        // OrderRecord(int Id, string Name) — its constructor is the synthesized record primary
+        // constructor. Locks in the deliberate "Namespace.Foo.Foo(...)" rendering that
+        // SymbolDisplayFormat produces for constructors.
+        var result = GetPublicApiSurfaceLogic.Execute(_loaded, _resolver);
+
+        var ctor = Assert.Single(result.Entries, e =>
+            e.Kind == PublicApiKind.Constructor &&
+            e.Name.Contains(".OrderRecord.OrderRecord", StringComparison.Ordinal));
+
+        // Parameter types must be present so different constructors of the same type are distinguishable.
+        Assert.Contains("int", ctor.Name);
+        Assert.Contains("string", ctor.Name);
+    }
+
+    [Fact]
     public void Result_DoesNotIncludeTestProjectMembers()
     {
         var result = GetPublicApiSurfaceLogic.Execute(_loaded, _resolver);
