@@ -45,6 +45,7 @@ If any of these thoughts cross your mind, stop and switch to the MCP tool:
 | "Which tests will break if I change this?" | `find_tests_for_symbol` |
 | "What should I write tests for?" / "Where's our testing debt?" / "Show me untested public methods" | `find_uncovered_symbols` |
 | "What's the public API of this library?" / "Show me the API surface" / "I need a PublicAPI.txt-style snapshot" | `get_public_api_surface` |
+| "Will this break consumers?" / "Show me breaking changes vs the previous release" / "Diff this build's API against baseline" | `find_breaking_changes` |
 | "Are there async bugs?" / "Find sync-over-async" / "Are we using `.Result` anywhere?" | `find_async_violations` |
 | "Are there resource leaks?" / "Find missing `using`" / "Is this disposable handled?" | `find_disposable_misuse` |
 
@@ -102,6 +103,7 @@ Inspect an arbitrary DLL           → add a <ProjectReference> to a throwaway
 - `get_project_dependencies` — solution architecture, how projects relate.
 - `get_symbol_context` — full context for a type (namespace, base, interfaces, DI deps, public members).
 - `get_public_api_surface` — Enumerate every public/protected type and member declared in production projects; deterministically sorted; suitable for API review or breaking-change baselines. Static analysis; only declared (not inherited) members appear.
+- `find_breaking_changes` — Diff the current public API surface against a baseline (JSON snapshot from `get_public_api_surface`, or a `.dll` file). Reports Removed/Added/KindChanged/AccessibilityNarrowed/Widened with Breaking/NonBreaking severity. Static analysis; doesn't currently detect return-type, sealed-ness, or nullable changes.
 - `get_type_hierarchy` — inheritance chains and extension points.
 - `get_type_overview` — one-shot: context + hierarchy + diagnostics (replaces 3 calls).
 - `get_file_overview` — types defined in a file + diagnostics, without reading it.
@@ -231,6 +233,7 @@ Reference concrete types, interfaces, and call sites in your analysis. Not *"the
 | `get_type_hierarchy` | "What's the inheritance chain?" |
 | `get_symbol_context` | "Give me everything about this type" |
 | `get_public_api_surface` | "What's the public API of this library?" |
+| `find_breaking_changes` | "Will this break consumers?" |
 | `get_di_registrations` | "How is this wired up?" / "What's the DI lifetime?" |
 | `get_project_dependencies` | "How do projects relate?" |
 | `get_nuget_dependencies` | "What packages does this project use?" |

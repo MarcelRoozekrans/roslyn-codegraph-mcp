@@ -32,6 +32,7 @@ A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/marcel
 - **get_project_dependencies** — Get the project reference graph
 - **get_symbol_context** — One-shot context dump for any type
 - **get_public_api_surface** — Enumerate every public/protected type and member in production projects; flat, deterministically-sorted list suitable for API review or breaking-change baselines.
+- **find_breaking_changes** — Diff the current API against a baseline JSON or DLL; report removed members, kind changes, and accessibility changes with Breaking/NonBreaking severity.
 - **find_reflection_usage** — Detect dynamic/reflection-based usage
 - **find_references** — Find all references to any symbol (types, methods, properties, fields, events)
 - **go_to_definition** — Find the source file and line where a symbol is defined
