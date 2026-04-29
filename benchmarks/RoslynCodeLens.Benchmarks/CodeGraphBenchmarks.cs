@@ -19,6 +19,7 @@ public class CodeGraphBenchmarks
     private string _diSetupPath = null!;
     private PEFileCache _peFileCache = null!;
     private IlDisassemblerAdapter _ilDisassembler = null!;
+    private string _breakingChangesBaselinePath = null!;
 
     static CodeGraphBenchmarks()
     {
@@ -56,10 +57,25 @@ public class CodeGraphBenchmarks
             .FilePath!;
         _peFileCache = new PEFileCache();
         _ilDisassembler = new IlDisassemblerAdapter(_peFileCache);
+
+        // Pre-generate a baseline JSON snapshot once for find_breaking_changes benchmarks.
+        var surface = GetPublicApiSurfaceLogic.Execute(_loaded, _resolver);
+        var opts = new System.Text.Json.JsonSerializerOptions
+        {
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+        };
+        opts.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        _breakingChangesBaselinePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".json");
+        File.WriteAllText(_breakingChangesBaselinePath, System.Text.Json.JsonSerializer.Serialize(surface, opts));
     }
 
     [GlobalCleanup]
-    public void Cleanup() => _peFileCache.Dispose();
+    public void Cleanup()
+    {
+        _peFileCache.Dispose();
+        if (File.Exists(_breakingChangesBaselinePath))
+            File.Delete(_breakingChangesBaselinePath);
+    }
 
     [Benchmark(Description = "Load and compile solution")]
     public async Task<LoadedSolution> SolutionLoading()
@@ -222,6 +238,12 @@ public class CodeGraphBenchmarks
     public object GetPublicApiSurface()
     {
         return GetPublicApiSurfaceLogic.Execute(_loaded, _resolver);
+    }
+
+    [Benchmark(Description = "find_breaking_changes: JSON identity roundtrip")]
+    public object FindBreakingChanges()
+    {
+        return FindBreakingChangesLogic.Execute(_loaded, _resolver, _breakingChangesBaselinePath);
     }
 
     [Benchmark(Description = "find_async_violations: whole solution")]
