@@ -190,6 +190,38 @@ public class FindBreakingChangesToolTests : IAsyncLifetime
     }
 
     [Fact]
+    public void Diff_DuplicateFqnInBaseline_CollapsedToSingleChange()
+    {
+        // Producer bug guard: if a baseline has duplicate FQN entries (e.g., partial classes
+        // emitted twice), the diff must not double-report them.
+        var fake = new PublicApiEntry(
+            PublicApiKind.Method, "Fake.Dup.Method()", PublicApiAccessibility.Public,
+            "FakeProj", "Fake.cs", 1);
+        var baseline = _currentSurface.Concat(new[] { fake, fake }).ToList();
+
+        var result = FindBreakingChangesLogic.Diff(baseline, _currentSurface);
+
+        var matches = result.Changes.Where(c => c.Name == "Fake.Dup.Method()").ToList();
+        Assert.Single(matches);
+        Assert.Equal(BreakingChangeKind.Removed, matches[0].Kind);
+    }
+
+    [Fact]
+    public void Diff_DuplicateFqnInCurrent_CollapsedToSingleChange()
+    {
+        var fake = new PublicApiEntry(
+            PublicApiKind.Method, "Fake.NewDup.Method()", PublicApiAccessibility.Public,
+            "FakeProj", "Fake.cs", 1);
+        var current = _currentSurface.Concat(new[] { fake, fake }).ToList();
+
+        var result = FindBreakingChangesLogic.Diff(_currentSurface, current);
+
+        var matches = result.Changes.Where(c => c.Name == "Fake.NewDup.Method()").ToList();
+        Assert.Single(matches);
+        Assert.Equal(BreakingChangeKind.Added, matches[0].Kind);
+    }
+
+    [Fact]
     public void Json_Baseline_IdentityRoundtrip()
     {
         var path = WriteBaselineJson(_currentSurface);

@@ -36,7 +36,7 @@ public static class FindBreakingChangesLogic
 
         var changes = new List<BreakingChange>();
 
-        foreach (var b in baseline)
+        foreach (var b in baselineByName.Values)
         {
             if (currentByName.TryGetValue(b.Name, out var c))
             {
@@ -96,7 +96,7 @@ public static class FindBreakingChangesLogic
             }
         }
 
-        foreach (var c in current)
+        foreach (var c in currentByName.Values)
         {
             if (!baselineByName.ContainsKey(c.Name))
             {
