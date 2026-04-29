@@ -15,14 +15,15 @@ public static class GetCallGraphLogic
             | SymbolDisplayMemberOptions.IncludeExplicitInterface)
         .WithParameterOptions(SymbolDisplayParameterOptions.IncludeType);
 
-    public static GetCallGraphResult? Execute(
+    public static async Task<GetCallGraphResult?> ExecuteAsync(
         LoadedSolution loaded,
         SymbolResolver resolver,
         MetadataSymbolResolver metadata,
         string symbol,
         string direction,
         int maxDepth,
-        int maxNodes)
+        int maxNodes,
+        CancellationToken cancellationToken = default)
     {
         if (direction is not ("callees" or "callers" or "both"))
             throw new ArgumentException(
@@ -43,7 +44,7 @@ public static class GetCallGraphLogic
             truncated |= WalkCallees(loaded, resolver, root, rootFqn, maxDepth, maxNodes, callees);
 
         if (direction is "callers" or "both")
-            truncated |= WalkCallers(loaded, resolver, root, rootFqn, maxDepth, maxNodes, callers);
+            truncated |= await WalkCallersAsync(loaded, resolver, root, rootFqn, maxDepth, maxNodes, callers, cancellationToken).ConfigureAwait(false);
 
         return new GetCallGraphResult(
             Root: rootFqn,
@@ -86,14 +87,16 @@ public static class GetCallGraphLogic
                     if (map.Count >= maxNodes)
                     {
                         truncated = true;
-                        continue;
+                        // edge to truncated target still recorded below
                     }
+                    else
+                    {
+                        var isExternal = !callee.Locations.Any(l => l.IsInSource);
+                        map[calleeFqn] = BuildNode(resolver, callee, edges: [], forceExternal: isExternal);
 
-                    var isExternal = !callee.Locations.Any(l => l.IsInSource);
-                    map[calleeFqn] = BuildNode(resolver, callee, edges: [], forceExternal: isExternal);
-
-                    if (!isExternal)
-                        queue.Enqueue((callee, depth + 1));
+                        if (!isExternal)
+                            queue.Enqueue((callee, depth + 1));
+                    }
                 }
 
                 edges.Add(new CallGraphEdge(calleeFqn, edgeKind));
@@ -105,14 +108,15 @@ public static class GetCallGraphLogic
         return truncated;
     }
 
-    private static bool WalkCallers(
+    private static async Task<bool> WalkCallersAsync(
         LoadedSolution loaded,
         SymbolResolver resolver,
         IMethodSymbol root,
         string rootFqn,
         int maxDepth,
         int maxNodes,
-        Dictionary<string, CallGraphNode> map)
+        Dictionary<string, CallGraphNode> map,
+        CancellationToken cancellationToken)
     {
         var queue = new Queue<(IMethodSymbol Sym, int Depth)>();
         queue.Enqueue((root, 0));
@@ -128,8 +132,8 @@ public static class GetCallGraphLogic
             var currentFqn = Fqn(current);
             var edges = new List<CallGraphEdge>();
 
-            var callerInfos = SymbolFinder.FindCallersAsync(current, loaded.Solution)
-                .GetAwaiter().GetResult();
+            var callerInfos = await SymbolFinder.FindCallersAsync(current, loaded.Solution, cancellationToken)
+                .ConfigureAwait(false);
 
             foreach (var info in callerInfos)
             {
@@ -141,11 +145,13 @@ public static class GetCallGraphLogic
                     if (map.Count >= maxNodes)
                     {
                         truncated = true;
-                        continue;
+                        // edge to truncated target still recorded below
                     }
-
-                    map[callerFqn] = BuildNode(resolver, caller, edges: []);
-                    queue.Enqueue((caller, depth + 1));
+                    else
+                    {
+                        map[callerFqn] = BuildNode(resolver, caller, edges: []);
+                        queue.Enqueue((caller, depth + 1));
+                    }
                 }
 
                 edges.Add(new CallGraphEdge(callerFqn, EdgeKindFor(caller)));

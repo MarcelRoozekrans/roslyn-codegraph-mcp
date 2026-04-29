@@ -23,19 +23,19 @@ public class GetCallGraphToolTests : IAsyncLifetime
     public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
-    public void UnknownSymbol_ReturnsNull()
+    public async Task UnknownSymbol_ReturnsNull()
     {
-        var result = GetCallGraphLogic.Execute(
+        var result = await GetCallGraphLogic.ExecuteAsync(
             _loaded, _resolver, _metadata, "Does.Not.Exist", "callees", 3, 500);
 
         Assert.Null(result);
     }
 
     [Fact]
-    public void Callees_DepthOne_DirectCalleesAppear()
+    public async Task Callees_DepthOne_DirectCalleesAppear()
     {
-        var result = GetCallGraphLogic.Execute(
-            _loaded, _resolver, _metadata, "CallGraphSamples.Root", "callees", 1, 500)!;
+        var result = (await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "CallGraphSamples.Root", "callees", 1, 500))!;
 
         Assert.NotNull(result);
         Assert.Equal("callees", result.Direction);
@@ -49,10 +49,10 @@ public class GetCallGraphToolTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Callees_DepthThree_FollowsTransitiveChain()
+    public async Task Callees_DepthThree_FollowsTransitiveChain()
     {
-        var result = GetCallGraphLogic.Execute(
-            _loaded, _resolver, _metadata, "CallGraphSamples.Root", "callees", 3, 500)!;
+        var result = (await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "CallGraphSamples.Root", "callees", 3, 500))!;
 
         Assert.Contains(result.Callees, kv => kv.Key.Contains("Level1A", StringComparison.Ordinal));
         Assert.Contains(result.Callees, kv => kv.Key.Contains("Level2", StringComparison.Ordinal));
@@ -60,20 +60,20 @@ public class GetCallGraphToolTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Callees_MaxDepthOne_StopsAtFirstLevel()
+    public async Task Callees_MaxDepthOne_StopsAtFirstLevel()
     {
-        var result = GetCallGraphLogic.Execute(
-            _loaded, _resolver, _metadata, "CallGraphSamples.Root", "callees", 1, 500)!;
+        var result = (await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "CallGraphSamples.Root", "callees", 1, 500))!;
 
         Assert.Contains(result.Callees, kv => kv.Key.Contains("Level1A", StringComparison.Ordinal));
         Assert.DoesNotContain(result.Callees, kv => kv.Key.Contains("Level2", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void Callees_External_AppearsAsTerminalLeaf()
+    public async Task Callees_External_AppearsAsTerminalLeaf()
     {
-        var result = GetCallGraphLogic.Execute(
-            _loaded, _resolver, _metadata, "CallGraphSamples.CallsExternal", "callees", 3, 500)!;
+        var result = (await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "CallGraphSamples.CallsExternal", "callees", 3, 500))!;
 
         var external = Assert.Single(result.Callees,
             kv => kv.Value.IsExternal && kv.Key.Contains("Format", StringComparison.Ordinal));
@@ -83,10 +83,10 @@ public class GetCallGraphToolTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Callees_Cycle_BothNodesPresentAndEdgesClose()
+    public async Task Callees_Cycle_BothNodesPresentAndEdgesClose()
     {
-        var result = GetCallGraphLogic.Execute(
-            _loaded, _resolver, _metadata, "CallGraphSamples.CycleA", "callees", 5, 500)!;
+        var result = (await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "CallGraphSamples.CycleA", "callees", 5, 500))!;
 
         var aKey = Assert.Single(result.Callees, kv => kv.Key.Contains("CycleA", StringComparison.Ordinal)).Key;
         var bKey = Assert.Single(result.Callees, kv => kv.Key.Contains("CycleB", StringComparison.Ordinal)).Key;
@@ -96,10 +96,10 @@ public class GetCallGraphToolTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Callees_Constructor_EdgeKindIsConstructor()
+    public async Task Callees_Constructor_EdgeKindIsConstructor()
     {
-        var result = GetCallGraphLogic.Execute(
-            _loaded, _resolver, _metadata, "CallGraphSamples.PropertyAndCtor", "callees", 1, 500)!;
+        var result = (await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "CallGraphSamples.PropertyAndCtor", "callees", 1, 500))!;
 
         var rootKey = result.Callees.Keys.First(k => k.Contains("PropertyAndCtor", StringComparison.Ordinal));
         Assert.Contains(result.Callees[rootKey].Edges,
@@ -108,10 +108,10 @@ public class GetCallGraphToolTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Callees_PropertyAccessors_EdgeKindsAreGetAndSet()
+    public async Task Callees_PropertyAccessors_EdgeKindsAreGetAndSet()
     {
-        var result = GetCallGraphLogic.Execute(
-            _loaded, _resolver, _metadata, "CallGraphSamples.PropertyAndCtor", "callees", 1, 500)!;
+        var result = (await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "CallGraphSamples.PropertyAndCtor", "callees", 1, 500))!;
 
         var rootKey = result.Callees.Keys.First(k => k.Contains("PropertyAndCtor", StringComparison.Ordinal));
         var edges = result.Callees[rootKey].Edges;
@@ -120,10 +120,10 @@ public class GetCallGraphToolTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Callees_OperatorOverload_EdgeKindIsOperator()
+    public async Task Callees_OperatorOverload_EdgeKindIsOperator()
     {
-        var result = GetCallGraphLogic.Execute(
-            _loaded, _resolver, _metadata, "CallGraphSamples.UseOperator", "callees", 1, 500)!;
+        var result = (await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "CallGraphSamples.UseOperator", "callees", 1, 500))!;
 
         var rootKey = result.Callees.Keys.First(k => k.Contains("UseOperator", StringComparison.Ordinal));
         Assert.Contains(result.Callees[rootKey].Edges,
@@ -131,20 +131,36 @@ public class GetCallGraphToolTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Callees_Truncation_SetsFlagAndStopsExpanding()
+    public async Task Callees_Truncation_SetsFlagAndStopsExpanding()
     {
-        var result = GetCallGraphLogic.Execute(
-            _loaded, _resolver, _metadata, "CallGraphSamples.Root", "callees", 5, 2)!;
+        var result = (await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "CallGraphSamples.Root", "callees", 5, 2))!;
 
         Assert.True(result.Truncated);
         Assert.True(result.Callees.Count <= 2);
     }
 
     [Fact]
-    public void Callers_Greet_FindsOldGreetCaller()
+    public async Task Callees_Truncation_PreservesEdgesToTruncatedTargets()
     {
-        var result = GetCallGraphLogic.Execute(
-            _loaded, _resolver, _metadata, "Greeter.Greet", "callers", 3, 500)!;
+        // With cap=2, only Root + one of {Level1A, Level1B} make it into the map. But Root's
+        // edge list must still mention BOTH Level1A and Level1B (the targets, even though
+        // one didn't get a map entry of its own).
+        var result = (await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "CallGraphSamples.Root", "callees", 5, 2))!;
+
+        Assert.True(result.Truncated);
+        var rootKey = result.Callees.Keys.First(k => k.Contains("CallGraphSamples.Root", StringComparison.Ordinal));
+        var rootEdges = result.Callees[rootKey].Edges;
+        Assert.Contains(rootEdges, e => e.Target.Contains("Level1A", StringComparison.Ordinal));
+        Assert.Contains(rootEdges, e => e.Target.Contains("Level1B", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Callers_Greet_FindsOldGreetCaller()
+    {
+        var result = (await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "Greeter.Greet", "callers", 3, 500))!;
 
         Assert.Equal("callers", result.Direction);
         Assert.Empty(result.Callees);
@@ -157,10 +173,10 @@ public class GetCallGraphToolTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Both_Direction_PopulatesBothMaps()
+    public async Task Both_Direction_PopulatesBothMaps()
     {
-        var result = GetCallGraphLogic.Execute(
-            _loaded, _resolver, _metadata, "Greeter.Greet", "both", 2, 500)!;
+        var result = (await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "Greeter.Greet", "both", 2, 500))!;
 
         Assert.Equal("both", result.Direction);
         Assert.NotEmpty(result.Callees);
@@ -168,10 +184,10 @@ public class GetCallGraphToolTests : IAsyncLifetime
     }
 
     [Fact]
-    public void RootNode_HasMethodKindAndProjectInfo()
+    public async Task RootNode_HasMethodKindAndProjectInfo()
     {
-        var result = GetCallGraphLogic.Execute(
-            _loaded, _resolver, _metadata, "CallGraphSamples.Root", "callees", 1, 500)!;
+        var result = (await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "CallGraphSamples.Root", "callees", 1, 500))!;
 
         var root = result.Callees[result.Root];
         Assert.False(root.IsExternal);
@@ -182,10 +198,10 @@ public class GetCallGraphToolTests : IAsyncLifetime
     }
 
     [Fact]
-    public void InvalidDirection_ThrowsArgumentException()
+    public async Task InvalidDirection_ThrowsArgumentException()
     {
-        Assert.Throws<ArgumentException>(() =>
-            GetCallGraphLogic.Execute(
+        await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await GetCallGraphLogic.ExecuteAsync(
                 _loaded, _resolver, _metadata, "CallGraphSamples.Root", "sideways", 3, 500));
     }
 }
