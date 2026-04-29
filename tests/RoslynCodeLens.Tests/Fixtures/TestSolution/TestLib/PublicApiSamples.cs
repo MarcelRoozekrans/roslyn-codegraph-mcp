@@ -6,6 +6,12 @@ public record OrderRecord(int Id, string Name);
 // Public record struct — kind: RecordStruct, plus positional properties (X, Y)
 public record struct PointStruct(int X, int Y);
 
+// Public plain struct — kind: Struct (distinct from RecordStruct)
+public struct PlainStruct
+{
+    public int Value;
+}
+
 // Public enum — kind: Enum
 public enum PriorityLevel
 {
@@ -31,13 +37,16 @@ public sealed class SealedHolder
     protected void HiddenProtected() { }   // EXCLUDED — sealed type's protected is unreachable
 }
 
-// Public class with indexer + user-defined operator
+// Public class with indexer + user-defined operator + event
 public class IndexerSample
 {
     public string this[int index] => $"Item {index}";
 
     public static IndexerSample operator +(IndexerSample a, IndexerSample b)
         => new IndexerSample();
+
+    // Public event — kind: Event (provides Event coverage in the API surface)
+    public event OrderProcessedHandler? OrderProcessed;
 }
 
 // Internal type — entire type and its members must be excluded (not public API)
