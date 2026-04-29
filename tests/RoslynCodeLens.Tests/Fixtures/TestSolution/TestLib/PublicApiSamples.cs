@@ -54,3 +54,20 @@ internal class InternalHidden
 {
     public void NotApi() { }
 }
+
+// Internal outer with a public nested type — the nested type and its members must NOT appear
+// (the nested type is unreachable from outside the assembly).
+internal class OuterInternal
+{
+    public class LeakedNested
+    {
+        public void LeakedMethod() { }
+    }
+}
+
+// Public class with overloaded methods — overloads must produce DISTINCT entries (with parameter types).
+public class OverloadSample
+{
+    public void DoSomething(int x) { }
+    public void DoSomething(string s) { }
+}

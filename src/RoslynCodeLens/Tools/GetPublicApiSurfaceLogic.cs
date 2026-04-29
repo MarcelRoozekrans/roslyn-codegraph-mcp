@@ -68,9 +68,16 @@ public static class GetPublicApiSurfaceLogic
     private static bool IsApiVisibleType(INamedTypeSymbol type)
     {
         if (type.IsImplicitlyDeclared) return false;
-        if (type.DeclaredAccessibility != Accessibility.Public) return false;
         if (!HasInSourceLocation(type)) return false;
         if (IsInGeneratedFile(type)) return false;
+
+        // Every type in the containing-type chain must also be Public.
+        // A `public class Nested` inside an `internal class Outer` is NOT externally reachable.
+        for (var t = type; t is not null; t = t.ContainingType)
+        {
+            if (t.DeclaredAccessibility != Accessibility.Public) return false;
+        }
+
         return true;
     }
 
@@ -235,23 +242,19 @@ public static class GetPublicApiSurfaceLogic
         }
     }
 
+    private static readonly SymbolDisplayFormat ApiMemberFormat = new(
+        globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+        memberOptions: SymbolDisplayMemberOptions.IncludeContainingType
+                     | SymbolDisplayMemberOptions.IncludeParameters
+                     | SymbolDisplayMemberOptions.IncludeExplicitInterface,
+        parameterOptions: SymbolDisplayParameterOptions.IncludeType,
+        miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes
+                            | SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+
     private static string MemberDisplayName(ISymbol member)
-    {
-        // Build "<ContainingType FQN>.<member name>" so the rendered name is independent of method
-        // signatures, indexer brackets, and operator symbols. Constructors render as "<Type>.<Type>".
-        var containingFqn = member.ContainingType is null
-            ? string.Empty
-            : FullyQualified(member.ContainingType);
-
-        var localName = member switch
-        {
-            IMethodSymbol method when method.MethodKind == MethodKind.Constructor
-                => method.ContainingType?.Name ?? method.Name,
-            _ => member.Name,
-        };
-
-        return string.IsNullOrEmpty(containingFqn) ? localName : $"{containingFqn}.{localName}";
-    }
+        => member.ToDisplayString(ApiMemberFormat);
 
     private static string FullyQualified(ISymbol symbol)
         => symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)

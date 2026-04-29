@@ -93,11 +93,40 @@ public class GetPublicApiSurfaceToolTests : IAsyncLifetime
         var result = GetPublicApiSurfaceLogic.Execute(_loaded, _resolver);
 
         Assert.Contains(result.Entries, e =>
-            e.Name.EndsWith(".AbstractProcessor.Process", StringComparison.Ordinal) &&
+            e.Name.Contains(".AbstractProcessor.Process", StringComparison.Ordinal) &&
             e.Accessibility == PublicApiAccessibility.Protected);
         Assert.Contains(result.Entries, e =>
             e.Name.EndsWith(".AbstractProcessor.Counter", StringComparison.Ordinal) &&
             e.Accessibility == PublicApiAccessibility.Protected);
+    }
+
+    [Fact]
+    public void Result_DoesNotIncludePublicTypeNestedInInternalContainer()
+    {
+        // OuterInternal is internal; its nested public class LeakedNested is unreachable
+        // from outside the assembly. Neither it nor its members should appear.
+        var result = GetPublicApiSurfaceLogic.Execute(_loaded, _resolver);
+
+        Assert.DoesNotContain(result.Entries, e => e.Name.EndsWith(".LeakedNested", StringComparison.Ordinal));
+        Assert.DoesNotContain(result.Entries, e => e.Name.Contains("LeakedNested.LeakedMethod", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Result_OverloadsHaveDistinctEntries()
+    {
+        // OverloadSample.DoSomething(int) and DoSomething(string) must be distinct entries.
+        // Without parameter types in the name, they would collide.
+        var result = GetPublicApiSurfaceLogic.Execute(_loaded, _resolver);
+
+        var overloads = result.Entries
+            .Where(e => e.Kind == PublicApiKind.Method &&
+                        e.Name.Contains("OverloadSample.DoSomething", StringComparison.Ordinal))
+            .ToList();
+
+        Assert.Equal(2, overloads.Count);
+        // Names must include parameter types (so they're distinct)
+        Assert.Contains(overloads, e => e.Name.Contains("(int)", StringComparison.Ordinal));
+        Assert.Contains(overloads, e => e.Name.Contains("(string)", StringComparison.Ordinal));
     }
 
     [Fact]
