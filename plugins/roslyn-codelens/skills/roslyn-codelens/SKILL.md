@@ -31,6 +31,7 @@ If any of these thoughts cross your mind, stop and switch to the MCP tool:
 |---|---|
 | "Let me `Grep` for `class Foo`" | `search_symbols` or `go_to_definition` |
 | "Let me `Grep` for `Foo\\.Bar\\(`" (finding callers) | `find_callers` |
+| "What does this method end up calling?" / "Show me the transitive callees" / "What's the blast radius for changing X?" | `get_call_graph` |
 | "Let me `Grep` for `: IFoo`" (finding implementations) | `find_implementations` |
 | "Let me `Grep` for `new Foo(`" | `find_references` |
 | "Let me `Grep` for `[Authorize]`" | `find_attribute_usages` |
@@ -108,6 +109,7 @@ Inspect an arbitrary DLL           → add a <ProjectReference> to a throwaway
 - `get_type_overview` — one-shot: context + hierarchy + diagnostics (replaces 3 calls).
 - `get_file_overview` — types defined in a file + diagnostics, without reading it.
 - `analyze_method` — signature + callers + outgoing calls, all in one.
+- `get_call_graph` — Transitive caller/callee graph for a method, depth-bounded with cycle detection. Adjacency-list output. Use when you need depth > 1 (`analyze_method` is depth=1).
 
 ### Navigating Code (**instead of Grep/Glob**)
 - `go_to_definition` — jump to the definition.
@@ -264,6 +266,7 @@ Reference concrete types, interfaces, and call sites in your analysis. Not *"the
 | `analyze_change_impact` | "What breaks if I change this?" |
 | `get_type_overview` | "Give me everything about this type in one call" |
 | `analyze_method` | "Show signature, callers, and outgoing calls" |
+| `get_call_graph` | "Transitive callers/callees, depth-bounded" |
 | `get_file_overview` | "What types are in this file?" |
 
 ## Legitimate Grep / Build Exceptions

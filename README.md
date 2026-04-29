@@ -64,6 +64,7 @@ A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/marcel
 - **analyze_change_impact** — Show all files, projects, and call sites affected by changing a symbol — combines find_references and find_callers
 - **get_type_overview** — Compound tool: type context + hierarchy + file diagnostics in one call
 - **analyze_method** — Compound tool: method signature + callers + outgoing calls in one call
+- **get_call_graph** — Transitive caller/callee graph for a method, depth-bounded with cycle detection
 - **get_file_overview** — Compound tool: types defined in a file + file-scoped diagnostics in one call
 
 ## External Assemblies

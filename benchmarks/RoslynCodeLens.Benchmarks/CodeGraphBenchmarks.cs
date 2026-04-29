@@ -300,6 +300,20 @@ public class CodeGraphBenchmarks
         return AnalyzeMethodLogic.Execute(_loaded, _resolver, _metadata, "Greeter.Greet");
     }
 
+    [Benchmark(Description = "get_call_graph: Greet (callees, depth 3)")]
+    public async Task<object?> GetCallGraphCallees()
+    {
+        return await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "Greeter.Greet", "callees", 3, 500).ConfigureAwait(false);
+    }
+
+    [Benchmark(Description = "get_call_graph: Greet (callers, depth 3)")]
+    public async Task<object?> GetCallGraphCallers()
+    {
+        return await GetCallGraphLogic.ExecuteAsync(
+            _loaded, _resolver, _metadata, "Greeter.Greet", "callers", 3, 500).ConfigureAwait(false);
+    }
+
     [Benchmark(Description = "get_file_overview: Greeter.cs")]
     public async Task<object?> GetFileOverview()
     {
