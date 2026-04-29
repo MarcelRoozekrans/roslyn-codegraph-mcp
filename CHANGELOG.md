@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.8.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.7.0...v1.8.0) (2026-04-29)
+
+
+### Features
+
+* add find_breaking_changes MCP tool ([63e6854](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/63e685469a1abc96ff0aa8b5ea2ebb3fa13874cc))
+* add FindBreakingChangesLogic with five change-kind diff ([e21059e](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/e21059e64c5c26f6296515828670301eec4bceb9))
+* add models for find_breaking_changes output ([0106c93](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/0106c93acdad414cf4ac0fa463575cbfaf865d2c))
+* register find_breaking_changes MCP tool ([5e89f89](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/5e89f89de6bb85002582df6d36eca90fe7f1c555))
+
+
+### Bug Fixes
+
+* collapse duplicate FQNs in Diff to avoid double-reported changes ([78ce7eb](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/78ce7ebc63b5038293adf95b5354d62876368a1f))
+* include BCL refs and accept case-insensitive JSON in baseline loaders ([84b5ec2](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/84b5ec28b481473587deaa163d1dbfe376d5e69f))
+
 ## [1.7.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.6.0...v1.7.0) (2026-04-29)
 
 
