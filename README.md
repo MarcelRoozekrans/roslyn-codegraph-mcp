@@ -139,40 +139,43 @@ All type lookups use pre-built reverse inheritance maps, member indexes, and att
 
 | Tool | Latency | Memory |
 |------|--------:|-------:|
-| `go_to_definition` | 1.5 µs | 576 B |
-| `get_project_dependencies` | 1.9 µs | 1.5 KB |
-| `find_implementations` | 2.8 µs | 720 B |
-| `get_symbol_context` | 2.9 µs | 1.0 KB |
-| `find_circular_dependencies` | 3.3 µs | 2.4 KB |
-| `get_type_hierarchy` | 4.2 µs | 1.3 KB |
-| `get_source_generators` | 14 µs | 17 KB |
-| `analyze_data_flow` | 17 µs | 1.2 KB |
-| `inspect_external_assembly` (summary) | 57 µs | 22 KB |
-| `get_generated_code` | 60 µs | 18 KB |
-| `find_attribute_usages` | 99 µs | 904 B |
-| `analyze_control_flow` | 180 µs | 14 KB |
-| `find_large_classes` | 303 µs | 1.4 KB |
-| `get_di_registrations` | 473 µs | 14 KB |
-| `get_complexity_metrics` | 556 µs | 12 KB |
-| `find_reflection_usage` | 588 µs | 17 KB |
-| `get_type_overview` | 607 µs | 54 KB |
-| `get_diagnostics` | 643 µs | 50 KB |
-| `get_nuget_dependencies` | 787 µs | 37 KB |
-| `get_file_overview` | 799 µs | 53 KB |
-| `inspect_external_assembly` (namespace) | 1.1 ms | 270 KB |
-| `peek_il` | 1.1 ms | 33 KB |
-| `get_code_actions` | 1.2 ms | 53 KB |
-| `find_callers` | 4.3 ms | 160 KB |
-| `search_symbols` | 4.4 ms | 552 KB |
-| `find_tests_for_symbol` (direct) | 4.4 ms | 203 KB |
-| `analyze_method` | 4.4 ms | 160 KB |
-| `find_uncovered_symbols` | 6.6 ms | 180 KB |
-| `find_tests_for_symbol` (transitive) | 8.0 ms | 356 KB |
-| `find_references` | 13 ms | 606 KB |
-| `find_unused_symbols` | 19 ms | 617 KB |
-| `find_naming_violations` | 21 ms | 785 KB |
-| `analyze_change_impact` | 21 ms | 773 KB |
-| Solution loading (one-time) | ~4.7 s | 13 MB |
+| `go_to_definition` | 2.1 µs | 576 B |
+| `find_implementations` | 2.5 µs | 720 B |
+| `get_project_dependencies` | 2.8 µs | 1.5 KB |
+| `get_type_hierarchy` | 3.5 µs | 1.3 KB |
+| `find_circular_dependencies` | 3.7 µs | 2.7 KB |
+| `get_symbol_context` | 4.1 µs | 1.0 KB |
+| `get_source_generators` | 16 µs | 23 KB |
+| `analyze_data_flow` | 19 µs | 1.6 KB |
+| `find_attribute_usages` | 72 µs | 904 B |
+| `get_generated_code` | 78 µs | 24 KB |
+| `analyze_control_flow` | 115 µs | 14 KB |
+| `inspect_external_assembly` (summary) | 159 µs | 35 KB |
+| `find_large_classes` | 265 µs | 3.5 KB |
+| `get_di_registrations` | 478 µs | 16 KB |
+| `inspect_external_assembly` (namespace) | 564 µs | 259 KB |
+| `find_reflection_usage` | 705 µs | 19 KB |
+| `get_complexity_metrics` | 781 µs | 25 KB |
+| `get_code_actions` | 792 µs | 54 KB |
+| `get_file_overview` | 797 µs | 101 KB |
+| `get_diagnostics` | 822 µs | 99 KB |
+| `get_nuget_dependencies` | 849 µs | 48 KB |
+| `get_public_api_surface` | 885 µs | 247 KB |
+| `get_type_overview` | 1.1 ms | 104 KB |
+| `peek_il` | 1.1 ms | 34 KB |
+| `find_disposable_misuse` | 3.5 ms | 286 KB |
+| `find_uncovered_symbols` | 3.8 ms | 224 KB |
+| `search_symbols` | 3.9 ms | 557 KB |
+| `analyze_method` | 5.8 ms | 333 KB |
+| `find_async_violations` | 7.0 ms | 335 KB |
+| `find_tests_for_symbol` (direct) | 8.4 ms | 396 KB |
+| `find_callers` | 10 ms | 337 KB |
+| `find_tests_for_symbol` (transitive) | 12 ms | 399 KB |
+| `find_naming_violations` | 15 ms | 788 KB |
+| `find_unused_symbols` | 23 ms | 1.0 MB |
+| `find_references` | 28 ms | 1013 KB |
+| `analyze_change_impact` | 33 ms | 1.3 MB |
+| Solution loading (one-time) | ~4.1 s | 16 MB |
 
 ## Hot Reload
 
