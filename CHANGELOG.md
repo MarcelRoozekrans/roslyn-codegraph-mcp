@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.11.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.10.0...v1.11.0) (2026-04-30)
+
+
+### Features
+
+* add get_project_health composite tool ([ea4f001](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/ea4f001f7620f7087a37c02c325c5c87f1c2fc30))
+* add GetProjectHealthLogic compositing 7 health dimensions ([e85268c](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/e85268ca4b582fa1e83b58bebd54a4012d53bce1))
+* add models for get_project_health ([1d17c7a](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/1d17c7a3e854cced756510edd1068fbd908ed3af))
+* register get_project_health MCP tool ([f967c7f](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/f967c7f7495f024cba44cd180b5b641626fff690))
+
+
+### Bug Fixes
+
+* **deps:** update docusaurus monorepo to v3.10.1 ([1f7d6ae](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/1f7d6ae3c328a5b8839a7619fd88f1bb05421129))
+* **deps:** update docusaurus monorepo to v3.10.1 ([dbcb643](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/dbcb643265101322766eb02c2939841c1e2a999b))
+* project filter case-insensitive + load-bearing comment ([c51eecb](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/c51eecbf636b8937b6ecb4d7d9e5c09c755864d1))
+
 ## [1.10.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.9.0...v1.10.0) (2026-04-30)
 
 
