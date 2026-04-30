@@ -16,10 +16,10 @@ Identify types that combine high size with high coupling — "god classes" that 
 
 A type qualifies as a god object when it crosses **both** axes:
 
-**Size axis** (any one):
-- `>300` lines
-- `>15` members
-- `>10` fields
+**Size axis** (ALL THREE must be exceeded — sharper heuristic; a DTO that exceeds only the field count, or a dispatcher that exceeds only the member count, is not a god object):
+- `>=300` lines
+- `>=15` members
+- `>=10` fields
 
 **Coupling axis** (any one):
 - `≥5` incoming-namespace callers (distinct namespaces that reference this type)
