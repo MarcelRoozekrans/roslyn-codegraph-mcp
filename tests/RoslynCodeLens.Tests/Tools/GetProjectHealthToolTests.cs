@@ -95,6 +95,22 @@ public class GetProjectHealthToolTests : IAsyncLifetime
     }
 
     [Fact]
+    public void ProjectFilter_IsCaseInsensitive()
+    {
+        // Underlying tools accept project names case-insensitively (OrdinalIgnoreCase Contains/Equals);
+        // the composite must too, otherwise `get_project_health(project: "testlib")` would surprise.
+        var lower = GetProjectHealthLogic.Execute(_loaded, _resolver, project: "testlib", hotspotsPerDimension: 5);
+        var upper = GetProjectHealthLogic.Execute(_loaded, _resolver, project: "TESTLIB", hotspotsPerDimension: 5);
+        var canonical = GetProjectHealthLogic.Execute(_loaded, _resolver, project: "TestLib", hotspotsPerDimension: 5);
+
+        Assert.Single(lower.Projects);
+        Assert.Single(upper.Projects);
+        Assert.Single(canonical.Projects);
+        Assert.Equal("TestLib", lower.Projects[0].Project);
+        Assert.Equal("TestLib", upper.Projects[0].Project);
+    }
+
+    [Fact]
     public void ProjectFilter_OnlyReturnsRequestedProject()
     {
         var result = GetProjectHealthLogic.Execute(_loaded, _resolver, project: "TestLib", hotspotsPerDimension: 5);

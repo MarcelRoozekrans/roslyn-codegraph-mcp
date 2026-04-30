@@ -1,4 +1,3 @@
-using Microsoft.CodeAnalysis;
 using RoslynCodeLens.Models;
 using RoslynCodeLens.Symbols;
 using RoslynCodeLens.TestDiscovery;
@@ -26,11 +25,14 @@ public static class GetProjectHealthLogic
             .Select(r => (Usage: r, Project: fileToProject.TryGetValue(r.File, out var p) ? p : ""))
             .ToList();
 
+        // Outer filter is load-bearing: 5 of the 7 underlying tools (complexity, large classes,
+        // naming, unused, reflection) don't filter test projects internally — only async-violations
+        // and disposable-misuse do. Removing this would leak test projects into the result.
         var testProjectIds = TestProjectDetector.GetTestProjectIds(loaded.Solution);
         var productionProjects = loaded.Solution.Projects
             .Where(p => !testProjectIds.Contains(p.Id))
             .Select(p => p.Name)
-            .Where(name => project is null || string.Equals(name, project, StringComparison.Ordinal))
+            .Where(name => project is null || string.Equals(name, project, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
         var entries = new List<ProjectHealth>(productionProjects.Count);
