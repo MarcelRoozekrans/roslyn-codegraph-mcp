@@ -137,6 +137,23 @@ public class FindGodObjectsToolTests : IAsyncLifetime
     }
 
     [Fact]
+    public void Result_RequiresAllThreeSizeAxes_LineAxisFails()
+    {
+        // BadGodObject has 16 methods + 12 fields but only ~17 lines.
+        // With minLines=1000, the lines axis fails — must NOT be flagged even though
+        // members + fields axes pass and coupling is high. Locks in the "ALL THREE"
+        // size-axis contract.
+        var result = FindGodObjectsLogic.Execute(
+            _loaded, _resolver,
+            project: "TestLib",
+            minLines: 1000, minMembers: 15, minFields: 10,
+            minIncomingNamespaces: 5, minOutgoingNamespaces: 1);
+
+        Assert.DoesNotContain(result.Types, t =>
+            t.TypeName.Contains("BadGodObject", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void Thresholds_AreConfigurable_HighThreshold_FiltersAll()
     {
         var result = FindGodObjectsLogic.Execute(

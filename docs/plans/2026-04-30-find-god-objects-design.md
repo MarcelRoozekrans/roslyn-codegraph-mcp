@@ -52,8 +52,8 @@ public record GodObjectInfo(
     int FieldCount,
     int IncomingNamespaces,
     int OutgoingNamespaces,
-    IReadOnlyList<string> SampleIncoming,    // top 5 namespace names that depend on this
-    IReadOnlyList<string> SampleOutgoing,    // top 5 namespace names this depends on
+    IReadOnlyList<string> SampleIncoming,    // 5 namespace names that depend on this, alphabetical
+    IReadOnlyList<string> SampleOutgoing,    // 5 namespace names this depends on, alphabetical
     string FilePath,
     int Line,
     string Project,

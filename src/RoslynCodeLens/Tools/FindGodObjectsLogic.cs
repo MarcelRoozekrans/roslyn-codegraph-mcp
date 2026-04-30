@@ -10,8 +10,11 @@ namespace RoslynCodeLens.Tools;
 
 public static class FindGodObjectsLogic
 {
-    private const string SystemNamespacePrefix = "System";
-    private const string MicrosoftNamespacePrefix = "Microsoft";
+    private static bool IsBclNamespace(string ns)
+        => ns == "System"
+           || ns == "Microsoft"
+           || ns.StartsWith("System.", StringComparison.Ordinal)
+           || ns.StartsWith("Microsoft.", StringComparison.Ordinal);
 
     public static GodObjectsResult Execute(
         LoadedSolution loaded,
@@ -25,11 +28,17 @@ public static class FindGodObjectsLogic
     {
         var testProjectIds = TestProjectDetector.GetTestProjectIds(loaded.Solution);
 
+        // Cache project name → project id once. Avoids O(P) project enumeration per candidate
+        // type in IsCandidate.
+        var projectIdsByName = new Dictionary<string, ProjectId>(StringComparer.Ordinal);
+        foreach (var p in loaded.Solution.Projects)
+            projectIdsByName[p.Name] = p.Id;
+
         // Pass 1 — collect size-suspects (cheap).
         var suspects = new List<SizeSuspect>();
         foreach (var type in resolver.AllTypes)
         {
-            if (!IsCandidate(type, testProjectIds, loaded, resolver, project))
+            if (!IsCandidate(type, testProjectIds, projectIdsByName, resolver, project))
                 continue;
 
             var lineCount = GetLineCount(type);
@@ -104,10 +113,11 @@ public static class FindGodObjectsLogic
     private static bool IsCandidate(
         INamedTypeSymbol type,
         ImmutableHashSet<ProjectId> testProjectIds,
-        LoadedSolution loaded,
+        IReadOnlyDictionary<string, ProjectId> projectIdsByName,
         SymbolResolver resolver,
         string? project)
     {
+        // Records report as Class/Struct in Roslyn, so this filter covers class/struct/record-class/record-struct.
         if (type.TypeKind != TypeKind.Class && type.TypeKind != TypeKind.Struct) return false;
         if (type.ContainingType is not null) return false; // skip nested
         if (type.IsImplicitlyDeclared) return false;
@@ -118,9 +128,8 @@ public static class FindGodObjectsLogic
             return false;
 
         var projectName = resolver.GetProjectName(type);
-        var projectId = loaded.Solution.Projects
-            .FirstOrDefault(p => string.Equals(p.Name, projectName, StringComparison.Ordinal))?.Id;
-        if (projectId is not null && testProjectIds.Contains(projectId)) return false;
+        if (projectIdsByName.TryGetValue(projectName, out var projectId) && testProjectIds.Contains(projectId))
+            return false;
 
         if (project is not null && !string.Equals(projectName, project, StringComparison.OrdinalIgnoreCase))
             return false;
@@ -207,8 +216,7 @@ public static class FindGodObjectsLogic
                 if (string.IsNullOrEmpty(ns)) continue;
 
                 if (string.Equals(ns, ownNamespace, StringComparison.Ordinal)) continue;
-                if (ns!.StartsWith(SystemNamespacePrefix, StringComparison.Ordinal)) continue;
-                if (ns.StartsWith(MicrosoftNamespacePrefix, StringComparison.Ordinal)) continue;
+                if (IsBclNamespace(ns!)) continue;
 
                 result.Add(ns);
             }
