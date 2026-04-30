@@ -49,6 +49,7 @@ A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/marcel
 - **find_disposable_misuse** — `IDisposable`/`IAsyncDisposable` instances not wrapped in `using`/`await using`/returned/assigned to field; severity error/warning per violation.
 - **find_large_classes** — Find oversized types by member or line count
 - **find_unused_symbols** — Dead code detection via reference analysis
+- **get_project_health** — Composite audit aggregating 7 quality dimensions per project (complexity, large classes, naming, unused symbols, reflection, async violations, disposable misuse) with counts and top-N hotspots inline
 - **get_source_generators** — List source generators and their output per project
 - **get_generated_code** — Inspect generated source code from source generators
 - **inspect_external_assembly** — Browse types, members, and XML docs from closed-source NuGet packages and referenced assemblies

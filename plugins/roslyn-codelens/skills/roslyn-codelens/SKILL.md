@@ -43,6 +43,7 @@ If any of these thoughts cross your mind, stop and switch to the MCP tool:
 | "Let me `Grep` for `Activator.CreateInstance`" | `find_reflection_usage` |
 | "I'll check if this method is used by reading files" | `find_callers` / `find_unused_symbols` |
 | "I'll eyeball complexity by reading the method" | `get_complexity_metrics` |
+| "How is this project doing?" / "Where should I focus?" / "Show me the technical debt picture" | `get_project_health` |
 | "Let me `Grep` for tests that call this method" | `find_tests_for_symbol` |
 | "Which tests will break if I change this?" | `find_tests_for_symbol` |
 | "What should I write tests for?" / "Where's our testing debt?" / "Show me untested public methods" | `find_uncovered_symbols` |
@@ -153,6 +154,7 @@ Inspect an arbitrary DLL           → add a <ProjectReference> to a throwaway
 - `find_disposable_misuse` — Detects `IDisposable`/`IAsyncDisposable` instances not wrapped in `using`/`await using`/returned/assigned-to-field-or-out-parameter (warning), and bare-expression-statement discards of a disposable creator/factory (error). Static analysis; no runtime data.
 - `find_large_classes` — oversized types.
 - `find_circular_dependencies` — project/namespace cycles.
+- `get_project_health` — Composite audit: complexity, large classes, naming, unused, reflection, async violations, disposable misuse — counts + top-N hotspots per dimension, per project. Use when you'd otherwise call 7 separate audit tools.
 
 ### Source Generators
 - `get_source_generators` — list generators and their outputs.
@@ -255,6 +257,7 @@ Reference concrete types, interfaces, and call sites in your analysis. Not *"the
 | `find_disposable_misuse` | "Are there resource leaks?" / "Find missing `using`" |
 | `find_large_classes` | "Find classes that need splitting" |
 | `find_circular_dependencies` | "Any circular dependencies?" |
+| `get_project_health` | "How is this project doing?" / "Top hotspots across all dimensions" |
 | `get_source_generators` | "What source generators are active?" |
 | `get_generated_code` | "Show generated code" |
 | `inspect_external_assembly` | "What does this NuGet package expose?" / "Show me the API of X assembly" |
