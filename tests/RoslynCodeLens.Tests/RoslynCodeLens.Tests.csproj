@@ -21,6 +21,7 @@
   <ItemGroup>
     <Compile Remove="Fixtures\**" />
     <None Include="Fixtures\**" CopyToOutputDirectory="Never" />
+    <None Update="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
