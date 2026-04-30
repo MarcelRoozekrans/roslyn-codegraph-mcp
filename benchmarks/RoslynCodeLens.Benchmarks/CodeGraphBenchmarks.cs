@@ -95,6 +95,13 @@ public class CodeGraphBenchmarks
         return FindCallersLogic.Execute(_loaded, _resolver, _metadata, "IGreeter.Greet");
     }
 
+    [Benchmark(Description = "find_event_subscribers: Clicked")]
+    public object FindEventSubscribers()
+    {
+        return FindEventSubscribersLogic.Execute(
+            _loaded, _resolver, _metadata, "EventPublisher.Clicked");
+    }
+
     [Benchmark(Description = "find_tests_for_symbol: IGreeter.Greet")]
     public object FindTestsForSymbol()
     {
