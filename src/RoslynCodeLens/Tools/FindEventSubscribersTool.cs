@@ -13,7 +13,7 @@ public static class FindEventSubscribersTool
         "Accepts source events (e.g. 'MyClass.Clicked') or metadata events " +
         "(e.g. 'System.Diagnostics.Process.Exited'). " +
         "Each result reports the source location, the resolved handler (method FQN, " +
-        "or '<lambda at File.cs:N>' for inline handlers), and the subscription kind " +
+        "or a synthetic name like 'lambda at File.cs:N' for inline handlers), and the subscription kind " +
         "(Subscribe for +=, Unsubscribe for -=). " +
         "Use this for memory-leak audits (compare subscribe/unsubscribe pairs), " +
         "UI event subscriber inspection, or when Grep over '+= EventName' would miss " +
