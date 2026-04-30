@@ -20,10 +20,25 @@ public static class GetProjectHealthLogic
         var async = FindAsyncViolationsLogic.Execute(loaded, resolver).Violations;
         var disposable = FindDisposableMisuseLogic.Execute(loaded, resolver).Violations;
 
+        // Group each dimension's findings by project name once. Avoids O(N×M) re-filtering
+        // per project below.
         var fileToProject = BuildFileToProjectMap(loaded);
-        var reflectionWithProject = reflection
+        var byProjectComplexity = complexity.GroupBy(c => c.Project, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<ComplexityMetric>)g.ToList(), StringComparer.Ordinal);
+        var byProjectLarge = largeClasses.GroupBy(c => c.Project, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<LargeClassInfo>)g.ToList(), StringComparer.Ordinal);
+        var byProjectNaming = naming.GroupBy(n => n.Project, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<NamingViolation>)g.ToList(), StringComparer.Ordinal);
+        var byProjectUnused = unused.GroupBy(u => u.Project, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<UnusedSymbolInfo>)g.ToList(), StringComparer.Ordinal);
+        var byProjectReflection = reflection
             .Select(r => (Usage: r, Project: fileToProject.TryGetValue(r.File, out var p) ? p : ""))
-            .ToList();
+            .GroupBy(r => r.Project, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<ReflectionUsage>)g.Select(x => x.Usage).ToList(), StringComparer.Ordinal);
+        var byProjectAsync = async.GroupBy(a => a.Project, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<AsyncViolation>)g.ToList(), StringComparer.Ordinal);
+        var byProjectDisposable = disposable.GroupBy(d => d.Project, StringComparer.Ordinal)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<DisposableMisuseViolation>)g.ToList(), StringComparer.Ordinal);
 
         // Outer filter is load-bearing: 5 of the 7 underlying tools (complexity, large classes,
         // naming, unused, reflection) don't filter test projects internally — only async-violations
@@ -38,16 +53,13 @@ public static class GetProjectHealthLogic
         var entries = new List<ProjectHealth>(productionProjects.Count);
         foreach (var projectName in productionProjects)
         {
-            var pComplexity = complexity.Where(c => string.Equals(c.Project, projectName, StringComparison.Ordinal)).ToList();
-            var pLarge = largeClasses.Where(c => string.Equals(c.Project, projectName, StringComparison.Ordinal)).ToList();
-            var pNaming = naming.Where(n => string.Equals(n.Project, projectName, StringComparison.Ordinal)).ToList();
-            var pUnused = unused.Where(u => string.Equals(u.Project, projectName, StringComparison.Ordinal)).ToList();
-            var pReflection = reflectionWithProject
-                .Where(r => string.Equals(r.Project, projectName, StringComparison.Ordinal))
-                .Select(r => r.Usage)
-                .ToList();
-            var pAsync = async.Where(a => string.Equals(a.Project, projectName, StringComparison.Ordinal)).ToList();
-            var pDisposable = disposable.Where(d => string.Equals(d.Project, projectName, StringComparison.Ordinal)).ToList();
+            var pComplexity = byProjectComplexity.TryGetValue(projectName, out var c1) ? c1 : [];
+            var pLarge = byProjectLarge.TryGetValue(projectName, out var c2) ? c2 : [];
+            var pNaming = byProjectNaming.TryGetValue(projectName, out var c3) ? c3 : [];
+            var pUnused = byProjectUnused.TryGetValue(projectName, out var c4) ? c4 : [];
+            var pReflection = byProjectReflection.TryGetValue(projectName, out var c5) ? c5 : [];
+            var pAsync = byProjectAsync.TryGetValue(projectName, out var c6) ? c6 : [];
+            var pDisposable = byProjectDisposable.TryGetValue(projectName, out var c7) ? c7 : [];
 
             var counts = new ProjectHealthCounts(
                 ComplexityHotspots: pComplexity.Count,

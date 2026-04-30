@@ -78,6 +78,49 @@ public class GetProjectHealthToolTests : IAsyncLifetime
     }
 
     [Fact]
+    public void Counts_AsyncViolationsMatchesUnderlyingTool()
+    {
+        var direct = FindAsyncViolationsLogic.Execute(_loaded, _resolver).Violations
+            .Count(v => string.Equals(v.Project, "TestLib", StringComparison.Ordinal));
+        var result = GetProjectHealthLogic.Execute(_loaded, _resolver, project: "TestLib", hotspotsPerDimension: 5);
+
+        var entry = Assert.Single(result.Projects);
+        Assert.Equal(direct, entry.Counts.AsyncViolations);
+    }
+
+    [Fact]
+    public void Counts_DisposableMisuseMatchesUnderlyingTool()
+    {
+        var direct = FindDisposableMisuseLogic.Execute(_loaded, _resolver).Violations
+            .Count(v => string.Equals(v.Project, "TestLib", StringComparison.Ordinal));
+        var result = GetProjectHealthLogic.Execute(_loaded, _resolver, project: "TestLib", hotspotsPerDimension: 5);
+
+        var entry = Assert.Single(result.Projects);
+        Assert.Equal(direct, entry.Counts.DisposableMisuse);
+    }
+
+    [Fact]
+    public void Counts_ReflectionMatchesUnderlyingTool_AfterFileToProjectMap()
+    {
+        // Reflection has no Project field — composite derives via file→project map.
+        // Sum across all production projects in the result must equal the count of underlying
+        // reflection findings whose file resolves to a production project.
+        var allReflection = FindReflectionUsageLogic.Execute(_loaded, _resolver, symbol: null);
+        var productionFiles = _loaded.Solution.Projects
+            .Where(p => !RoslynCodeLens.TestDiscovery.TestProjectDetector.GetTestProjectIds(_loaded.Solution).Contains(p.Id))
+            .SelectMany(p => p.Documents)
+            .Where(d => !string.IsNullOrEmpty(d.FilePath))
+            .Select(d => d.FilePath!)
+            .ToHashSet(StringComparer.Ordinal);
+        var directInProduction = allReflection.Count(r => productionFiles.Contains(r.File));
+
+        var result = GetProjectHealthLogic.Execute(_loaded, _resolver, project: null, hotspotsPerDimension: 5);
+        var compositeTotal = result.Projects.Sum(p => p.Counts.ReflectionUsages);
+
+        Assert.Equal(directInProduction, compositeTotal);
+    }
+
+    [Fact]
     public void Hotspots_TrimmedToRequestedSize()
     {
         var result = GetProjectHealthLogic.Execute(_loaded, _resolver, project: null, hotspotsPerDimension: 2);

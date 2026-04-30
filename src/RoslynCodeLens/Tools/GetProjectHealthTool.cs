@@ -15,9 +15,11 @@ public static class GetProjectHealthTool
         "hotspots inline (default 5) so the caller can prioritise without follow-up calls. " +
         "Use this when answering 'how is this project doing?' / 'where should I focus?' / " +
         "'what's the technical debt picture?'. " +
-        "Test projects are skipped. Sort: projects ASC by name; hotspots sorted by severity " +
-        "proxy per dimension (cyclomatic complexity desc, line count desc, severity enum desc " +
-        "for async/disposable).")]
+        "Underlying defaults: complexity threshold 10, large-class limits 20 members / 500 lines, " +
+        "unused symbols excludes internals. " +
+        "Test projects are skipped. Project filter is case-insensitive. Sort: projects ASC by " +
+        "name; hotspots sorted by severity proxy per dimension (cyclomatic complexity desc, " +
+        "line count desc, severity enum desc for async/disposable).")]
     public static GetProjectHealthResult Execute(
         MultiSolutionManager manager,
         [Description("Optional: restrict to a single project by name. Default: whole solution, grouped per project.")]
