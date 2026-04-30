@@ -68,9 +68,9 @@ public static class FindGodObjectsLogic
         {
             var ownNamespace = s.Type.ContainingNamespace?.ToDisplayString() ?? string.Empty;
 
-            var incoming = incomingByType.TryGetValue(s.Type, out var inSet)
-                ? inSet
-                : new HashSet<string>(StringComparer.Ordinal);
+            // ComputeIncomingNamespaces pre-populates an entry for every suspect, so this lookup
+            // always succeeds — the indexer is safe.
+            var incoming = incomingByType[s.Type];
             var outgoing = ComputeOutgoingNamespaces(loaded, s.Type, ownNamespace);
 
             var couplingAxes =
@@ -227,20 +227,39 @@ public static class FindGodObjectsLogic
 
     private static string? GetEnclosingNamespace(SyntaxNode node, SemanticModel semanticModel)
     {
-        var declaration = node.AncestorsAndSelf().OfType<BaseTypeDeclarationSyntax>().FirstOrDefault();
-        if (declaration is null) return null;
+        // Prefer the innermost enclosing type declaration. For top-level statements (no
+        // enclosing type in syntax), fall back to file-scoped/braced namespace nodes.
+        var typeDecl = node.AncestorsAndSelf().OfType<BaseTypeDeclarationSyntax>().FirstOrDefault();
+        if (typeDecl is not null)
+        {
+            var typeSymbol = semanticModel.GetDeclaredSymbol(typeDecl);
+            return typeSymbol?.ContainingNamespace?.ToDisplayString();
+        }
 
-        var typeSymbol = semanticModel.GetDeclaredSymbol(declaration);
-        return typeSymbol?.ContainingNamespace?.ToDisplayString();
+        var nsDecl = node.AncestorsAndSelf().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault();
+        if (nsDecl is not null)
+        {
+            var nsSymbol = semanticModel.GetDeclaredSymbol(nsDecl);
+            return nsSymbol?.ToDisplayString();
+        }
+
+        // Top-level statement in the global namespace — represent as empty string so it can
+        // still be added to the incoming-namespace set (and won't equal any real namespace).
+        return string.Empty;
     }
 
     private static int GetLineCount(INamedTypeSymbol type)
     {
-        var syntaxRef = type.DeclaringSyntaxReferences.FirstOrDefault();
-        if (syntaxRef is null) return 0;
-        var span = syntaxRef.Span;
-        var tree = syntaxRef.SyntaxTree;
-        var lineSpan = tree.GetLineSpan(span);
-        return lineSpan.EndLinePosition.Line - lineSpan.StartLinePosition.Line + 1;
+        // Sum line counts across all partial declarations. A 400-line partial split into two
+        // 200-line files is just as much code to maintain as a single 400-line file.
+        var total = 0;
+        foreach (var syntaxRef in type.DeclaringSyntaxReferences)
+        {
+            var span = syntaxRef.Span;
+            var tree = syntaxRef.SyntaxTree;
+            var lineSpan = tree.GetLineSpan(span);
+            total += lineSpan.EndLinePosition.Line - lineSpan.StartLinePosition.Line + 1;
+        }
+        return total;
     }
 }
