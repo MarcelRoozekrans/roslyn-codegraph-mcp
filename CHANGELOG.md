@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.10.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.9.0...v1.10.0) (2026-04-30)
+
+
+### Features
+
+* add find_event_subscribers MCP tool ([976b2e6](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/976b2e618ea937f5df33b704f65e6063e689d81b))
+* add FindEventSubscribersLogic with += / -= site detection ([2d8bb26](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/2d8bb265156ffab3bb9f72a36b52ece781815504))
+* add models for find_event_subscribers ([b43fbb4](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/b43fbb4a5bac13e2ffd470ebfc826d4f8ae2d73d))
+* add SymbolResolver.FindEvents helper ([5e7d23d](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/5e7d23d8a7a7e6c5bd25f5fae976c9b9d534bd24))
+* register find_event_subscribers MCP tool ([cec3372](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/cec337247e8e884070adc7d104f66090cab6b329))
+
+
+### Bug Fixes
+
+* avoid angle brackets in tool description so MDX docs build succeeds ([54c1436](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/54c1436f8a68b50b0740f64c9bf36d0e9cfa5530))
+
 ## [1.9.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.8.0...v1.9.0) (2026-04-29)
 
 
