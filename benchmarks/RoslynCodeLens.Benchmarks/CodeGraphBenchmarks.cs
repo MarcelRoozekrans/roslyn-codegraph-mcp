@@ -235,6 +235,12 @@ public class CodeGraphBenchmarks
         return FindUnusedSymbolsLogic.Execute(_loaded, _resolver, null, false);
     }
 
+    [Benchmark(Description = "get_project_health: whole solution")]
+    public object GetProjectHealth()
+    {
+        return GetProjectHealthLogic.Execute(_loaded, _resolver, project: null, hotspotsPerDimension: 5);
+    }
+
     [Benchmark(Description = "find_uncovered_symbols: whole solution")]
     public object FindUncoveredSymbols()
     {
