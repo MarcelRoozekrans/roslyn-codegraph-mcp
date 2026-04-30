@@ -25,6 +25,7 @@ A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/marcel
 
 - **find_implementations** — Find all classes/structs implementing an interface or extending a class
 - **find_callers** — Find every call site for a method, property, or constructor
+- **find_event_subscribers** — Every += / -= site for an event symbol, with resolved handler and subscribe/unsubscribe tag
 - **find_tests_for_symbol** — List xUnit/NUnit/MSTest methods that exercise a production symbol; opt-in transitive walk through helpers
 - **find_uncovered_symbols** — Public methods and properties no test transitively reaches; sorted by cyclomatic complexity for prioritization
 - **get_type_hierarchy** — Walk base classes, interfaces, and derived types
