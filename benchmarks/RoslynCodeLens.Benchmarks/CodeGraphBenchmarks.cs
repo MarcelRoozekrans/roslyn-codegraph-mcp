@@ -229,6 +229,16 @@ public class CodeGraphBenchmarks
         return FindLargeClassesLogic.Execute(_loaded, _resolver, null, 20, 500);
     }
 
+    [Benchmark(Description = "find_god_objects: whole solution")]
+    public object FindGodObjects()
+    {
+        return FindGodObjectsLogic.Execute(
+            _loaded, _resolver,
+            project: null,
+            minLines: 300, minMembers: 15, minFields: 10,
+            minIncomingNamespaces: 5, minOutgoingNamespaces: 5);
+    }
+
     [Benchmark(Description = "find_unused_symbols: all")]
     public object FindUnusedSymbols()
     {
