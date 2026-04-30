@@ -31,6 +31,7 @@ If any of these thoughts cross your mind, stop and switch to the MCP tool:
 |---|---|
 | "Let me `Grep` for `class Foo`" | `search_symbols` or `go_to_definition` |
 | "Let me `Grep` for `Foo\\.Bar\\(`" (finding callers) | `find_callers` |
+| "Who subscribes to this event?" / "Find += sites" / "Are we leaking event subscriptions?" | `find_event_subscribers` |
 | "What does this method end up calling?" / "Show me the transitive callees" / "What's the blast radius for changing X?" | `get_call_graph` |
 | "Let me `Grep` for `: IFoo`" (finding implementations) | `find_implementations` |
 | "Let me `Grep` for `new Foo(`" | `find_references` |
@@ -118,6 +119,7 @@ Inspect an arbitrary DLL           → add a <ProjectReference> to a throwaway
 
 ### Finding Dependencies and Usage
 - `find_callers` — every call site for a method.
+- `find_event_subscribers` — every += / -= site for an event symbol, with resolved handler name and subscribe/unsubscribe tag. Use for UI-event audits or memory-leak hunts (compare subscribe/unsubscribe pairs).
 - `find_implementations` — all implementors of an interface / extenders of a class.
 - `find_tests_for_symbol` — xUnit/NUnit/MSTest methods that exercise a production symbol; opt-in transitive walk through helpers.
 - `find_uncovered_symbols` — Public methods and properties no test transitively reaches (≤ 3 helper hops); sorted by cyclomatic complexity for prioritization. Strict reference-based: an override is not marked covered just because its base or interface declaration is reached — a test calling `IFoo.Bar` does not cover `Foo.Bar`.
@@ -227,6 +229,7 @@ Reference concrete types, interfaces, and call sites in your analysis. Not *"the
 |------|-------------|
 | `find_implementations` | "What implements this interface?" / "What extends this class?" |
 | `find_callers` | "Who calls this method?" / "What depends on this?" |
+| `find_event_subscribers` | "Who subscribes to this event?" |
 | `find_references` | "Where is this symbol used?" / "Show all references" |
 | `find_tests_for_symbol` | "What tests cover this method?" / "Which tests will break if I change X?" |
 | `find_uncovered_symbols` | "What should I write tests for?" / "Where's our testing debt?" |
