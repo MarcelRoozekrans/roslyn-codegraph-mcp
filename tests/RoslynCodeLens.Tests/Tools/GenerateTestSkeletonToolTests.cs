@@ -164,4 +164,16 @@ public class GenerateTestSkeletonToolTests
         Assert.Contains("Tests", result.SuggestedFilePath, StringComparison.Ordinal);
         Assert.EndsWith("GreeterTests.cs", result.SuggestedFilePath, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void UnknownSymbol_Throws()
+    {
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            GenerateTestSkeletonLogic.Execute(
+                _loaded, _resolver,
+                symbol: "TestLib.DoesNotExist",
+                framework: "xunit"));
+
+        Assert.Contains("not found", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
 }
