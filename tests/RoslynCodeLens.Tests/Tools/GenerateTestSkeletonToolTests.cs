@@ -1,0 +1,36 @@
+using RoslynCodeLens;
+using RoslynCodeLens.Models;
+using RoslynCodeLens.Tests.Fixtures;
+using RoslynCodeLens.Tools;
+
+namespace RoslynCodeLens.Tests.Tools;
+
+[Collection("TestSolution")]
+public class GenerateTestSkeletonToolTests
+{
+    private readonly LoadedSolution _loaded;
+    private readonly SymbolResolver _resolver;
+
+    public GenerateTestSkeletonToolTests(TestSolutionFixture fixture)
+    {
+        _loaded = fixture.Loaded;
+        _resolver = fixture.Resolver;
+    }
+
+    [Fact]
+    public void Method_GeneratesFactSkeletonForVoidMethod()
+    {
+        var result = GenerateTestSkeletonLogic.Execute(
+            _loaded, _resolver,
+            symbol: "TestLib.Greeter.Dispose",
+            framework: "xunit");
+
+        Assert.Equal("XUnit", result.Framework);
+        Assert.Equal("GreeterTests", result.ClassName);
+        Assert.Contains("[Fact]", result.Code);
+        Assert.Contains("public void Dispose_HappyPath()", result.Code);
+        Assert.Contains("var sut = new Greeter", result.Code);
+        Assert.Contains("using Xunit;", result.Code);
+        Assert.Contains("namespace TestLib.Tests", result.Code);
+    }
+}
