@@ -51,6 +51,12 @@ public static class GetOverloadsLogic
         var typeNameLastSegment = parts[^2];
 
         // Constructor case: Type.Type → resolve as ".ctor" on Type.
+        // Known ambiguities (rare in practice; not handled here):
+        //   - Nested type sharing the outer's name (`Foo.Foo` could mean nested-type lookup).
+        //   - Namespace named like a type (`MyApp.MyApp`) — interpreted as ctor; falls through
+        //     to empty result if no such ctor exists.
+        // Ordinary self-named static methods aren't reachable via this heuristic; they'd
+        // need to be queried with the containing type's parent qualifier.
         var isConstructor = string.Equals(lastSegment, typeNameLastSegment, StringComparison.Ordinal);
         var methodName = isConstructor ? ".ctor" : lastSegment;
 
@@ -83,9 +89,12 @@ public static class GetOverloadsLogic
     private static OverloadInfo BuildOverloadInfo(IMethodSymbol method)
     {
         var location = method.Locations.FirstOrDefault(l => l.IsInSource);
-        var (file, line) = location is not null
-            ? (location.GetLineSpan().Path, location.GetLineSpan().StartLinePosition.Line + 1)
-            : (string.Empty, 0);
+        var (file, line) = (string.Empty, 0);
+        if (location is not null)
+        {
+            var span = location.GetLineSpan();
+            (file, line) = (span.Path, span.StartLinePosition.Line + 1);
+        }
 
         return new OverloadInfo(
             Signature: method.ToDisplayString(SignatureFormat),
@@ -107,7 +116,7 @@ public static class GetOverloadsLogic
     private static OverloadParameter BuildParameter(IParameterSymbol p)
     {
         var defaultText = p.HasExplicitDefaultValue
-            ? FormatDefault(p.ExplicitDefaultValue)
+            ? FormatDefault(p.ExplicitDefaultValue, p.Type)
             : null;
 
         var modifier = p.RefKind switch
@@ -128,15 +137,29 @@ public static class GetOverloadsLogic
             Modifier: modifier);
     }
 
-    private static string FormatDefault(object? value) => value switch
+    private static string FormatDefault(object? value, ITypeSymbol type)
     {
-        null => "null",
-        string s => $"\"{s}\"",
-        bool b => b ? "true" : "false",
-        char c => $"'{c}'",
-        IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
-        _ => value.ToString() ?? "null",
-    };
+        // Enum defaults: ExplicitDefaultValue returns the underlying integer (e.g. 0). Look
+        // up the matching field on the enum so we render `MyEnum.Foo` instead of `0`.
+        if (value is not null && type.TypeKind == TypeKind.Enum && type is INamedTypeSymbol enumType)
+        {
+            foreach (var member in enumType.GetMembers().OfType<IFieldSymbol>())
+            {
+                if (member.HasConstantValue && Equals(member.ConstantValue, value))
+                    return $"{enumType.Name}.{member.Name}";
+            }
+        }
+
+        return value switch
+        {
+            null => "null",
+            string s => $"\"{s}\"",
+            bool b => b ? "true" : "false",
+            char c => $"'{c}'",
+            IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
+            _ => value.ToString() ?? "null",
+        };
+    }
 
     private static string AccessibilityToString(Accessibility a) => a switch
     {
@@ -160,7 +183,11 @@ public static class GetOverloadsLogic
             doc.LoadXml(xml);
             var summary = doc.SelectSingleNode("//summary");
             var text = summary?.InnerText.Trim();
-            return string.IsNullOrEmpty(text) ? null : text;
+            if (string.IsNullOrEmpty(text)) return null;
+
+            // InnerText flattens nested tags (e.g. <see cref="X"/>) to empty strings, leaving
+            // double-spaces. Collapse whitespace runs to single spaces for clean rendering.
+            return System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ");
         }
         catch (XmlException)
         {

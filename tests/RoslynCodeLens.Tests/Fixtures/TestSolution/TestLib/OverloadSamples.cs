@@ -26,6 +26,16 @@ public class OverloadSamples
     public void Increment(ref int value) => value++;
     public int InspectIn(in int value) => value;
     public int InspectRefReadonly(ref readonly int value) => value;
+
+    // Enum default — verify FormatDefault renders `OverloadColor.Red`, not `0`.
+    public string Paint(string label, OverloadColor color = OverloadColor.Red) => $"{label}:{color}";
+}
+
+public enum OverloadColor
+{
+    Red,
+    Green,
+    Blue,
 }
 
 public static class OverloadExtensions

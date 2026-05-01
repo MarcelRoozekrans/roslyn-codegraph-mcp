@@ -75,11 +75,23 @@ public class GetOverloadsToolTests : IAsyncLifetime
     {
         var result = GetOverloadsLogic.Execute(_resolver, _metadata, "OverloadSamples.Echo");
 
-        var echo = Assert.Single(result.Overloads);
-        var times = echo.Parameters[1];
+        var echo = result.Overloads.Single(o => o.Parameters.Any(p => p.IsOptional));
+        var times = echo.Parameters.Single(p => p.IsOptional);
         Assert.Equal("times", times.Name);
-        Assert.True(times.IsOptional);
         Assert.Equal("1", times.DefaultValue);
+    }
+
+    [Fact]
+    public void Parameters_RendersEnumDefaultBySymbolicName()
+    {
+        // FormatDefault should emit `OverloadColor.Red` for an enum default,
+        // not the underlying integer value (`0`).
+        var result = GetOverloadsLogic.Execute(_resolver, _metadata, "OverloadSamples.Paint");
+
+        var paint = Assert.Single(result.Overloads);
+        var color = paint.Parameters.Single(p => p.Name == "color");
+        Assert.True(color.IsOptional);
+        Assert.Equal("OverloadColor.Red", color.DefaultValue);
     }
 
     [Fact]
