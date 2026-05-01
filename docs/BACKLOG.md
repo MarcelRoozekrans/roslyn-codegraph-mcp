@@ -41,7 +41,6 @@ Small, focused queries that aren't currently expressible in one call.
 
 Companions to `apply_code_action`, but for shapes that Roslyn doesn't ship out of the box.
 
-- **`generate_test_skeleton`** — for a target method, emit an xUnit (configurable) test class with `[Fact]`/`[Theory]` stubs covering happy path + each thrown exception type.
 - **`generate_dto_from_class`** — given a domain class, emit a DTO + AutoMapper-style mapping (or manual `ToDto`/`FromDto` extension methods).
 - **`generate_builder`** — fluent builder for a class, including required-property tracking.
 
@@ -90,3 +89,13 @@ Items considered during design of shipped features and consciously punted on. Re
 - **Skip-reason surface** for `[Fact(Skip = "…")]` / `[Ignore("…")]` — agent can compose via `find_attribute_usages` if needed.
 - **`[MemberData]` / `[ClassData]` row tracking** — only inline `[InlineData]`/`[TestCase]`/`[DataRow]` are counted; data-source attributes don't expose row count without runtime evaluation.
 - **Cross-project test→production coverage map** — that's `find_tests_for_symbol` territory in reverse.
+
+### From `generate_test_skeleton` (designed 2026-05-01)
+- **Property / indexer / operator stubs** — low value; agent can request manually.
+- **Mock framework integration** (Moq, NSubstitute, FakeItEasy) — opinionated; agent picks.
+- **Test data builders** (AutoFixture, Bogus) — same.
+- **Cross-method dependency analysis** — keep skeleton focused on the SUT.
+- **`SyntaxFactory`-based output** — string composition is cleaner for stub-shaped output.
+- **Indirect `throw` detection** (via helper methods) — only direct `throw new T(...)` is followed.
+- **Existing-test detection / merge** — agent handles dedupe.
+- **Inherited-member skeletons** — agent composes via `get_overloads` / hierarchy tools.
