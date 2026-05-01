@@ -2,23 +2,21 @@ using Microsoft.CodeAnalysis;
 using RoslynCodeLens;
 using RoslynCodeLens.Symbols;
 using RoslynCodeLens.TestDiscovery;
+using RoslynCodeLens.Tests.Fixtures;
 
 namespace RoslynCodeLens.Tests.TestDiscovery;
 
-public class TestMethodClassifierTests : IAsyncLifetime
+[Collection("TestSolution")]
+public class TestMethodClassifierTests
 {
-    private LoadedSolution _loaded = null!;
-    private SymbolResolver _resolver = null!;
+    private readonly LoadedSolution _loaded;
+    private readonly SymbolResolver _resolver;
 
-    public async Task InitializeAsync()
+    public TestMethodClassifierTests(TestSolutionFixture fixture)
     {
-        var fixturePath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
-        _resolver = new SymbolResolver(_loaded);
+        _loaded = fixture.Loaded;
+        _resolver = fixture.Resolver;
     }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public void Classify_XUnitFactMethod_ReturnsXUnit()

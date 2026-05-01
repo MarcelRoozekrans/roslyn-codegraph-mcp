@@ -1,20 +1,18 @@
 using RoslynCodeLens;
 using RoslynCodeLens.Tools;
+using RoslynCodeLens.Tests.Fixtures;
 
 namespace RoslynCodeLens.Tests.Tools;
 
-public class GetProjectDependenciesToolTests : IAsyncLifetime
+[Collection("TestSolution")]
+public class GetProjectDependenciesToolTests
 {
-    private LoadedSolution _loaded = null!;
+    private readonly LoadedSolution _loaded;
 
-    public async Task InitializeAsync()
+    public GetProjectDependenciesToolTests(TestSolutionFixture fixture)
     {
-        var fixturePath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
+        _loaded = fixture.Loaded;
     }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public void GetDependencies_ForTestLib2_ReturnsTestLib()

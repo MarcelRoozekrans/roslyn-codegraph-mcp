@@ -2,29 +2,29 @@ using RoslynCodeLens;
 using RoslynCodeLens.Metadata;
 using RoslynCodeLens.Symbols;
 using RoslynCodeLens.Tools;
+using RoslynCodeLens.Tests.Fixtures;
 
 namespace RoslynCodeLens.Tests.Tools;
 
-public class PeekIlToolTests : IAsyncLifetime
+[Collection("TestSolution")]
+public class PeekIlToolTests : IDisposable
 {
-    private LoadedSolution _loaded = null!;
-    private SymbolResolver _resolver = null!;
-    private MetadataSymbolResolver _metadata = null!;
-    private IlDisassemblerAdapter _adapter = null!;
-    private PEFileCache _peCache = null!;
+    private readonly LoadedSolution _loaded;
+    private readonly SymbolResolver _resolver;
+    private readonly MetadataSymbolResolver _metadata;
+    private readonly IlDisassemblerAdapter _adapter;
+    private readonly PEFileCache _peCache;
 
-    public async Task InitializeAsync()
+    public PeekIlToolTests(TestSolutionFixture fixture)
     {
-        var fixturePath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
-        _resolver = new SymbolResolver(_loaded);
-        _metadata = new MetadataSymbolResolver(_loaded, _resolver);
+        _loaded = fixture.Loaded;
+        _resolver = fixture.Resolver;
+        _metadata = fixture.Metadata;
         _peCache = new PEFileCache();
         _adapter = new IlDisassemblerAdapter(_peCache);
     }
 
-    public Task DisposeAsync() { _peCache.Dispose(); return Task.CompletedTask; }
+    public void Dispose() { _peCache.Dispose(); GC.SuppressFinalize(this); }
 
     [Fact]
     public void Peek_MetadataCtor_ReturnsIlText()
