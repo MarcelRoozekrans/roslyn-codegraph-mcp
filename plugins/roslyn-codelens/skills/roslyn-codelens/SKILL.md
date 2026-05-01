@@ -36,6 +36,7 @@ If any of these thoughts cross your mind, stop and switch to the MCP tool:
 | "Let me `Grep` for `: IFoo`" (finding implementations) | `find_implementations` |
 | "Let me `Grep` for `new Foo(`" | `find_references` |
 | "Let me `Grep` for `[Authorize]`" | `find_attribute_usages` |
+| "What deprecations do we still use?" / "Plan an Obsolete cleanup" / "Find every [Obsolete] call site" | `find_obsolete_usage` |
 | "I'll run `dotnet build` to see errors" | `get_diagnostics` |
 | "I'll run `dotnet build -warnaserror` to find warnings" | `get_diagnostics` |
 | "Let me `Read` the .cs file to see what's defined" | `get_file_overview` or `get_type_overview` |
@@ -129,6 +130,7 @@ Inspect an arbitrary DLL           → add a <ProjectReference> to a throwaway
 - `find_reflection_usage` — hidden/dynamic coupling (`Activator.CreateInstance`, `MethodInfo.Invoke`, assembly scanning).
 - `get_nuget_dependencies` — NuGet packages and versions.
 - `find_attribute_usages` — members decorated with a given attribute.
+- `find_obsolete_usage` — Every [Obsolete] call site grouped by deprecation message and severity. Sharper than find_attribute_usages for migration planning. Source AND metadata obsoletes (NuGet) included.
 
 ### Diagnostics (**instead of `dotnet build`**)
 - `get_diagnostics` — compiler errors, warnings, analyzer diagnostics. Replaces `dotnet build` output.
@@ -248,6 +250,7 @@ Reference concrete types, interfaces, and call sites in your analysis. Not *"the
 | `get_nuget_dependencies` | "What packages does this project use?" |
 | `find_reflection_usage` | "Is this used dynamically?" |
 | `find_attribute_usages` | "What's marked [Obsolete]?" / "Find all [Authorize] controllers" |
+| `find_obsolete_usage` | "What deprecations do we still use?" |
 | `get_diagnostics` | "Any compiler errors?" / "Show warnings" |
 | `get_code_fixes` | "How do I fix this warning?" |
 | `get_code_actions` | "What refactorings are available here?" |

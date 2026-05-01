@@ -1,0 +1,52 @@
+using System;
+
+namespace TestLib.ObsoleteSamples;
+
+public class ObsoleteApi
+{
+    [Obsolete("Use NewWay instead")]
+    public void ObsoleteWarning() { }
+
+    [Obsolete]
+    public void ObsoleteWithoutMessage() { }
+
+    [Obsolete("Should not appear")]
+    public void UnusedObsolete() { }
+}
+
+[Obsolete("Drop this type")]
+public class ObsoleteType
+{
+    public void Bar() { }
+}
+
+public class ObsoleteConsumer
+{
+    private readonly ObsoleteApi _api = new();
+
+    public void UseAll()
+    {
+        _api.ObsoleteWarning();
+        _api.ObsoleteWarning();
+        _api.ObsoleteWithoutMessage();
+    }
+
+    public void UseObsoleteType()
+    {
+        var t = new ObsoleteType();
+        var name = nameof(ObsoleteType);
+    }
+
+    public void UseConditionalAccess()
+    {
+        // Conditional access path: obj?.Member() — caught reviewer-flagged overcounting via MemberBindingExpressionSyntax.
+        ObsoleteApi? maybe = _api;
+        maybe?.ObsoleteWarning();
+    }
+
+    public void UseQualifiedNew()
+    {
+        // Qualified-name new: new Ns.Type() — caught reviewer-flagged overcounting via QualifiedNameSyntax.
+        var t = new TestLib.ObsoleteSamples.ObsoleteType();
+    }
+}

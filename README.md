@@ -42,6 +42,7 @@ A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/marcel
 - **search_symbols** — Fuzzy workspace symbol search by name
 - **get_nuget_dependencies** — List NuGet package references per project
 - **find_attribute_usages** — Find types and members decorated with a specific attribute
+- **find_obsolete_usage** — Every `[Obsolete]` call site grouped by deprecation message and severity, errors first; for planning migrations
 - **find_circular_dependencies** — Detect cycles in project or namespace dependency graphs
 - **get_complexity_metrics** — Cyclomatic complexity analysis per method
 - **find_naming_violations** — Check .NET naming convention compliance
