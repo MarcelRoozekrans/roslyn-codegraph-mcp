@@ -151,4 +151,17 @@ public class GenerateTestSkeletonToolTests
         Assert.Contains("[Test]", result.Code);
         Assert.Contains("using NUnit.Framework;", result.Code);
     }
+
+    [Fact]
+    public void SuggestedPath_TargetsTestProject()
+    {
+        var result = GenerateTestSkeletonLogic.Execute(
+            _loaded, _resolver,
+            symbol: "TestLib.Greeter",
+            framework: "xunit");
+
+        // Some test project that references TestLib should be the target.
+        Assert.Contains("Tests", result.SuggestedFilePath, StringComparison.Ordinal);
+        Assert.EndsWith("GreeterTests.cs", result.SuggestedFilePath, StringComparison.Ordinal);
+    }
 }
