@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.12.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.11.0...v1.12.0) (2026-04-30)
+
+
+### Features
+
+* add find_god_objects MCP tool ([9e19921](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/9e19921e0650cd268d37765de010bef5a144297a))
+
+
+### Bug Fixes
+
+* braced namespaces in fixture, address remaining review issues ([45405af](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/45405af56ecc80e3a32e8922ce344ba58867fe5e))
+
 ## [1.11.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.10.0...v1.11.0) (2026-04-30)
 
 
