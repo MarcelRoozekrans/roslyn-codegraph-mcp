@@ -176,4 +176,18 @@ public class GenerateTestSkeletonToolTests
 
         Assert.Contains("not found", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void Code_IsSyntacticallyValidCSharp()
+    {
+        var result = GenerateTestSkeletonLogic.Execute(
+            _loaded, _resolver,
+            symbol: "TestLib.OrderService",
+            framework: "xunit");
+
+        var tree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(result.Code);
+        var diagnostics = tree.GetDiagnostics().ToList();
+
+        Assert.Empty(diagnostics);
+    }
 }
