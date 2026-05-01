@@ -125,4 +125,30 @@ public class GenerateTestSkeletonToolTests
         Assert.DoesNotContain("get_", result.Code);
         Assert.DoesNotContain("set_", result.Code);
     }
+
+    [Fact]
+    public void Framework_AutoDetectsXUnitFromTestProjects()
+    {
+        // Test solution has 1 each of XUnit / NUnit / MSTest fixtures.
+        // Tie → XUnit (enum order: XUnit < NUnit < MSTest).
+        var result = GenerateTestSkeletonLogic.Execute(
+            _loaded, _resolver,
+            symbol: "TestLib.Greeter.Dispose",
+            framework: null);
+
+        Assert.Equal("XUnit", result.Framework);
+    }
+
+    [Fact]
+    public void Framework_OverrideHonored()
+    {
+        var result = GenerateTestSkeletonLogic.Execute(
+            _loaded, _resolver,
+            symbol: "TestLib.Greeter.Dispose",
+            framework: "nunit");
+
+        Assert.Equal("NUnit", result.Framework);
+        Assert.Contains("[Test]", result.Code);
+        Assert.Contains("using NUnit.Framework;", result.Code);
+    }
 }

@@ -107,6 +107,21 @@ public static class GenerateTestSkeletonLogic
 
     private static Compilation? FindCompilationForType(LoadedSolution loaded, INamedTypeSymbol targetType)
     {
+        // Match by source location: the compilation whose syntax trees include
+        // the type's declaration is the one whose semantic model can interpret
+        // descendant nodes of that declaration.
+        var sourceLocation = targetType.Locations.FirstOrDefault(l => l.IsInSource);
+        var sourceTree = sourceLocation?.SourceTree;
+        if (sourceTree is not null)
+        {
+            foreach (var c in loaded.Compilations.Values)
+            {
+                if (c.SyntaxTrees.Contains(sourceTree))
+                    return c;
+            }
+        }
+
+        // Fallback: assembly-symbol equality (works when targetType came from this compilation).
         foreach (var c in loaded.Compilations.Values)
         {
             if (SymbolEqualityComparer.Default.Equals(c.Assembly, targetType.ContainingAssembly))
