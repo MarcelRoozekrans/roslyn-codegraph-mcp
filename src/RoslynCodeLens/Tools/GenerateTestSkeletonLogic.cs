@@ -156,6 +156,27 @@ public static class GenerateTestSkeletonLogic
         TestFramework fw,
         List<string> todoNotes)
     {
+        var isAsync = ReturnsTask(method);
+        var hasParams = method.Parameters.Length > 0;
+        var allPrimitive = hasParams && method.Parameters.All(IsPrimitiveParam);
+
+        if (allPrimitive && !isAsync)
+        {
+            EmitTheoryStub(sb, targetType, method, fw);
+        }
+        else
+        {
+            EmitHappyPathFact(sb, targetType, method, fw, isAsync);
+        }
+    }
+
+    private static void EmitHappyPathFact(
+        StringBuilder sb,
+        INamedTypeSymbol targetType,
+        IMethodSymbol method,
+        TestFramework fw,
+        bool isAsync)
+    {
         var factAttr = fw switch
         {
             TestFramework.XUnit => "[Fact]",
@@ -164,7 +185,6 @@ public static class GenerateTestSkeletonLogic
             _ => "[Fact]",
         };
 
-        var isAsync = ReturnsTask(method);
         var returnType = isAsync ? "async Task" : "void";
         var awaitable = isAsync ? "await " : "";
 
@@ -183,6 +203,67 @@ public static class GenerateTestSkeletonLogic
             sb.AppendLine($"        {awaitable}sut.{method.Name}();");
         }
 
+        sb.AppendLine("        // TODO: assert");
+        sb.AppendLine("    }");
+    }
+
+    private static bool IsPrimitiveParam(IParameterSymbol p)
+    {
+        var t = p.Type;
+        if (t.SpecialType is
+            SpecialType.System_String or
+            SpecialType.System_Int32 or SpecialType.System_Int64 or
+            SpecialType.System_Double or SpecialType.System_Single or
+            SpecialType.System_Boolean or SpecialType.System_Char or
+            SpecialType.System_Byte) return true;
+        return t.TypeKind == TypeKind.Enum;
+    }
+
+    private static string DefaultLiteral(IParameterSymbol p) => p.Type.SpecialType switch
+    {
+        SpecialType.System_String => "\"\"",
+        SpecialType.System_Boolean => "false",
+        SpecialType.System_Char => "'a'",
+        _ => "0",
+    };
+
+    private static void EmitTheoryStub(
+        StringBuilder sb,
+        INamedTypeSymbol targetType,
+        IMethodSymbol method,
+        TestFramework fw)
+    {
+        var literals = string.Join(", ", method.Parameters.Select(DefaultLiteral));
+
+        if (fw == TestFramework.XUnit)
+        {
+            sb.AppendLine("    [Theory]");
+            sb.AppendLine($"    [InlineData({literals})]");
+        }
+        else if (fw == TestFramework.NUnit)
+        {
+            sb.AppendLine($"    [TestCase({literals})]");
+        }
+        else
+        {
+            sb.AppendLine("    [DataTestMethod]");
+            sb.AppendLine($"    [DataRow({literals})]");
+        }
+
+        var paramList = string.Join(", ", method.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
+        var argList = string.Join(", ", method.Parameters.Select(p => p.Name));
+
+        sb.AppendLine($"    public void {method.Name}_Theory({paramList})");
+        sb.AppendLine("    {");
+        if (method.IsStatic)
+        {
+            sb.AppendLine($"        {targetType.Name}.{method.Name}({argList});");
+        }
+        else
+        {
+            sb.AppendLine($"        var sut = new {targetType.Name}();");
+            sb.AppendLine($"        sut.{method.Name}({argList});");
+        }
         sb.AppendLine("        // TODO: assert");
         sb.AppendLine("    }");
     }

@@ -71,4 +71,17 @@ public class GenerateTestSkeletonToolTests
         Assert.Contains("await sut.DoAsync()", result.Code);
         Assert.Contains("using System.Threading.Tasks;", result.Code);
     }
+
+    [Fact]
+    public void MethodWithPrimitiveParams_GeneratesTheoryWithInlineData()
+    {
+        var result = GenerateTestSkeletonLogic.Execute(
+            _loaded, _resolver,
+            symbol: "TestLib.Calculator.Add",
+            framework: "xunit");
+
+        Assert.Contains("[Theory]", result.Code);
+        Assert.Contains("[InlineData(", result.Code);
+        Assert.Contains("public void Add_Theory(int a, int b)", result.Code);
+    }
 }
