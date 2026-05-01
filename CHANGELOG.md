@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.13.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.12.0...v1.13.0) (2026-05-01)
+
+
+### Features
+
+* add find_obsolete_usage MCP tool ([e27e370](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/e27e370a69109c64641ab590d83bfd501de872cb))
+* add FindObsoleteUsageLogic grouped by deprecation message ([5d253ae](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/5d253aece34951636c0f61a1312443a425ae5e7f))
+* add get_overloads MCP tool ([6c332c1](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/6c332c175d4b2625cb7138d5c99e820a62ac16d0))
+* add GetOverloadsLogic with tests ([0e5a89c](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/0e5a89c563cccc8c6310376916f00cc102f94bd0))
+* add models for find_obsolete_usage ([91f4799](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/91f47999e16fa92032b32538123462b08992451c))
+* add models for get_overloads ([6cc229b](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/6cc229b0221166829a1bf7d5efa4e9704ce96f32))
+* register find_obsolete_usage MCP tool ([3f19180](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/3f1918099401be8413f0df6838cef0cdf7bb3a66))
+* register get_overloads MCP tool ([b5abd71](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/b5abd714eb045348ee47d8aea0f8f744323fcc1b))
+
+
+### Bug Fixes
+
+* bypass CS0619 in fixture by using nameof() for IsError obsolete ([b555c79](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/b555c7943cfc6bb87e76d3a89f5feebc491983e0))
+* drop [Obsolete(..., true)] fixture, can't suppress CS0619 in MSBuildWorkspace ([38b4e16](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/38b4e16e24bccf4f4666698ef7af059efcac5972))
+* handle conditional-access + qualified-name patterns in nested-skip filter ([6bc0c9b](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/6bc0c9b3b8b4b8d4d95b201a0400d9050ed69020))
+* handle RefKind.RefReadOnlyParameter, cover all ref kinds in tests ([4fd8ecc](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/4fd8ecc9fb762a0f1e49a9ca258f653cd673bdbf))
+* project-level NoWarn for obsolete diagnostics in TestLib fixture ([f0923d7](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/f0923d7fa6253240c30beb35b278a26253dcbb90))
+* skip pragma-suppressed diagnostics in get_diagnostics ([c5a1791](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/c5a1791b57f86a38906040f9b7bc025468a81f7b))
+* suppress CS0619 in fixture, document test-project filter, add IsGenerated test ([33c3f6b](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/33c3f6b0aa7a3aca387079c0264c709333037d2d))
+* trim AdapterProjects to the 3 with PackageReferences ([ace48a2](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/ace48a2c961d1046594c6962fc3be3be5cd89413))
+
 ## [1.12.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.11.0...v1.12.0) (2026-04-30)
 
 
