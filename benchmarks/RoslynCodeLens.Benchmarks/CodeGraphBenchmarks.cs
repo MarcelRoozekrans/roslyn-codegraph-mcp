@@ -269,6 +269,13 @@ public class CodeGraphBenchmarks
         return FindUncoveredSymbolsLogic.Execute(_loaded, _resolver);
     }
 
+    [Benchmark(Description = "generate_test_skeleton: type input")]
+    public object GenerateTestSkeleton()
+    {
+        return GenerateTestSkeletonLogic.Execute(
+            _loaded, _resolver, symbol: "TestLib.OrderService", framework: "xunit");
+    }
+
     [Benchmark(Description = "get_public_api_surface: whole solution")]
     public object GetPublicApiSurface()
     {
