@@ -116,6 +116,12 @@ public class CodeGraphBenchmarks
             _loaded, _resolver, "IGreeter.Greet", transitive: true, maxDepth: 3);
     }
 
+    [Benchmark(Description = "get_test_summary: whole solution")]
+    public object GetTestSummary()
+    {
+        return GetTestSummaryLogic.Execute(_loaded, _resolver, project: null);
+    }
+
     [Benchmark(Description = "get_type_hierarchy: Greeter")]
     public object GetTypeHierarchy()
     {
