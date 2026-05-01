@@ -112,4 +112,17 @@ public class GenerateTestSkeletonToolTests
             n => n.Contains("IOrderRepo", StringComparison.Ordinal));
         Assert.Contains("/* TODO: dependencies */", result.Code);
     }
+
+    [Fact]
+    public void Type_ExcludesPropertiesAndConstructors()
+    {
+        var result = GenerateTestSkeletonLogic.Execute(
+            _loaded, _resolver,
+            symbol: "TestLib.OrderService",
+            framework: "xunit");
+
+        Assert.DoesNotContain("public void .ctor", result.Code);
+        Assert.DoesNotContain("get_", result.Code);
+        Assert.DoesNotContain("set_", result.Code);
+    }
 }
