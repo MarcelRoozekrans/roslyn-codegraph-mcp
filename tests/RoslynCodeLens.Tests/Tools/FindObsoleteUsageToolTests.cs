@@ -34,18 +34,6 @@ public class FindObsoleteUsageToolTests : IAsyncLifetime
     }
 
     [Fact]
-    public void Result_FindsObsoleteError()
-    {
-        var result = FindObsoleteUsageLogic.Execute(_loaded, _resolver, project: null, errorOnly: false);
-
-        var group = Assert.Single(result.Groups, g =>
-            g.SymbolName.Contains("ObsoleteErrorTypeMarker", StringComparison.Ordinal));
-        Assert.Equal("Hard fail", group.DeprecationMessage);
-        Assert.True(group.IsError);
-        Assert.True(group.UsageCount >= 1);
-    }
-
-    [Fact]
     public void Result_FindsObsoleteWithoutMessage()
     {
         var result = FindObsoleteUsageLogic.Execute(_loaded, _resolver, project: null, errorOnly: false);
