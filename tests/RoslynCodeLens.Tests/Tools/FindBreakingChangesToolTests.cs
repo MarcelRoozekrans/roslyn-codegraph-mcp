@@ -6,25 +6,23 @@ using RoslynCodeLens;
 using RoslynCodeLens.Models;
 using RoslynCodeLens.Symbols;
 using RoslynCodeLens.Tools;
+using RoslynCodeLens.Tests.Fixtures;
 
 namespace RoslynCodeLens.Tests.Tools;
 
-public class FindBreakingChangesToolTests : IAsyncLifetime
+[Collection("TestSolution")]
+public class FindBreakingChangesToolTests
 {
-    private LoadedSolution _loaded = null!;
-    private SymbolResolver _resolver = null!;
-    private IReadOnlyList<PublicApiEntry> _currentSurface = null!;
+    private readonly LoadedSolution _loaded;
+    private readonly SymbolResolver _resolver;
+    private readonly IReadOnlyList<PublicApiEntry> _currentSurface;
 
-    public async Task InitializeAsync()
+    public FindBreakingChangesToolTests(TestSolutionFixture fixture)
     {
-        var fixturePath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
-        _resolver = new SymbolResolver(_loaded);
+        _loaded = fixture.Loaded;
+        _resolver = fixture.Resolver;
         _currentSurface = GetPublicApiSurfaceLogic.Execute(_loaded, _resolver).Entries;
     }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public void Diff_NoChanges_ReturnsEmpty()

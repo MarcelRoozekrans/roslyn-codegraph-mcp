@@ -19,8 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Fixtures\**" />
-    <None Include="Fixtures\**" CopyToOutputDirectory="Never" />
+    <Compile Remove="Fixtures\TestSolution\**" />
+    <Compile Remove="Fixtures\TestSolutionAlt\**" />
+    <None Include="Fixtures\TestSolution\**" CopyToOutputDirectory="Never" />
+    <None Include="Fixtures\TestSolutionAlt\**" CopyToOutputDirectory="Never" />
     <None Update="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
