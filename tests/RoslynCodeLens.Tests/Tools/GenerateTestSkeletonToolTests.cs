@@ -33,4 +33,17 @@ public class GenerateTestSkeletonToolTests
         Assert.Contains("using Xunit;", result.Code);
         Assert.Contains("namespace TestLib.Tests", result.Code);
     }
+
+    [Fact]
+    public void Type_GeneratesClassWithFactPerPublicMethod()
+    {
+        var result = GenerateTestSkeletonLogic.Execute(
+            _loaded, _resolver,
+            symbol: "TestLib.Greeter",
+            framework: "xunit");
+
+        Assert.Equal("GreeterTests", result.ClassName);
+        // Greeter has Dispose() — a no-arg void; should appear as a happy-path Fact.
+        Assert.Contains("public void Dispose_HappyPath()", result.Code);
+    }
 }
