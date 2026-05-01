@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.14.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.13.0...v1.14.0) (2026-05-01)
+
+
+### Features
+
+* add get_test_summary MCP tool ([64a79e7](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/64a79e7372a311c76f8d3b6faef9cba93a69a496))
+* add GetTestSummaryLogic with tests ([a6eec21](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/a6eec2191c3df3d0a1cff9f1990e389a93afb81e))
+* add models for get_test_summary ([0f7c664](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/0f7c664eb7e375fed1ce8ac8564ca3dac566e1ba))
+* register get_test_summary MCP tool ([a4ae431](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/a4ae4316e38e029071207731c7d88dccd96e2e09))
+
+
+### Bug Fixes
+
+* enforce generated-code skip + narrow Microsoft.* exclusion ([345f489](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/345f4899c605961ebdfa2407eb84cf03103938ab))
+
 ## [1.13.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.12.0...v1.13.0) (2026-05-01)
 
 
