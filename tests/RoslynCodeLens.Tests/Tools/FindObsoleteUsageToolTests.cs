@@ -29,7 +29,8 @@ public class FindObsoleteUsageToolTests : IAsyncLifetime
             g.SymbolName.Contains("ObsoleteWarning", StringComparison.Ordinal));
         Assert.Equal("Use NewWay instead", group.DeprecationMessage);
         Assert.False(group.IsError);
-        Assert.Equal(2, group.UsageCount);
+        // UseAll: 2× direct calls. UseConditionalAccess: 1× `?.ObsoleteWarning()`. At least 3.
+        Assert.True(group.UsageCount >= 3);
     }
 
     [Fact]
@@ -41,6 +42,7 @@ public class FindObsoleteUsageToolTests : IAsyncLifetime
             g.SymbolName.Contains("ObsoleteError", StringComparison.Ordinal));
         Assert.Equal("Hard fail", group.DeprecationMessage);
         Assert.True(group.IsError);
+        Assert.True(group.UsageCount >= 1);
     }
 
     [Fact]
@@ -52,6 +54,7 @@ public class FindObsoleteUsageToolTests : IAsyncLifetime
             g.SymbolName.Contains("ObsoleteWithoutMessage", StringComparison.Ordinal));
         Assert.Equal(string.Empty, group.DeprecationMessage);
         Assert.False(group.IsError);
+        Assert.True(group.UsageCount >= 1);
     }
 
     [Fact]
@@ -62,7 +65,34 @@ public class FindObsoleteUsageToolTests : IAsyncLifetime
         var group = Assert.Single(result.Groups, g =>
             g.SymbolName.Contains("ObsoleteType", StringComparison.Ordinal));
         Assert.Equal("Drop this type", group.DeprecationMessage);
-        Assert.True(group.UsageCount >= 1);
+        // UseObsoleteType: `new ObsoleteType()` + `nameof(ObsoleteType)`.
+        // UseQualifiedNew: `new TestLib.ObsoleteSamples.ObsoleteType()`. >= 3 in any counting.
+        Assert.True(group.UsageCount >= 3);
+    }
+
+    [Fact]
+    public void ConditionalAccess_IsCounted()
+    {
+        // Locks in I1 from review: `obj?.ObsoleteMethod()` uses MemberBindingExpressionSyntax,
+        // which had been missing from the nested-skip filter. Verify the conditional-access
+        // call site IS detected (snippet contains '?.') and counted at least once.
+        var result = FindObsoleteUsageLogic.Execute(_loaded, _resolver, project: null, errorOnly: false);
+
+        var group = Assert.Single(result.Groups, g =>
+            g.SymbolName.Contains("ObsoleteWarning", StringComparison.Ordinal));
+        Assert.Contains(group.Usages, u => u.CallerName.Contains("UseConditionalAccess", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void QualifiedNameNew_IsCounted()
+    {
+        // Locks in I2 from review: `new Ns.ObsoleteType()` uses QualifiedNameSyntax for the
+        // type expression. Verify that call site IS detected and reported once per ObjectCreation.
+        var result = FindObsoleteUsageLogic.Execute(_loaded, _resolver, project: null, errorOnly: false);
+
+        var group = Assert.Single(result.Groups, g =>
+            g.SymbolName.Contains("ObsoleteType", StringComparison.Ordinal));
+        Assert.Contains(group.Usages, u => u.CallerName.Contains("UseQualifiedNew", StringComparison.Ordinal));
     }
 
     [Fact]

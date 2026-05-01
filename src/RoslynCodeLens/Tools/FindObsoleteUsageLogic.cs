@@ -70,22 +70,12 @@ public static class FindObsoleteUsageLogic
                     if (node.FirstAncestorOrSelf<AttributeSyntax>() is not null)
                         continue;
 
-                    // Avoid counting the same call site multiple times via nested syntax
-                    // nodes that resolve to the same symbol (e.g. _api.ObsoleteWarning() yields
-                    // an InvocationExpression, a MemberAccessExpression, and an IdentifierName,
-                    // all binding to the obsolete method). Only the outermost relevant node
-                    // contributes; inner nodes are skipped.
-                    if (node is IdentifierNameSyntax
-                        && node.Parent is MemberAccessExpressionSyntax memberParent
-                        && memberParent.Name == node)
-                        continue;
-                    if (node is (IdentifierNameSyntax or MemberAccessExpressionSyntax)
-                        && node.Parent is InvocationExpressionSyntax invocParent
-                        && invocParent.Expression == node)
-                        continue;
-                    if (node is IdentifierNameSyntax
-                        && node.Parent is ObjectCreationExpressionSyntax ocParent
-                        && ocParent.Type == node)
+                    // Avoid counting the same call site multiple times via nested syntax nodes
+                    // that all resolve to the same symbol. e.g. `_api.ObsoleteWarning()` yields
+                    // an InvocationExpression, a MemberAccessExpression, AND an IdentifierName —
+                    // each with a different span — all binding to the same method. Only the
+                    // outermost relevant node contributes.
+                    if (IsWrappedByOuterRelevantNode(node))
                         continue;
 
                     var symbol = semanticModel.GetSymbolInfo(node).Symbol;
@@ -179,6 +169,51 @@ public static class FindObsoleteUsageLogic
         }
 
         return null;
+    }
+
+    // Returns true when `node` is a child of another node that the caller will already process
+    // and that resolves to the same target symbol. Keeps usage counts at one-per-call-site.
+    private static bool IsWrappedByOuterRelevantNode(SyntaxNode node)
+    {
+        var parent = node.Parent;
+        if (parent is null) return false;
+
+        // Wrapped by a member access whose `.Name` is this node:
+        //   `_api.ObsoleteWarning` — IdentifierName('ObsoleteWarning') is the .Name of MemberAccess.
+        //   The MemberAccess will be visited; skip the IdentifierName.
+        if (parent is MemberAccessExpressionSyntax member && member.Name == node)
+            return true;
+
+        // Wrapped by member-binding (`obj?.ObsoleteMethod()` — `?.ObsoleteMethod` is a
+        // MemberBindingExpression whose .Name is the IdentifierName).
+        if (parent is MemberBindingExpressionSyntax binding && binding.Name == node)
+            return true;
+
+        // Wrapped by an invocation whose `.Expression` is this node:
+        //   `obj.M()` — MemberAccess('obj.M') is the .Expression of Invocation. Invocation wins.
+        if (parent is InvocationExpressionSyntax invocation && invocation.Expression == node)
+            return true;
+
+        // Wrapped by an object-creation whose `.Type` is this node:
+        //   `new ObsoleteType()` — IdentifierName('ObsoleteType') is the .Type. ObjectCreation wins.
+        if (parent is ObjectCreationExpressionSyntax creation && creation.Type == node)
+            return true;
+
+        // Wrapped by a qualified-name whose `.Right` is this node, when the qualified name itself
+        // is the .Type of an object creation:
+        //   `new TestLib.ObsoleteSamples.ObsoleteType()` — ObsoleteType IdentifierName is the
+        //   .Right of a QualifiedName which is the .Type of ObjectCreation. ObjectCreation wins.
+        if (parent is QualifiedNameSyntax qualified
+            && qualified.Right == node
+            && qualified.Parent is ObjectCreationExpressionSyntax)
+            return true;
+
+        // Wrapped by a qualified-name whose `.Right` is this node, when the qualified name's
+        // parent is itself wrapped by an outer relevant node (recursive case for deep chains).
+        if (parent is QualifiedNameSyntax qualifiedRecurse && qualifiedRecurse.Right == node)
+            return IsWrappedByOuterRelevantNode(qualifiedRecurse);
+
+        return false;
     }
 
     private static string GetCallerName(SyntaxNode node)

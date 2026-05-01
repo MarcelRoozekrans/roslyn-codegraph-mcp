@@ -42,6 +42,19 @@ public class ObsoleteConsumer
         var t = new ObsoleteType();
         var name = nameof(ObsoleteType);
     }
+
+    public void UseConditionalAccess()
+    {
+        // Conditional access path: obj?.Member() — caught reviewer-flagged overcounting via MemberBindingExpressionSyntax.
+        ObsoleteApi? maybe = _api;
+        maybe?.ObsoleteWarning();
+    }
+
+    public void UseQualifiedNew()
+    {
+        // Qualified-name new: new Ns.Type() — caught reviewer-flagged overcounting via QualifiedNameSyntax.
+        var t = new TestLib.ObsoleteSamples.ObsoleteType();
+    }
 #pragma warning restore CS0618
 #pragma warning restore CS0612
 }
