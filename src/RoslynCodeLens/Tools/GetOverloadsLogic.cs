@@ -115,6 +115,7 @@ public static class GetOverloadsLogic
             RefKind.Ref => "ref",
             RefKind.Out => "out",
             RefKind.In => "in",
+            RefKind.RefReadOnlyParameter => "ref readonly",
             _ => string.Empty,
         };
 

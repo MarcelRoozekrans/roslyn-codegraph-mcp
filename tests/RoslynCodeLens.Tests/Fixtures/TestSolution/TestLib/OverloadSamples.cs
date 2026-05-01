@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace TestLib.OverloadSamples;
+namespace TestLib;
 
 public class OverloadSamples
 {
@@ -20,6 +20,12 @@ public class OverloadSamples
 
     public static OverloadSamples FromString(string s) => new();
     public static OverloadSamples FromString(string s, int multiplier) => new();
+
+    // Exercises every RefKind so the modifier-rendering switch in BuildParameter is covered.
+    public bool TryParse(string s, out int value) { value = 0; return false; }
+    public void Increment(ref int value) => value++;
+    public int InspectIn(in int value) => value;
+    public int InspectRefReadonly(ref readonly int value) => value;
 }
 
 public static class OverloadExtensions

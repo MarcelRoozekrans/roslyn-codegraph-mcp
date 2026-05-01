@@ -126,9 +126,28 @@ public class GetOverloadsToolTests : IAsyncLifetime
     {
         var result = GetOverloadsLogic.Execute(_resolver, _metadata, "System.Console.WriteLine");
 
-        // BCL Console.WriteLine has 18+ overloads; require at least 10 to allow for runtime variation.
-        Assert.True(result.Overloads.Count >= 10,
-            $"Expected >=10 Console.WriteLine overloads, got {result.Overloads.Count}");
+        // BCL Console.WriteLine on net10 has 19 public overloads; lock to >= 18 so a metadata-
+        // fallback regression that returns only the first match would be caught.
+        Assert.True(result.Overloads.Count >= 18,
+            $"Expected >=18 Console.WriteLine overloads, got {result.Overloads.Count}");
+    }
+
+    [Fact]
+    public void Parameters_RenderRefKindModifiers()
+    {
+        // Verify each RefKind variant survives BuildParameter — including `ref readonly`
+        // (RefKind.RefReadOnlyParameter) which previously fell through to empty modifier.
+        var tryParse = Assert.Single(GetOverloadsLogic.Execute(_resolver, _metadata, "OverloadSamples.TryParse").Overloads);
+        Assert.Equal("out", tryParse.Parameters.Single(p => p.Name == "value").Modifier);
+
+        var increment = Assert.Single(GetOverloadsLogic.Execute(_resolver, _metadata, "OverloadSamples.Increment").Overloads);
+        Assert.Equal("ref", increment.Parameters.Single(p => p.Name == "value").Modifier);
+
+        var inspectIn = Assert.Single(GetOverloadsLogic.Execute(_resolver, _metadata, "OverloadSamples.InspectIn").Overloads);
+        Assert.Equal("in", inspectIn.Parameters.Single(p => p.Name == "value").Modifier);
+
+        var inspectRefReadonly = Assert.Single(GetOverloadsLogic.Execute(_resolver, _metadata, "OverloadSamples.InspectRefReadonly").Overloads);
+        Assert.Equal("ref readonly", inspectRefReadonly.Parameters.Single(p => p.Name == "value").Modifier);
     }
 
     [Fact]
