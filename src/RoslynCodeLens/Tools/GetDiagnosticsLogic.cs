@@ -92,6 +92,11 @@ public static class GetDiagnosticsLogic
 
             foreach (var diagnostic in compilation.GetDiagnostics())
             {
+                // Respect `#pragma warning disable` and SuppressMessage attributes — a suppressed
+                // diagnostic is not a real error from the user's perspective.
+                if (diagnostic.IsSuppressed)
+                    continue;
+
                 if (diagnostic.Severity < minSeverity)
                     continue;
 
