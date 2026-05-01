@@ -4,6 +4,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- Fixture intentionally references [Obsolete] / [Obsolete(..., true)] symbols. Suppress
+         the resulting CS0612/0618/0619 across the project so GetDiagnostics_CleanSolution
+         doesn't see them as errors. -->
+    <NoWarn>$(NoWarn);CS0612;CS0618;CS0619</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

@@ -35,15 +35,12 @@ public class ObsoleteConsumer
 {
     private readonly ObsoleteApi _api = new();
 
-#pragma warning disable CS0612 // Type or member is obsolete (no-message)
-#pragma warning disable CS0618 // Type or member is obsolete (with message)
     public void UseAll()
     {
         _api.ObsoleteWarning();
         _api.ObsoleteWarning();
         _api.ObsoleteWithoutMessage();
-        // nameof bypasses CS0619 (obsolete-as-error) — we still get a syntactic
-        // reference that find_obsolete_usage detects.
+        // CS0619 from this nameof reference is suppressed via NoWarn in TestLib.csproj.
         var errorMarker = nameof(ObsoleteErrorTypeMarker);
     }
 
@@ -65,6 +62,4 @@ public class ObsoleteConsumer
         // Qualified-name new: new Ns.Type() — caught reviewer-flagged overcounting via QualifiedNameSyntax.
         var t = new TestLib.ObsoleteSamples.ObsoleteType();
     }
-#pragma warning restore CS0618
-#pragma warning restore CS0612
 }
