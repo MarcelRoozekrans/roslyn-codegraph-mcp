@@ -46,4 +46,16 @@ public class GenerateTestSkeletonToolTests
         // Greeter has Dispose() — a no-arg void; should appear as a happy-path Fact.
         Assert.Contains("public void Dispose_HappyPath()", result.Code);
     }
+
+    [Fact]
+    public void StaticMethod_DoesNotInstantiateSut()
+    {
+        var result = GenerateTestSkeletonLogic.Execute(
+            _loaded, _resolver,
+            symbol: "TestLib.StaticHelper.Compute",
+            framework: "xunit");
+
+        Assert.DoesNotContain("var sut = new", result.Code);
+        Assert.Contains("StaticHelper.Compute()", result.Code);
+    }
 }
