@@ -84,4 +84,18 @@ public class GenerateTestSkeletonToolTests
         Assert.Contains("[InlineData(", result.Code);
         Assert.Contains("public void Add_Theory(int a, int b)", result.Code);
     }
+
+    [Fact]
+    public void MethodThrowingException_GeneratesAssertThrowsStub()
+    {
+        var result = GenerateTestSkeletonLogic.Execute(
+            _loaded, _resolver,
+            symbol: "TestLib.Validator.Validate",
+            framework: "xunit");
+
+        Assert.Contains("Validate_ThrowsArgumentNullException", result.Code);
+        Assert.Contains("Validate_ThrowsArgumentException", result.Code);
+        Assert.Contains("Assert.Throws<ArgumentNullException>", result.Code);
+        Assert.Contains("Assert.Throws<ArgumentException>", result.Code);
+    }
 }

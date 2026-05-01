@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RoslynCodeLens.Models;
 using RoslynCodeLens.TestDiscovery;
 
@@ -41,7 +42,9 @@ public static class GenerateTestSkeletonLogic
         var className = $"{targetType.Name}Tests";
         var ns = $"{targetType.ContainingNamespace.ToDisplayString()}.Tests";
 
-        var code = BuildClass(targetType, targetMethods, className, ns, fw, todoNotes);
+        var compilation = FindCompilationForType(loaded, targetType);
+
+        var code = BuildClass(targetType, targetMethods, className, ns, fw, todoNotes, compilation);
 
         var suggestedPath = SuggestFilePath(loaded, targetType, todoNotes);
 
@@ -102,13 +105,24 @@ public static class GenerateTestSkeletonLogic
         return best;
     }
 
+    private static Compilation? FindCompilationForType(LoadedSolution loaded, INamedTypeSymbol targetType)
+    {
+        foreach (var c in loaded.Compilations.Values)
+        {
+            if (SymbolEqualityComparer.Default.Equals(c.Assembly, targetType.ContainingAssembly))
+                return c;
+        }
+        return null;
+    }
+
     private static string BuildClass(
         INamedTypeSymbol targetType,
         IReadOnlyList<IMethodSymbol> methods,
         string className,
         string ns,
         TestFramework fw,
-        List<string> todoNotes)
+        List<string> todoNotes,
+        Compilation? compilation)
     {
         var sb = new StringBuilder();
 
@@ -134,7 +148,7 @@ public static class GenerateTestSkeletonLogic
         for (int i = 0; i < methods.Count; i++)
         {
             if (i > 0) sb.AppendLine();
-            EmitMethodStub(sb, targetType, methods[i], fw, todoNotes);
+            EmitMethodStub(sb, targetType, methods[i], fw, todoNotes, compilation);
         }
 
         sb.AppendLine("}");
@@ -154,7 +168,8 @@ public static class GenerateTestSkeletonLogic
         INamedTypeSymbol targetType,
         IMethodSymbol method,
         TestFramework fw,
-        List<string> todoNotes)
+        List<string> todoNotes,
+        Compilation? compilation)
     {
         var isAsync = ReturnsTask(method);
         var hasParams = method.Parameters.Length > 0;
@@ -168,6 +183,90 @@ public static class GenerateTestSkeletonLogic
         {
             EmitHappyPathFact(sb, targetType, method, fw, isAsync);
         }
+
+        EmitThrowStubs(sb, targetType, method, fw, isAsync, compilation);
+    }
+
+    private static void EmitThrowStubs(
+        StringBuilder sb,
+        INamedTypeSymbol targetType,
+        IMethodSymbol method,
+        TestFramework fw,
+        bool isAsync,
+        Compilation? compilation)
+    {
+        if (compilation is null) return;
+
+        var thrown = CollectThrownExceptionTypes(method, compilation);
+        if (thrown.Count == 0) return;
+
+        var factAttr = fw switch
+        {
+            TestFramework.XUnit => "[Fact]",
+            TestFramework.NUnit => "[Test]",
+            TestFramework.MSTest => "[TestMethod]",
+            _ => "[Fact]",
+        };
+
+        foreach (var ex in thrown)
+        {
+            sb.AppendLine();
+            sb.AppendLine($"    {factAttr}");
+            var asyncReturn = isAsync ? "async Task" : "void";
+            sb.AppendLine($"    public {asyncReturn} {method.Name}_Throws{ex}()");
+            sb.AppendLine("    {");
+
+            string callExpr;
+            if (method.IsStatic)
+            {
+                callExpr = $"() => {targetType.Name}.{method.Name}()";
+            }
+            else
+            {
+                sb.AppendLine($"        var sut = new {targetType.Name}();");
+                callExpr = $"() => sut.{method.Name}()";
+            }
+
+            if (isAsync)
+                sb.AppendLine($"        await Assert.ThrowsAsync<{ex}>({callExpr});");
+            else
+                sb.AppendLine($"        Assert.Throws<{ex}>({callExpr});");
+
+            sb.AppendLine("    }");
+        }
+    }
+
+    private static IReadOnlyList<string> CollectThrownExceptionTypes(IMethodSymbol method, Compilation compilation)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var ordered = new List<string>();
+
+        foreach (var syntaxRef in method.DeclaringSyntaxReferences)
+        {
+            var declNode = syntaxRef.GetSyntax();
+            if (declNode.SyntaxTree is null) continue;
+
+            var sm = compilation.GetSemanticModel(declNode.SyntaxTree);
+
+            foreach (var n in declNode.DescendantNodes())
+            {
+            ObjectCreationExpressionSyntax? ctor = n switch
+            {
+                ThrowStatementSyntax t => t.Expression as ObjectCreationExpressionSyntax,
+                ThrowExpressionSyntax t => t.Expression as ObjectCreationExpressionSyntax,
+                _ => null,
+            };
+            if (ctor is null) continue;
+
+            if (sm.GetTypeInfo(ctor).Type is not INamedTypeSymbol typeSymbol) continue;
+
+            var name = typeSymbol.Name;
+            if (seen.Add(name))
+                ordered.Add(name);
+            }
+        }
+
+        return ordered;
     }
 
     private static void EmitHappyPathFact(
