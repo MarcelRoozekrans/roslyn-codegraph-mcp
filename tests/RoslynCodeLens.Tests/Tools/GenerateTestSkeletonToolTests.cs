@@ -98,4 +98,18 @@ public class GenerateTestSkeletonToolTests
         Assert.Contains("Assert.Throws<ArgumentNullException>", result.Code);
         Assert.Contains("Assert.Throws<ArgumentException>", result.Code);
     }
+
+    [Fact]
+    public void TodoNotes_IncludeConstructorDependencies()
+    {
+        var result = GenerateTestSkeletonLogic.Execute(
+            _loaded, _resolver,
+            symbol: "TestLib.OrderService",
+            framework: "xunit");
+
+        Assert.Contains(
+            result.TodoNotes,
+            n => n.Contains("IOrderRepo", StringComparison.Ordinal));
+        Assert.Contains("/* TODO: dependencies */", result.Code);
+    }
 }

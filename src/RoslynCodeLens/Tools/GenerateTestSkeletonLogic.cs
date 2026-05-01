@@ -139,6 +139,9 @@ public static class GenerateTestSkeletonLogic
         sb.AppendLine($"public class {className}");
         sb.AppendLine("{");
 
+        if (targetType.IsAbstract)
+            todoNotes.Add($"{targetType.Name} is abstract — instantiate via a derived test fixture.");
+
         if (methods.Count == 0)
         {
             sb.AppendLine("    // TODO: no public methods detected on " + targetType.Name);
@@ -177,14 +180,14 @@ public static class GenerateTestSkeletonLogic
 
         if (allPrimitive && !isAsync)
         {
-            EmitTheoryStub(sb, targetType, method, fw);
+            EmitTheoryStub(sb, targetType, method, fw, todoNotes);
         }
         else
         {
-            EmitHappyPathFact(sb, targetType, method, fw, isAsync);
+            EmitHappyPathFact(sb, targetType, method, fw, isAsync, todoNotes);
         }
 
-        EmitThrowStubs(sb, targetType, method, fw, isAsync, compilation);
+        EmitThrowStubs(sb, targetType, method, fw, isAsync, compilation, todoNotes);
     }
 
     private static void EmitThrowStubs(
@@ -193,7 +196,8 @@ public static class GenerateTestSkeletonLogic
         IMethodSymbol method,
         TestFramework fw,
         bool isAsync,
-        Compilation? compilation)
+        Compilation? compilation,
+        List<string> todoNotes)
     {
         if (compilation is null) return;
 
@@ -223,7 +227,7 @@ public static class GenerateTestSkeletonLogic
             }
             else
             {
-                sb.AppendLine($"        var sut = new {targetType.Name}();");
+                sb.AppendLine($"        var sut = {SutCreation(targetType, todoNotes)};");
                 callExpr = $"() => sut.{method.Name}()";
             }
 
@@ -274,7 +278,8 @@ public static class GenerateTestSkeletonLogic
         INamedTypeSymbol targetType,
         IMethodSymbol method,
         TestFramework fw,
-        bool isAsync)
+        bool isAsync,
+        List<string> todoNotes)
     {
         var factAttr = fw switch
         {
@@ -298,12 +303,29 @@ public static class GenerateTestSkeletonLogic
         }
         else
         {
-            sb.AppendLine($"        var sut = new {targetType.Name}();");
+            sb.AppendLine($"        var sut = {SutCreation(targetType, todoNotes)};");
             sb.AppendLine($"        {awaitable}sut.{method.Name}();");
         }
 
         sb.AppendLine("        // TODO: assert");
         sb.AppendLine("    }");
+    }
+
+    private static string SutCreation(INamedTypeSymbol type, List<string> todoNotes)
+    {
+        if (type.IsStatic) return ""; // never used, all-static path
+        var ctor = type.InstanceConstructors
+            .Where(c => c.DeclaredAccessibility == Accessibility.Public)
+            .OrderBy(c => c.Parameters.Length)
+            .FirstOrDefault();
+
+        if (ctor is null || ctor.Parameters.Length == 0)
+            return $"new {type.Name}()";
+
+        foreach (var p in ctor.Parameters)
+            todoNotes.Add($"{type.Name} constructor needs {p.Type.ToDisplayString()} {p.Name} — wire mock or instance.");
+
+        return $"new {type.Name}(/* TODO: dependencies */)";
     }
 
     private static bool IsPrimitiveParam(IParameterSymbol p)
@@ -330,7 +352,8 @@ public static class GenerateTestSkeletonLogic
         StringBuilder sb,
         INamedTypeSymbol targetType,
         IMethodSymbol method,
-        TestFramework fw)
+        TestFramework fw,
+        List<string> todoNotes)
     {
         var literals = string.Join(", ", method.Parameters.Select(DefaultLiteral));
 
@@ -360,7 +383,7 @@ public static class GenerateTestSkeletonLogic
         }
         else
         {
-            sb.AppendLine($"        var sut = new {targetType.Name}();");
+            sb.AppendLine($"        var sut = {SutCreation(targetType, todoNotes)};");
             sb.AppendLine($"        sut.{method.Name}({argList});");
         }
         sb.AppendLine("        // TODO: assert");
