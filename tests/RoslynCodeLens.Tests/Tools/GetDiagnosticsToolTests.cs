@@ -6,14 +6,15 @@ namespace RoslynCodeLens.Tests.Tools;
 
 public class GetDiagnosticsToolTests : IAsyncLifetime
 {
-    // Auxiliary fixture-adapter sub-projects that exist purely to give the test suite something
-    // to scan with each test framework. Their compilation depends on package restore
-    // (MSTest.TestFramework, NUnit, xunit, xunit.v3.*) which intermittently fails on Linux CI
-    // when MSBuildWorkspace re-resolves references at solution-load time. CS0246 ("type or
-    // namespace name not found") in these projects is an environmental flake — not code health.
-    // Errors elsewhere (TestLib, TestLib2) and non-CS0246 errors anywhere still surface.
+    // The three test-framework adapter sub-projects depend on PackageReferences for
+    // MSTest.TestFramework / NUnit / xunit. Those packages intermittently fail to resolve
+    // on Linux CI when MSBuildWorkspace re-resolves references at solution-load time,
+    // surfacing as CS0246 ("type or namespace name not found"). The flake is environmental
+    // — not code health. AsyncFixture and DisposableFixture are deliberately excluded:
+    // they have no PackageReferences and can't suffer the same flake. Genuine compile bugs
+    // in those (or any non-CS0246 error in the three below) still fail this test.
     private static readonly string[] AdapterProjects =
-        ["NUnitFixture", "MSTestFixture", "XUnitFixture", "AsyncFixture", "DisposableFixture"];
+        ["NUnitFixture", "MSTestFixture", "XUnitFixture"];
 
     private LoadedSolution _loaded = null!;
     private SymbolResolver _resolver = null!;

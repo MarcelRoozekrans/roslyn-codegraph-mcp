@@ -27,7 +27,11 @@ Two reasons:
 
 ## Fix
 
-Filter out **CS0246** ("type or namespace name not found") diagnostics whose `Project` matches one of the five fixture-adapter sub-projects. The test still asserts strict zero-errors for `TestLib` and `TestLib2`. It also still catches **any other** error (CS0103, CS-anything-else) in the adapter projects, so genuine fixture bugs would still surface.
+Filter out **CS0246** ("type or namespace name not found") diagnostics whose `Project` matches one of the **three** test-framework adapter sub-projects (`NUnitFixture`, `MSTestFixture`, `XUnitFixture`). These are the projects that depend on the flaky NuGet PackageReferences (`MSTest.TestFramework`, `NUnit`, `xunit`).
+
+`AsyncFixture` and `DisposableFixture` are **not** included — they have zero PackageReferences and can't suffer the same flake. Genuine compile bugs in those projects must still surface.
+
+The test still asserts strict zero-errors for `TestLib` and `TestLib2` (production-code fixtures), and it still catches **any other** error (CS0103, CS1061, CS-anything-else) in the three adapter projects, so genuine fixture bugs would still surface.
 
 ### Test diff (single file)
 
