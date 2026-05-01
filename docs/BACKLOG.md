@@ -84,3 +84,9 @@ Items considered during design of shipped features and consciously punted on. Re
 - **Return-type changes** — `PublicApiEntry` schema doesn't capture them.
 - **Sealed-ness changes** — same.
 - **Nullable-annotation changes** — same.
+
+### From `get_test_summary` (designed 2026-05-01)
+- **Async-test flagging** — `IsAsync` could surface as a per-test field; not included now.
+- **Skip-reason surface** for `[Fact(Skip = "…")]` / `[Ignore("…")]` — agent can compose via `find_attribute_usages` if needed.
+- **`[MemberData]` / `[ClassData]` row tracking** — only inline `[InlineData]`/`[TestCase]`/`[DataRow]` are counted; data-source attributes don't expose row count without runtime evaluation.
+- **Cross-project test→production coverage map** — that's `find_tests_for_symbol` territory in reverse.
