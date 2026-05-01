@@ -318,7 +318,8 @@ namespace RoslynCodeLens.Tools;
 
 public static class GetTestSummaryLogic
 {
-    private static readonly SymbolDisplayFormat FqnFormat = SymbolDisplayFormat.FullyQualifiedFormat;
+    private static readonly SymbolDisplayFormat FqnFormat = SymbolDisplayFormat.FullyQualifiedFormat
+        .WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType);
 
     public static GetTestSummaryResult Execute(
         LoadedSolution loaded, SymbolResolver resolver, string? project)
@@ -344,6 +345,10 @@ public static class GetTestSummaryLogic
                 {
                     var classification = TestMethodClassifier.Classify(member);
                     if (classification is null) continue;
+
+                    var location = member.Locations.FirstOrDefault(l => l.IsInSource);
+                    if (location?.SourceTree is null) continue;
+                    if (GeneratedCodeDetector.IsGenerated(location.SourceTree)) continue;
 
                     var (file, line) = GetFileAndLine(member);
                     if (string.IsNullOrEmpty(file)) continue;
@@ -435,11 +440,23 @@ public static class GetTestSummaryLogic
     private static bool IsExcludedNamespace(string ns)
     {
         if (string.IsNullOrEmpty(ns)) return false;
-        return ns == "Xunit" || ns.StartsWith("Xunit.", StringComparison.Ordinal)
-            || ns == "NUnit.Framework" || ns.StartsWith("NUnit.Framework.", StringComparison.Ordinal)
-            || ns == "Microsoft.VisualStudio.TestTools.UnitTesting" || ns.StartsWith("Microsoft.VisualStudio.TestTools.UnitTesting.", StringComparison.Ordinal)
-            || ns == "System" || ns.StartsWith("System.", StringComparison.Ordinal)
-            || ns == "Microsoft" || ns.StartsWith("Microsoft.", StringComparison.Ordinal);
+
+        // Test framework infrastructure — excluded from production-coverage signal.
+        if (ns == "Xunit" || ns.StartsWith("Xunit.", StringComparison.Ordinal)) return true;
+        if (ns == "NUnit.Framework" || ns.StartsWith("NUnit.Framework.", StringComparison.Ordinal)) return true;
+        if (ns == "Microsoft.VisualStudio.TestTools.UnitTesting"
+            || ns.StartsWith("Microsoft.VisualStudio.TestTools.UnitTesting.", StringComparison.Ordinal)) return true;
+
+        // BCL — excluded because every test references string/int/Task/etc. NOTE: deliberately
+        // narrow under Microsoft.* — only language and runtime support namespaces, NOT consumer
+        // frameworks like Microsoft.Extensions.*, Microsoft.AspNetCore.*, Microsoft.EntityFrameworkCore.*
+        // which are legitimate production-code references in real test suites.
+        if (ns == "System" || ns.StartsWith("System.", StringComparison.Ordinal)) return true;
+        if (ns == "Microsoft.CSharp" || ns.StartsWith("Microsoft.CSharp.", StringComparison.Ordinal)) return true;
+        if (ns == "Microsoft.VisualBasic" || ns.StartsWith("Microsoft.VisualBasic.", StringComparison.Ordinal)) return true;
+        if (ns == "Microsoft.Win32" || ns.StartsWith("Microsoft.Win32.", StringComparison.Ordinal)) return true;
+
+        return false;
     }
 
     private static (string File, int Line) GetFileAndLine(ISymbol symbol)

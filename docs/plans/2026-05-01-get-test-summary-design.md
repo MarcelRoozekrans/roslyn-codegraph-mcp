@@ -48,13 +48,14 @@ public record TestMethodSummary(
 Walk the test method body. For each `InvocationExpressionSyntax` / `ObjectCreationExpressionSyntax` / `MemberAccessExpressionSyntax`:
 - Resolve via `SemanticModel.GetSymbolInfo` to `IMethodSymbol` / `IPropertySymbol` / `IFieldSymbol`.
 - **Exclude** anything in framework or BCL namespaces:
-  - `Xunit.*`
+  - `Xunit.*` (covers `Xunit.Sdk.*`, `Xunit.Abstractions.*` too)
   - `NUnit.Framework.*`
   - `Microsoft.VisualStudio.TestTools.UnitTesting.*`
-  - `System.*` and `Microsoft.*` (BCL)
+  - `System.*`
+  - Narrow `Microsoft.*` BCL/SDK subtrees only: `Microsoft.CSharp.*`, `Microsoft.VisualBasic.*`, `Microsoft.Win32.*`. `Microsoft.Extensions.*`, `Microsoft.AspNetCore.*`, `Microsoft.EntityFrameworkCore`, etc. are NOT excluded — they're legitimate production references.
 - Distinct, sorted ordinal — keeps output stable.
 
-Surface form: `IMethodSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)` minus `global::`.
+Surface form: `IMethodSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithMemberOptions(SymbolDisplayMemberOptions.IncludeContainingType))` minus `global::`. The `IncludeContainingType` member option is required — the bare `FullyQualifiedFormat` strips containing-type info from members and produces just the bare member name (`Greet` instead of `TestLib.Greeter.Greet`).
 
 ## InlineData / TestCase / DataRow row count
 
