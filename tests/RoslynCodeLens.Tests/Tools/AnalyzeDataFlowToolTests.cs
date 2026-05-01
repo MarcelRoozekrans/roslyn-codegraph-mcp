@@ -1,25 +1,23 @@
 using RoslynCodeLens;
 using RoslynCodeLens.Tools;
+using RoslynCodeLens.Tests.Fixtures;
 
 namespace RoslynCodeLens.Tests.Tools;
 
-public class AnalyzeDataFlowToolTests : IAsyncLifetime
+[Collection("TestSolution")]
+public class AnalyzeDataFlowToolTests
 {
-    private LoadedSolution _loaded = null!;
-    private string _greeterConsumerPath = null!;
+    private readonly LoadedSolution _loaded;
+    private readonly string _greeterConsumerPath;
 
-    public async Task InitializeAsync()
+    public AnalyzeDataFlowToolTests(TestSolutionFixture fixture)
     {
-        var fixturePath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
+        _loaded = fixture.Loaded;
         _greeterConsumerPath = _loaded.Solution.Projects
             .First(p => string.Equals(p.Name, "TestLib2", StringComparison.Ordinal))
             .Documents.First(d => string.Equals(d.Name, "GreeterConsumer.cs", StringComparison.Ordinal))
             .FilePath!;
     }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task ExecuteAsync_OnBlockBodyStatement_ReturnsFlowInfo()

@@ -1,22 +1,20 @@
 using RoslynCodeLens;
 using RoslynCodeLens.Tools;
+using RoslynCodeLens.Tests.Fixtures;
 
 namespace RoslynCodeLens.Tests.Tools;
 
-public class GetCodeFixesToolTests : IAsyncLifetime
+[Collection("TestSolution")]
+public class GetCodeFixesToolTests
 {
-    private LoadedSolution _loaded = null!;
-    private SymbolResolver _resolver = null!;
+    private readonly LoadedSolution _loaded;
+    private readonly SymbolResolver _resolver;
 
-    public async Task InitializeAsync()
+    public GetCodeFixesToolTests(TestSolutionFixture fixture)
     {
-        var fixturePath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
-        _resolver = new SymbolResolver(_loaded);
+        _loaded = fixture.Loaded;
+        _resolver = fixture.Resolver;
     }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task GetCodeFixes_NoMatchingDiagnostic_ReturnsEmpty()

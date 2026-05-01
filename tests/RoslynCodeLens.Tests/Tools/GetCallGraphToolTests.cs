@@ -2,25 +2,23 @@ using RoslynCodeLens;
 using RoslynCodeLens.Models;
 using RoslynCodeLens.Symbols;
 using RoslynCodeLens.Tools;
+using RoslynCodeLens.Tests.Fixtures;
 
 namespace RoslynCodeLens.Tests.Tools;
 
-public class GetCallGraphToolTests : IAsyncLifetime
+[Collection("TestSolution")]
+public class GetCallGraphToolTests
 {
-    private LoadedSolution _loaded = null!;
-    private SymbolResolver _resolver = null!;
-    private MetadataSymbolResolver _metadata = null!;
+    private readonly LoadedSolution _loaded;
+    private readonly SymbolResolver _resolver;
+    private readonly MetadataSymbolResolver _metadata;
 
-    public async Task InitializeAsync()
+    public GetCallGraphToolTests(TestSolutionFixture fixture)
     {
-        var fixturePath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
-        _resolver = new SymbolResolver(_loaded);
-        _metadata = new MetadataSymbolResolver(_loaded, _resolver);
+        _loaded = fixture.Loaded;
+        _resolver = fixture.Resolver;
+        _metadata = fixture.Metadata;
     }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task UnknownSymbol_ReturnsNull()

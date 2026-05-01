@@ -1,25 +1,23 @@
 using RoslynCodeLens;
 using RoslynCodeLens.Symbols;
 using Microsoft.CodeAnalysis;
+using RoslynCodeLens.Tests.Fixtures;
 
 namespace RoslynCodeLens.Tests.Symbols;
 
-public class MetadataSymbolResolverTests : IAsyncLifetime
+[Collection("TestSolution")]
+public class MetadataSymbolResolverTests
 {
-    private LoadedSolution _loaded = null!;
-    private SymbolResolver _sourceResolver = null!;
-    private MetadataSymbolResolver _metadata = null!;
+    private readonly LoadedSolution _loaded;
+    private readonly SymbolResolver _sourceResolver;
+    private readonly MetadataSymbolResolver _metadata;
 
-    public async Task InitializeAsync()
+    public MetadataSymbolResolverTests(TestSolutionFixture fixture)
     {
-        var fixturePath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
-        _sourceResolver = new SymbolResolver(_loaded);
-        _metadata = new MetadataSymbolResolver(_loaded, _sourceResolver);
+        _loaded = fixture.Loaded;
+        _sourceResolver = fixture.Resolver;
+        _metadata = fixture.Metadata;
     }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public void Resolve_MetadataType_ReturnsMetadataSymbol()

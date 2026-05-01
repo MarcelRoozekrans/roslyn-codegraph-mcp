@@ -1,20 +1,18 @@
 using RoslynCodeLens;
 using RoslynCodeLens.TestDiscovery;
+using RoslynCodeLens.Tests.Fixtures;
 
 namespace RoslynCodeLens.Tests.TestDiscovery;
 
-public class TestProjectDetectorTests : IAsyncLifetime
+[Collection("TestSolution")]
+public class TestProjectDetectorTests
 {
-    private LoadedSolution _loaded = null!;
+    private readonly LoadedSolution _loaded;
 
-    public async Task InitializeAsync()
+    public TestProjectDetectorTests(TestSolutionFixture fixture)
     {
-        var fixturePath = Path.GetFullPath(Path.Combine(
-            AppContext.BaseDirectory, "..", "..", "..", "Fixtures", "TestSolution", "TestSolution.slnx"));
-        _loaded = await new SolutionLoader().LoadAsync(fixturePath).ConfigureAwait(false);
+        _loaded = fixture.Loaded;
     }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public void GetTestProjectIds_DetectsXUnitNUnitAndMSTest()
