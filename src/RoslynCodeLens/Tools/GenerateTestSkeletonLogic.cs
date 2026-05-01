@@ -114,7 +114,10 @@ public static class GenerateTestSkeletonLogic
 
         // Usings
         var prodNs = targetType.ContainingNamespace.ToDisplayString();
+        var hasAsync = methods.Any(ReturnsTask);
+
         sb.AppendLine($"using {prodNs};");
+        if (hasAsync) sb.AppendLine("using System.Threading.Tasks;");
         sb.AppendLine(FrameworkUsing(fw));
         sb.AppendLine();
         sb.AppendLine($"namespace {ns};");
@@ -161,23 +164,43 @@ public static class GenerateTestSkeletonLogic
             _ => "[Fact]",
         };
 
+        var isAsync = ReturnsTask(method);
+        var returnType = isAsync ? "async Task" : "void";
+        var awaitable = isAsync ? "await " : "";
+
         sb.AppendLine($"    {factAttr}");
-        sb.AppendLine($"    public void {method.Name}_HappyPath()");
+        sb.AppendLine($"    public {returnType} {method.Name}_HappyPath()");
         sb.AppendLine("    {");
 
         if (method.IsStatic)
         {
             sb.AppendLine($"        // TODO: arrange inputs");
-            sb.AppendLine($"        {targetType.Name}.{method.Name}();");
+            sb.AppendLine($"        {awaitable}{targetType.Name}.{method.Name}();");
         }
         else
         {
             sb.AppendLine($"        var sut = new {targetType.Name}();");
-            sb.AppendLine($"        sut.{method.Name}();");
+            sb.AppendLine($"        {awaitable}sut.{method.Name}();");
         }
 
         sb.AppendLine("        // TODO: assert");
         sb.AppendLine("    }");
+    }
+
+    private static bool ReturnsTask(IMethodSymbol method)
+    {
+        var rt = method.ReturnType;
+        if (rt is null) return false;
+        var name = rt.Name;
+        if (string.Equals(name, "Task", StringComparison.Ordinal) ||
+            string.Equals(name, "ValueTask", StringComparison.Ordinal))
+        {
+            return string.Equals(
+                rt.ContainingNamespace?.ToDisplayString(),
+                "System.Threading.Tasks",
+                StringComparison.Ordinal);
+        }
+        return false;
     }
 
     private static string SuggestFilePath(

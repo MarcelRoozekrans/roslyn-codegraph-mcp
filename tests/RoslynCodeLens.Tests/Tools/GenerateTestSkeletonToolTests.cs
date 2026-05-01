@@ -58,4 +58,17 @@ public class GenerateTestSkeletonToolTests
         Assert.DoesNotContain("var sut = new", result.Code);
         Assert.Contains("StaticHelper.Compute()", result.Code);
     }
+
+    [Fact]
+    public void MethodReturningTask_GeneratesAsyncTest()
+    {
+        var result = GenerateTestSkeletonLogic.Execute(
+            _loaded, _resolver,
+            symbol: "TestLib.AsyncWorker.DoAsync",
+            framework: "xunit");
+
+        Assert.Contains("public async Task DoAsync_HappyPath()", result.Code);
+        Assert.Contains("await sut.DoAsync()", result.Code);
+        Assert.Contains("using System.Threading.Tasks;", result.Code);
+    }
 }
