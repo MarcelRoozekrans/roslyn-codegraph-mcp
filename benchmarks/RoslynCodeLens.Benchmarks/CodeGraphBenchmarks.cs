@@ -182,6 +182,12 @@ public class CodeGraphBenchmarks
         return FindAttributeUsagesLogic.Execute(_loaded, _resolver, _metadata, "Obsolete");
     }
 
+    [Benchmark(Description = "find_obsolete_usage: whole solution")]
+    public object FindObsoleteUsage()
+    {
+        return FindObsoleteUsageLogic.Execute(_loaded, _resolver, project: null, errorOnly: false);
+    }
+
     [Benchmark(Description = "inspect_external_assembly: summary mode")]
     public object InspectExternalAssemblySummary()
     {
