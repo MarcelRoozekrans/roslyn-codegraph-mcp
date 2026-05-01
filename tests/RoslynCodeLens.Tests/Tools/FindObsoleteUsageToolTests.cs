@@ -195,4 +195,26 @@ public class FindObsoleteUsageToolTests : IAsyncLifetime
             });
         }
     }
+
+    [Fact]
+    public void Usages_PopulateIsGeneratedFlag()
+    {
+        // The IsGenerated flag should reflect resolver.IsGenerated(filePath). For the source
+        // fixture (no generated files), every usage must report IsGenerated: false.
+        var result = FindObsoleteUsageLogic.Execute(_loaded, _resolver, project: null, errorOnly: false);
+
+        foreach (var g in result.Groups)
+            Assert.All(g.Usages, u => Assert.False(u.IsGenerated, $"Unexpected IsGenerated=true for {u.CallerName} at {u.FilePath}:{u.Line}"));
+    }
+
+    [Fact]
+    public void NoMatchingObsolete_ReturnsEmptyGroups()
+    {
+        // No project filter, but with errorOnly + a project that has no error-level obsoletes
+        // we should still get a non-throwing empty-or-minimal result.
+        var result = FindObsoleteUsageLogic.Execute(_loaded, _resolver, project: "TestLib2", errorOnly: true);
+
+        // TestLib2 has no [Obsolete(..., true)] in the fixture, so the filtered result is empty.
+        Assert.Empty(result.Groups);
+    }
 }

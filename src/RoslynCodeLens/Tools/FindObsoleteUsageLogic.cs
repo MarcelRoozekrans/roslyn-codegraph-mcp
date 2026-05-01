@@ -16,7 +16,11 @@ public static class FindObsoleteUsageLogic
     {
         var testProjectIds = TestProjectDetector.GetTestProjectIds(loaded.Solution);
 
-        // Step 1: collect all [Obsolete]-marked symbols in production projects.
+        // Step 1: collect all [Obsolete]-marked symbols across the entire solution (including
+        // test projects and metadata symbols). Test-project filtering happens in Step 2 on the
+        // *usage site* side: an obsolete symbol declared in a test project is fine — we just
+        // won't search test-project syntax trees for usages, so it'll get omitted by the
+        // zero-usage filter in Step 3 unless production code calls it.
         // SymbolResolver.AttributeIndex is keyed by simple attribute name; entries are
         // duplicated under both "Obsolete" and "ObsoleteAttribute" — dedup by symbol identity.
         var obsoleteSymbols = new Dictionary<ISymbol, ObsoleteAttributeData>(SymbolEqualityComparer.Default);
