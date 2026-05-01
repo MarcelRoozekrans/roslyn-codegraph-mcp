@@ -329,6 +329,12 @@ public class CodeGraphBenchmarks
         return AnalyzeMethodLogic.Execute(_loaded, _resolver, _metadata, "Greeter.Greet");
     }
 
+    [Benchmark(Description = "get_overloads: System.Console.WriteLine")]
+    public object GetOverloads()
+    {
+        return GetOverloadsLogic.Execute(_resolver, _metadata, "System.Console.WriteLine");
+    }
+
     [Benchmark(Description = "get_call_graph: Greet (callees, depth 3)")]
     public async Task<object?> GetCallGraphCallees()
     {
