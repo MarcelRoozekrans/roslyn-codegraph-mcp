@@ -51,3 +51,36 @@ Roll-ups that bundle existing analyses into one report so an agent can answer "h
 
 - **`get_project_health`** — composite of `get_complexity_metrics` + `find_naming_violations` + `find_large_classes` + `find_unused_symbols` + `find_reflection_usage`, summarised per project with hotspots highlighted.
 - **`find_god_objects`** — beyond raw size from `find_large_classes`: factor in incoming coupling (callers across many namespaces), outgoing coupling, and field count to flag SRP-violating types.
+
+---
+
+## Deferred from shipped features
+
+Items considered during design of shipped features and consciously punted on. Re-promote to the main backlog above if a use case emerges.
+
+### From `find_obsolete_usage` (designed 2026-05-01)
+- **Reachability analysis per call site** — whether each call site is reachable from a test or public entry point. `analyze_change_impact` already covers this; agent can compose.
+- **Auto-migration suggestions** — agent's call; tool stays diagnostic, not prescriptive.
+- **`DiagnosticId` / `UrlFormat` attribute properties** — promote if agents start asking for them.
+- **Inherited deprecation propagation** — Roslyn doesn't propagate `[Obsolete]` to overrides; can be inferred via `find_implementations`.
+
+### From `get_project_health` (shipped 2026-04-30)
+- **Numeric "health score" or letter grade** — opinionated; agent computes client-side from counts.
+- **Trend over time** — would require persistence layer.
+- **Configurable dimension list** — YAGNI; agent calls underlying tool directly when it wants one dimension.
+
+### From `find_god_objects` (in flight)
+- **ML-based detection** — heuristic is enough.
+- **Splitting / refactoring suggestions** — caller's judgment.
+- **Reflection-coupling counted toward incoming-namespace tally** — separate concern.
+
+### From `get_call_graph` (shipped 2026-04-29)
+- **Edge-level annotations** (call-site location per edge) — would expand JSON significantly.
+- **Direction-aware path computation server-side** — agent can derive from the adjacency list.
+- **Method-group expressions** (`Action a = obj.Method;`) — only direct invocations are followed.
+- **Async state-machine awaits** as a separate edge kind — currently grouped with method calls.
+
+### From `find_breaking_changes` (shipped 2026-04-29)
+- **Return-type changes** — `PublicApiEntry` schema doesn't capture them.
+- **Sealed-ness changes** — same.
+- **Nullable-annotation changes** — same.
