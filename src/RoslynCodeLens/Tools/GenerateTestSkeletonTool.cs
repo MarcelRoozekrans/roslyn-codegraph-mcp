@@ -18,8 +18,8 @@ public static class GenerateTestSkeletonTool
         "The tool does NOT write to disk — agent decides what to do with the text. " +
         "Pairs naturally with find_uncovered_symbols / get_test_summary. " +
         "Stubs include happy-path Fact, Theory + InlineData for primitive-param " +
-        "methods, and Assert.Throws<T> per distinct direct-throw exception type. " +
-        "Async (Task / Task<T>) detected automatically. Properties, indexers, " +
+        "methods, and Assert.Throws assertions per distinct direct-throw exception type. " +
+        "Async (Task-returning) methods detected automatically. Properties, indexers, " +
         "operators, and constructors are excluded from per-method enumeration. " +
         "Framework auto-detected from solution test projects (tie → xUnit); " +
         "override with framework='xunit' / 'nunit' / 'mstest'.")]
