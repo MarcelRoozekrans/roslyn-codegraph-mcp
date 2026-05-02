@@ -29,6 +29,7 @@ A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/marcel
 - **find_tests_for_symbol** — List xUnit/NUnit/MSTest methods that exercise a production symbol; opt-in transitive walk through helpers
 - **get_test_summary** — Per-project inventory of test methods with framework, attribute kind, data-row count, location, and production symbols referenced
 - **find_uncovered_symbols** — Public methods and properties no test transitively reaches; sorted by cyclomatic complexity for prioritization
+- **generate_test_skeleton** — Emit a compilable test-class skeleton (as text) for a method or type. Auto-detects xUnit/NUnit/MSTest; surfaces constructor dependencies as TodoNotes; returns a suggested file path. Closes the loop with `find_uncovered_symbols`
 - **get_type_hierarchy** — Walk base classes, interfaces, and derived types
 - **get_di_registrations** — Scan for DI service registrations
 - **get_project_dependencies** — Get the project reference graph
