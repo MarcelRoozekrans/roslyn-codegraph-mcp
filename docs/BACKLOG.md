@@ -99,3 +99,14 @@ Items considered during design of shipped features and consciously punted on. Re
 - **Indirect `throw` detection** (via helper methods) — only direct `throw new T(...)` is followed.
 - **Existing-test detection / merge** — agent handles dedupe.
 - **Inherited-member skeletons** — agent composes via `get_overloads` / hierarchy tools.
+
+### `generate_test_skeleton` known emitter limitations (fix as fast-follow)
+- **Generic types** — `INamedTypeSymbol.Name` strips type parameters, so `Repository<TEntity>` emits `new Repository(...)` (invalid). Refuse with a clear error or close with `object` placeholder.
+- **Nested types** — `targetType.Name` drops the outer-type qualifier, so `Outer.Inner` emits `new Inner(...)` (invalid). Use `MinimallyQualifiedFormat` for the SUT type expression.
+- **Global-namespace types** — `ContainingNamespace.ToDisplayString()` returns empty for `IsGlobalNamespace`, producing `namespace .Tests;` and `using ;`. Guard with `IsGlobalNamespace`.
+- **Throw-walk descends into lambdas / local functions** — a `throw` inside a `Where(...)` lambda is reported as if the outer method threw it directly. Filter by nearest enclosing method body.
+- **Overload collisions** — two overloads of `Save(...)` both emit `Save_HappyPath`, producing duplicate method names. Suffix with arity or param-type initials.
+- **Abstract types** — emitter still produces `new Abstract(...)` even though a TodoNote warns about it. Skip body emission or emit `null!` placeholder.
+- **MSTest async-throw helper** — emitter always uses `Assert.ThrowsAsync<T>` (xUnit). MSTest needs `Assert.ThrowsExceptionAsync<T>`.
+- **Primitive-param coverage** — `decimal`, `Int16`, `UInt16/32/64`, `SByte` not classified as primitives, so methods using them fall through to no-arg call branches.
+- **Test coverage** — only xUnit emission tested deeply; NUnit `[TestCase]` and MSTest `[DataRow]` paths emit but aren't asserted.

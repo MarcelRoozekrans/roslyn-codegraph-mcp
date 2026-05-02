@@ -9,7 +9,7 @@ public static class GenerateTestSkeletonTool
 {
     [McpServerTool(Name = "generate_test_skeleton")]
     [Description(
-        "Emits a compilable test-class skeleton (as text) for a method or type. " +
+        "Emits a test-class skeleton (parseable C#) for a method or type. " +
         "Pass a type FQN like 'MyApp.Services.OrderService' to get a full test class " +
         "with one stub per public method, or a method FQN like " +
         "'MyApp.Services.OrderService.PlaceOrder' to get a single stub. Returns " +

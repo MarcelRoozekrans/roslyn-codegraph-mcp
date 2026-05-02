@@ -190,4 +190,33 @@ public class GenerateTestSkeletonToolTests
 
         Assert.Empty(diagnostics);
     }
+
+    [Fact]
+    public void GeneratedCodeSymbol_IsRejected()
+    {
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            GenerateTestSkeletonLogic.Execute(
+                _loaded, _resolver,
+                symbol: "TestLib.GeneratedTarget",
+                framework: "xunit"));
+
+        Assert.Contains("generated", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void ThrowStubForParametricMethod_ParsesAsValidCSharp()
+    {
+        var result = GenerateTestSkeletonLogic.Execute(
+            _loaded, _resolver,
+            symbol: "TestLib.Validator.Validate",
+            framework: "xunit");
+
+        // Validator.Validate(string input) throws ArgumentNullException + ArgumentException;
+        // throw stubs must pass an argument, not call sut.Validate() with zero args.
+        Assert.Contains("sut.Validate(", result.Code, StringComparison.Ordinal);
+        Assert.DoesNotContain("sut.Validate()", result.Code, StringComparison.Ordinal);
+
+        var tree = Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(result.Code);
+        Assert.Empty(tree.GetDiagnostics());
+    }
 }

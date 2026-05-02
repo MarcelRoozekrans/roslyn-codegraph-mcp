@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using RoslynCodeLens.Analysis;
 using RoslynCodeLens.Models;
 using RoslynCodeLens.TestDiscovery;
 
@@ -35,6 +36,11 @@ public static class GenerateTestSkeletonLogic
                 throw new InvalidOperationException(
                     $"Symbol must be a type or method, got {first.Kind}: {symbol}");
         }
+
+        var sourceTree = targetType.Locations.FirstOrDefault(l => l.IsInSource)?.SourceTree;
+        if (sourceTree is not null && GeneratedCodeDetector.IsGenerated(sourceTree))
+            throw new InvalidOperationException(
+                $"Symbol '{symbol}' is in generated code; refusing to generate a test skeleton.");
 
         var fw = ResolveFramework(loaded, framework);
         var todoNotes = new List<string>();
@@ -235,15 +241,16 @@ public static class GenerateTestSkeletonLogic
             sb.AppendLine($"    public {asyncReturn} {method.Name}_Throws{ex}()");
             sb.AppendLine("    {");
 
+            var argList = string.Join(", ", method.Parameters.Select(ThrowStubArg));
             string callExpr;
             if (method.IsStatic)
             {
-                callExpr = $"() => {targetType.Name}.{method.Name}()";
+                callExpr = $"() => {targetType.Name}.{method.Name}({argList})";
             }
             else
             {
                 sb.AppendLine($"        var sut = {SutCreation(targetType, todoNotes)};");
-                callExpr = $"() => sut.{method.Name}()";
+                callExpr = $"() => sut.{method.Name}({argList})";
             }
 
             if (isAsync)
@@ -362,6 +369,9 @@ public static class GenerateTestSkeletonLogic
         SpecialType.System_Char => "'a'",
         _ => "0",
     };
+
+    private static string ThrowStubArg(IParameterSymbol p) =>
+        IsPrimitiveParam(p) ? DefaultLiteral(p) : "default!";
 
     private static void EmitTheoryStub(
         StringBuilder sb,
