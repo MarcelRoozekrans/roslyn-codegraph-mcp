@@ -10,7 +10,7 @@ public static class GetOperatorsTool
     [McpServerTool(Name = "get_operators")]
     [Description(
         "Return every user-defined operator and conversion operator on a type in one call — source AND metadata. " +
-        "Each entry includes the operator kind ('+', '==', '<', 'implicit', 'explicit', etc.), full signature, " +
+        "Each entry includes the operator kind (such as +, ==, implicit, explicit, plus all comparison and bitwise operators), full signature, " +
         "parameter names/types/modifiers, return type, accessibility, an IsCheckedVariant flag for .NET 7+ " +
         "checked operators (op_CheckedAddition etc.), XML doc summary, and source location (empty for metadata). " +
         "Includes compiler-synthesized record equality operators. " +
