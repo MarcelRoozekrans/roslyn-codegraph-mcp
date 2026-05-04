@@ -17,7 +17,6 @@ Common .NET pain points that aren't covered by analyzers everyone has on by defa
 Small, focused queries that aren't currently expressible in one call.
 
 - **`find_duplicated_code`** — heuristic detection of repeated statement blocks across files. *Note: existing tools (JSCPD, SonarQube) cover this well; only worth doing if a Roslyn-semantic angle is identified.*
-- **`get_operators`** — overload-style listing of `op_Addition`, `op_Equality`, conversion operators on a type. (Promoted from `get_overloads` deferred — operators were excluded there.)
 
 ## 3. Generation & scaffolding (write-side)
 
@@ -53,6 +52,7 @@ Items previously in this backlog, now merged. Listed for orientation; do not re-
 | `get_call_graph` | Navigation | #137 |
 | `find_event_subscribers` | Navigation | #139 |
 | `get_overloads` | Navigation | #150 |
+| `get_operators` | Navigation | (PR # filled in after merge) |
 | `get_project_health` | Project health | #143 |
 | `find_god_objects` | Project health | #145 |
 
@@ -62,11 +62,20 @@ Items previously in this backlog, now merged. Listed for orientation; do not re-
 
 Items considered during design of shipped features and consciously punted on. Re-promote to the main backlog above if a use case emerges.
 
+### From `get_operators` (shipped 2026-05-04)
+- **Server-side filtering by kind** — agent filters `Kind` client-side; avoids a YAGNI parameter.
+- **Inherited operators** — operators don't inherit in C#; `GetMembers` (declaration-only) is correct.
+- **Indexers** — separate concern (`get_indexers` if ever needed).
+- **Source-navigation links into metadata operators** — `peek_il` covers IL inspection.
+- **Operator-resolution-against-arguments** — agent calls `find_callers` if needed.
+- **Tighter test coverage on `OperatorInfo` fields** — current suite pins `Kind`/`Parameters`/`IsCheckedVariant`/`XmlDocSummary`/`ContainingType` but not `Signature`/`ReturnType`/`Accessibility`/`FilePath`/`Line`. Code reviewer suggested a single consolidated "fields populated" test on the documented `+(Money, Money)` operator. Cheap follow-up.
+- **Conversion direction not pinned in tests** — current `Conversion_KindIsImplicitOrExplicit` confirms both kinds exist but doesn't verify `implicit` converts `Money → decimal` (vs reverse). A swapped `OperatorMap` mapping would still pass. Add `ReturnType`/`Parameters[0].Type` assertions to one of them.
+
 ### From `get_overloads` (shipped 2026-05-01, PR #150)
 - **Source-navigation links into metadata overloads** — `peek_il` covers IL inspection separately.
 - **Cross-type overloads from different containing types** — that's `find_implementations` territory.
 - **Overload-resolution-against-arguments** — agent can call `find_callers` to see how each overload is invoked.
-- **Operator overloads** — promoted to active backlog as `get_operators`.
+- **Operator overloads** — shipped as `get_operators` (2026-05-04).
 
 ### From `get_test_summary` (shipped 2026-05-01, PR #152)
 - **Async-test flagging** (`IsAsync`) — could surface but isn't included now.
