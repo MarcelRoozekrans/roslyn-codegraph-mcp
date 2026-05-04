@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.16.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.15.0...v1.16.0) (2026-05-04)
+
+
+### Features
+
+* add get_operators MCP tool ([fe03ed3](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/fe03ed32d6cd27960020a2e16634107362bd5988))
+* add models for get_operators ([ef384b6](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/ef384b6459658657711dcb7102f0afa0124421ba))
+* implement GetOperatorsLogic with operator-kind mapping ([e44bfbe](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/e44bfbea8b8fbd8b8c2446c8839f7512d4c7c428))
+* register get_operators MCP tool ([3294ed0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/3294ed03a8e0ac33e16ce97100c1d0130043620b))
+
+
+### Bug Fixes
+
+* avoid angle brackets in get_operators description so MDX docs build succeeds ([d43597f](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/d43597f2b5d154520fcc0802abced3e7aee0da64))
+* rename CallGraphSamples Money to CallGraphMoney to disambiguate from OperatorSamples Money ([f3da09c](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/f3da09c812016edf4a33bfc1630fca13448dbc93))
+
 ## [1.15.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.14.0...v1.15.0) (2026-05-02)
 
 
