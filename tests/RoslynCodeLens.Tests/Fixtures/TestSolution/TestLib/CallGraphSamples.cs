@@ -24,7 +24,7 @@ public class CallGraphSamples
         return read;
     }
 
-    public Money UseOperator(Money a, Money b) => a + b;
+    public CallGraphMoney UseOperator(CallGraphMoney a, CallGraphMoney b) => a + b;
 }
 
 public class SampleHolder
@@ -32,9 +32,9 @@ public class SampleHolder
     public string Value { get; set; } = "";
 }
 
-public readonly record struct Money(int Cents)
+public readonly record struct CallGraphMoney(int Cents)
 {
-    public static Money operator +(Money a, Money b) => new(a.Cents + b.Cents);
+    public static CallGraphMoney operator +(CallGraphMoney a, CallGraphMoney b) => new(a.Cents + b.Cents);
 }
 
 public class CtorInitSamples
