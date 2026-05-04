@@ -15,7 +15,7 @@ public static class GetOverloadsTool
         "abstract/override/async/extension), generic type parameters, XML doc summary, and source " +
         "location (empty for metadata). " +
         "Pass 'Type.Method' for ordinary methods or 'Type.Type' for constructors. Operator " +
-        "overloads are excluded — they have a separate query story. " +
+        "overloads are excluded — use get_operators for those. " +
         "Sort: parameter count ASC, then signature ordinal ASC.")]
     public static GetOverloadsResult Execute(
         MultiSolutionManager manager,
