@@ -50,7 +50,9 @@ If any of these thoughts cross your mind, stop and switch to the MCP tool:
 | "Which classes are doing too much?" / "Where are my god classes?" / "Worst design smells in this codebase?" | `find_god_objects` |
 | "Let me `Grep` for tests that call this method" | `find_tests_for_symbol` |
 | "Which tests will break if I change this?" | `find_tests_for_symbol` |
+| "What does this test suite cover?" / "List all tests in MyProj.Tests" / "How many xUnit Theory tests do we have?" | `get_test_summary` |
 | "What should I write tests for?" / "Where's our testing debt?" / "Show me untested public methods" | `find_uncovered_symbols` |
+| "Generate a test stub for this method" / "Bootstrap tests for this class" / "Give me a skeleton I can fill in" | `generate_test_skeleton` |
 | "What's the public API of this library?" / "Show me the API surface" / "I need a PublicAPI.txt-style snapshot" | `get_public_api_surface` |
 | "Will this break consumers?" / "Show me breaking changes vs the previous release" / "Diff this build's API against baseline" | `find_breaking_changes` |
 | "Are there async bugs?" / "Find sync-over-async" / "Are we using `.Result` anywhere?" | `find_async_violations` |
@@ -129,7 +131,9 @@ Inspect an arbitrary DLL           → add a <ProjectReference> to a throwaway
 - `find_event_subscribers` — every += / -= site for an event symbol, with resolved handler name and subscribe/unsubscribe tag. Use for UI-event audits or memory-leak hunts (compare subscribe/unsubscribe pairs).
 - `find_implementations` — all implementors of an interface / extenders of a class.
 - `find_tests_for_symbol` — xUnit/NUnit/MSTest methods that exercise a production symbol; opt-in transitive walk through helpers.
+- `get_test_summary` — Per-project inventory of test methods with framework, attribute kind, [InlineData]/[TestCase]/[DataRow] row count, location, and production symbols referenced. Project → tests direction; complements `find_tests_for_symbol` (test → production).
 - `find_uncovered_symbols` — Public methods and properties no test transitively reaches (≤ 3 helper hops); sorted by cyclomatic complexity for prioritization. Strict reference-based: an override is not marked covered just because its base or interface declaration is reached — a test calling `IFoo.Bar` does not cover `Foo.Bar`.
+- `generate_test_skeleton` — Emit a test-class skeleton (parseable C#) for a method or type. Returns framework, suggested file path, class name, full file contents, and TodoNotes (e.g. constructor dependencies). Stubs cover happy-path Fact, Theory + InlineData for primitive-param methods, `Assert.Throws<T>` per direct-throw exception type, async detection. Tool returns text; agent decides whether to `Write` it. Pairs with `find_uncovered_symbols` (find gap → generate stub).
 - `get_di_registrations` — DI wiring and lifetimes.
 - `find_reflection_usage` — hidden/dynamic coupling (`Activator.CreateInstance`, `MethodInfo.Invoke`, assembly scanning).
 - `get_nuget_dependencies` — NuGet packages and versions.
@@ -242,7 +246,9 @@ Reference concrete types, interfaces, and call sites in your analysis. Not *"the
 | `find_event_subscribers` | "Who subscribes to this event?" |
 | `find_references` | "Where is this symbol used?" / "Show all references" |
 | `find_tests_for_symbol` | "What tests cover this method?" / "Which tests will break if I change X?" |
+| `get_test_summary` | "What does this test suite cover?" |
 | `find_uncovered_symbols` | "What should I write tests for?" / "Where's our testing debt?" |
+| `generate_test_skeleton` | "Generate a test stub for this method" / "Bootstrap tests for this class" |
 | `go_to_definition` | "Where is this defined?" / "Jump to source" |
 | `search_symbols` | "Find types/methods matching this name" |
 | `get_type_hierarchy` | "What's the inheritance chain?" |

@@ -31,7 +31,7 @@ Companions to `apply_code_action`, but for shapes that Roslyn doesn't ship out o
 
 Active branches with no merged PR yet.
 
-- **`generate_test_skeleton`** — `feat/generate-test-skeleton` branch, worktree at `.worktrees/generate-test-skeleton`.
+_(none currently)_
 
 ---
 
@@ -52,9 +52,10 @@ Items previously in this backlog, now merged. Listed for orientation; do not re-
 | `get_call_graph` | Navigation | #137 |
 | `find_event_subscribers` | Navigation | #139 |
 | `get_overloads` | Navigation | #150 |
-| `get_operators` | Navigation | (PR # filled in after merge) |
+| `get_operators` | Navigation | #158 |
 | `get_project_health` | Project health | #143 |
 | `find_god_objects` | Project health | #145 |
+| `generate_test_skeleton` | Generation | #154 |
 
 ---
 
@@ -81,6 +82,7 @@ Items considered during design of shipped features and consciously punted on. Re
 - **Async-test flagging** (`IsAsync`) — could surface but isn't included now.
 - **Skip-reason surface** for `[Fact(Skip = "…")]` / `[Ignore]` — agent can compute via `find_attribute_usages`.
 - **`[MemberData]` / `[ClassData]` row tracking** — only inline rows are counted; data-source attributes don't expose row count without runtime evaluation.
+- **Cross-project test→production coverage map** — that's `find_tests_for_symbol` territory in reverse.
 
 ### From `find_obsolete_usage` (shipped 2026-05-01, PR #147)
 - **Reachability analysis per call site** — whether each call site is reachable from a test or public entry point. `analyze_change_impact` already covers this; agent can compose.
@@ -147,8 +149,23 @@ Items considered during design of shipped features and consciously punted on. Re
 - **Bidirectional view** (production code → tests, but not tests → production code). Use `analyze_method` on the test method.
 - **Theory-row enumeration** — the method appears once.
 
-### From `generate_test_skeleton` (in flight)
+### From `generate_test_skeleton` (shipped 2026-05-04, PR #154)
 - **Property / indexer / operator stubs** — low value; agent can request manually.
 - **Mock framework integration** (Moq, NSubstitute, FakeItEasy) — opinionated; agent picks.
 - **Test data builders** (AutoFixture, Bogus) — same.
 - **Cross-method dependency analysis** — keep skeleton focused on the SUT.
+- **`SyntaxFactory`-based output** — string composition is cleaner for stub-shaped output.
+- **Indirect `throw` detection** (via helper methods) — only direct `throw new T(...)` is followed.
+- **Existing-test detection / merge** — agent handles dedupe.
+- **Inherited-member skeletons** — agent composes via `get_overloads` / hierarchy tools.
+
+### `generate_test_skeleton` known emitter limitations (fix as fast-follow)
+- **Generic types** — `INamedTypeSymbol.Name` strips type parameters, so `Repository<TEntity>` emits `new Repository(...)` (invalid). Refuse with a clear error or close with `object` placeholder.
+- **Nested types** — `targetType.Name` drops the outer-type qualifier, so `Outer.Inner` emits `new Inner(...)` (invalid). Use `MinimallyQualifiedFormat` for the SUT type expression.
+- **Global-namespace types** — `ContainingNamespace.ToDisplayString()` returns empty for `IsGlobalNamespace`, producing `namespace .Tests;` and `using ;`. Guard with `IsGlobalNamespace`.
+- **Throw-walk descends into lambdas / local functions** — a `throw` inside a `Where(...)` lambda is reported as if the outer method threw it directly. Filter by nearest enclosing method body.
+- **Overload collisions** — two overloads of `Save(...)` both emit `Save_HappyPath`, producing duplicate method names. Suffix with arity or param-type initials.
+- **Abstract types** — emitter still produces `new Abstract(...)` even though a TodoNote warns about it. Skip body emission or emit `null!` placeholder.
+- **MSTest async-throw helper** — emitter always uses `Assert.ThrowsAsync<T>` (xUnit). MSTest needs `Assert.ThrowsExceptionAsync<T>`.
+- **Primitive-param coverage** — `decimal`, `Int16`, `UInt16/32/64`, `SByte` not classified as primitives, so methods using them fall through to no-arg call branches.
+- **Test coverage** — only xUnit emission tested deeply; NUnit `[TestCase]` and MSTest `[DataRow]` paths emit but aren't asserted.

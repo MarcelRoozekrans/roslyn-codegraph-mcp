@@ -116,6 +116,12 @@ public class CodeGraphBenchmarks
             _loaded, _resolver, "IGreeter.Greet", transitive: true, maxDepth: 3);
     }
 
+    [Benchmark(Description = "get_test_summary: whole solution")]
+    public object GetTestSummary()
+    {
+        return GetTestSummaryLogic.Execute(_loaded, _resolver, project: null);
+    }
+
     [Benchmark(Description = "get_type_hierarchy: Greeter")]
     public object GetTypeHierarchy()
     {
@@ -261,6 +267,13 @@ public class CodeGraphBenchmarks
     public object FindUncoveredSymbols()
     {
         return FindUncoveredSymbolsLogic.Execute(_loaded, _resolver);
+    }
+
+    [Benchmark(Description = "generate_test_skeleton: type input")]
+    public object GenerateTestSkeleton()
+    {
+        return GenerateTestSkeletonLogic.Execute(
+            _loaded, _resolver, symbol: "TestLib.OrderService", framework: "xunit");
     }
 
     [Benchmark(Description = "get_public_api_surface: whole solution")]

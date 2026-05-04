@@ -1,5 +1,42 @@
 # Changelog
 
+## [1.15.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.14.0...v1.15.0) (2026-05-02)
+
+
+### Features
+
+* add GenerateTestSkeletonLogic single-method case ([e2905be](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/e2905be99fe39371d9710090002a1f1af3339ee4))
+* add model for generate_test_skeleton ([e5aece4](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/e5aece4888e13bfda0e899a254859a1c0a61fc6b))
+* add TestFrameworkDetector to identify per-project framework ([71742c7](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/71742c74697e5b255a012636c2e0e94b0af613d9))
+* cover static-method skeleton generation ([f5042bd](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/f5042bd6f2edefb91831880830b449d0b8fec175))
+* emit Assert.Throws stub per distinct exception type ([e942ef3](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/e942ef35c177bb584c65cb415f5953dfec650ffc))
+* emit async stub for Task-returning methods ([4a7c318](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/4a7c3183eae5d2e78cd1c4d0825a9470bd953876))
+* emit Theory + InlineData for primitive-param methods ([431fdb0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/431fdb02b0840d30a32f5b212af0fcd631c94618))
+* generate_test_skeleton ([fe08c01](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/fe08c01d629e3c6fb416e6633aa9bdf8419a9bc3))
+* register generate_test_skeleton MCP tool ([d8a40c1](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/d8a40c1ff5e9d72443bb385565e54d93e6da271d))
+* surface constructor dependencies as TodoNotes ([9875a04](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/9875a04836253980031f1e4ae240d6e08be54dae))
+
+
+### Bug Fixes
+
+* enforce generated-code skip + parametric throw-stub args ([2527144](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/25271447bdb622a147a2b733406826450d81c478))
+* escape generic angle brackets in tool description for MDX ([a3df3a7](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/a3df3a7098edc55a31e162cf654836ea80b0d959))
+
+## [1.14.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.13.0...v1.14.0) (2026-05-01)
+
+
+### Features
+
+* add get_test_summary MCP tool ([64a79e7](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/64a79e7372a311c76f8d3b6faef9cba93a69a496))
+* add GetTestSummaryLogic with tests ([a6eec21](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/a6eec2191c3df3d0a1cff9f1990e389a93afb81e))
+* add models for get_test_summary ([0f7c664](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/0f7c664eb7e375fed1ce8ac8564ca3dac566e1ba))
+* register get_test_summary MCP tool ([a4ae431](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/a4ae4316e38e029071207731c7d88dccd96e2e09))
+
+
+### Bug Fixes
+
+* enforce generated-code skip + narrow Microsoft.* exclusion ([345f489](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/commit/345f4899c605961ebdfa2407eb84cf03103938ab))
+
 ## [1.13.0](https://github.com/MarcelRoozekrans/roslyn-codelens-mcp/compare/v1.12.0...v1.13.0) (2026-05-01)
 
 
