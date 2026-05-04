@@ -335,6 +335,12 @@ public class CodeGraphBenchmarks
         return GetOverloadsLogic.Execute(_resolver, _metadata, "System.Console.WriteLine");
     }
 
+    [Benchmark(Description = "get_operators: System.Decimal")]
+    public object GetOperators()
+    {
+        return GetOperatorsLogic.Execute(_resolver, _metadata, "System.Decimal");
+    }
+
     [Benchmark(Description = "get_call_graph: Greet (callees, depth 3)")]
     public async Task<object?> GetCallGraphCallees()
     {
