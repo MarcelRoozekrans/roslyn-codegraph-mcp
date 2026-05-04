@@ -69,6 +69,7 @@ A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/marcel
 - **get_type_overview** — Compound tool: type context + hierarchy + file diagnostics in one call
 - **analyze_method** — Compound tool: method signature + callers + outgoing calls in one call
 - **get_overloads** — Every overload of a method/constructor (source + metadata) with full parameter and modifier detail in one call
+- **get_operators** — list user-defined and conversion operators on a type
 - **get_call_graph** — Transitive caller/callee graph for a method, depth-bounded with cycle detection
 - **get_file_overview** — Compound tool: types defined in a file + file-scoped diagnostics in one call
 

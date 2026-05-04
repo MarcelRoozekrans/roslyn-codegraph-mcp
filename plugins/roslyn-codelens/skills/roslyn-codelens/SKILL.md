@@ -44,6 +44,7 @@ If any of these thoughts cross your mind, stop and switch to the MCP tool:
 | "Let me `Grep` for `Activator.CreateInstance`" | `find_reflection_usage` |
 | "I'll check if this method is used by reading files" | `find_callers` / `find_unused_symbols` |
 | "What overloads does this method have?" / "Show me all signatures of Foo" / "Compare overloads side-by-side" | `get_overloads` |
+| "What operators does this type define?" / "Does it have a custom `==` or implicit conversion?" / "List `+`, `-`, conversions on this type" | `get_operators` |
 | "I'll eyeball complexity by reading the method" | `get_complexity_metrics` |
 | "How is this project doing?" / "Where should I focus?" / "Show me the technical debt picture" | `get_project_health` |
 | "Which classes are doing too much?" / "Where are my god classes?" / "Worst design smells in this codebase?" | `find_god_objects` |
@@ -115,6 +116,7 @@ Inspect an arbitrary DLL           → add a <ProjectReference> to a throwaway
 - `get_file_overview` — types defined in a file + diagnostics, without reading it.
 - `analyze_method` — signature + callers + outgoing calls, all in one.
 - `get_overloads` — Every overload of a method or constructor (source + metadata) with full parameter detail, modifiers, generic type params, XML doc summary, and location. One call instead of N analyze_method calls.
+- `get_operators` — every `+`, `-`, `==`, `<`, conversion, etc. on a type, with kind, signature, source location. Includes synthesized record equality. Covers what `get_overloads` excludes.
 - `get_call_graph` — Transitive caller/callee graph for a method, depth-bounded with cycle detection. Adjacency-list output. Use when you need depth > 1 (`analyze_method` is depth=1).
 
 ### Navigating Code (**instead of Grep/Glob**)
@@ -281,6 +283,7 @@ Reference concrete types, interfaces, and call sites in your analysis. Not *"the
 | `get_type_overview` | "Give me everything about this type in one call" |
 | `analyze_method` | "Show signature, callers, and outgoing calls" |
 | `get_overloads` | "What overloads does this method have?" |
+| `get_operators` | "What operators does this type define?" |
 | `get_call_graph` | "Transitive callers/callees, depth-bounded" |
 | `get_file_overview` | "What types are in this file?" |
 
